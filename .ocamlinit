@@ -1,6 +1,12 @@
 
-#use "bytes.cma";;
+#use "topfind";;
+#require "bytes";;
+
 #directory "_build/src";;
 #load "printbox.cma";;
+
+#require "tyxml";;
+#directory "_build/src/html";;
+#load "PrintBox_html.cma";;
 
 module B = PrintBox;;
