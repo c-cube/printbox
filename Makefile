@@ -2,8 +2,12 @@
 OPT = -use-ocamlfind -classic-display
 TARGETS = src/printbox.cma src/printbox.cmxa src/printbox.cmxs \
 
+NATIVE ?= true
+NATIVE_DYNLINK ?= true
+HTML ?= true
+
 all:
-	ocamlbuild $(OPT) $(TARGETS)
+	./pkg/build.ml native=$(NATIVE) native-dynlink=$(NATIVE_DYNLINK) html=$(HTML)
 
 install: all
 	ocamlfind install printbox src/META $(TARGETS) _build/src/*.cmi

@@ -4,19 +4,20 @@ version: "dev"
 author: "Simon Cruanes"
 maintainer: "simon.cruanes.2007@m4x.org"
 build: [
-    [make "all"]
-]
-install: [
-    [make "install"]
+  ["ocaml" "pkg/build.ml"
+    "native=%{ocaml-native}%"
+    "native-dynlink=%{ocaml-native-dynlink}%"
+    "html=%{tyxml:installed}%"
+  ]
 ]
 build-doc: [ make "doc" ]
-remove: [
-    ["ocamlfind" "remove" "printbox"]
-]
 depends: [
-    "ocamlfind" {build}
-    "ocamlbuild" {build}
-    "base-bytes"
+  "ocamlfind" {build}
+  "ocamlbuild" {build}
+  "base-bytes"
+]
+depopts: [
+  "tyxml"
 ]
 tags: [ "print" "box" "table" "tree" ]
 homepage: "https://github.com/c-cube/printbox/"
