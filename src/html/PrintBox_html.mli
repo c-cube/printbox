@@ -12,7 +12,7 @@ val prelude : [> Html_types.style] html
 
 val prelude_str : string
 
-val to_html : PrintBox.t -> [< Html_types.flow5 > `Div `Ul `Table `P] html
+val to_html : PrintBox.t -> [`Div] html
 (** HTML for one box *)
 
 val to_string : PrintBox.t -> string

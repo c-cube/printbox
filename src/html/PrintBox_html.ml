@@ -25,13 +25,13 @@ let prelude =
 let prelude_str =
   Format.asprintf "%a@." (H.pp_elt ()) prelude
 
-let rec to_html
+let rec to_html_rec
   : B.t -> [< Html_types.flow5 > `Div `Ul `Table `P] html
   = function
   | B.Empty -> H.div []
   | B.Text s -> H.p [H.pcdata s]
   | B.Pad (_, b)
-  | B.Frame b -> to_html b
+  | B.Frame b -> to_html_rec b
   | B.Grid (bars, a) ->
     let class_ = match bars with
       | `Bars -> "framed"
@@ -39,7 +39,7 @@ let rec to_html
     in
     let to_row a =
       Array.to_list a
-      |> List.map (fun b -> H.td [to_html b])
+      |> List.map (fun b -> H.td [to_html_rec b])
       |> (fun x -> H.tr x)
     in
     let rows =
@@ -50,9 +50,11 @@ let rec to_html
   | B.Tree (_, b, l) ->
     let l = Array.to_list l in
     H.div
-      [ to_html b
-      ; H.ul (List.map (fun x -> H.li [to_html x]) l)
+      [ to_html_rec b
+      ; H.ul (List.map (fun x -> H.li [to_html_rec x]) l)
       ]
+
+let to_html b = H.div [to_html_rec b]
 
 let to_string b =
   Format.asprintf "@[%a@]@." (H.pp_elt ()) (to_html b)
