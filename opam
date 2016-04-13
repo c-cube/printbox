@@ -1,0 +1,25 @@
+opam-version: "1.2"
+name: "printbox"
+version: "dev"
+author: "Simon Cruanes"
+maintainer: "simon.cruanes.2007@m4x.org"
+build: [
+    [make "all"]
+]
+install: [
+    [make "install"]
+]
+build-doc: [ make "doc" ]
+remove: [
+    ["ocamlfind" "remove" "printbox"]
+]
+depends: [
+    "ocamlfind" {build}
+    "ocamlbuild" {build}
+    "base-bytes"
+]
+tags: [ "print" "box" "table" "tree" ]
+homepage: "https://github.com/c-cube/printbox/"
+dev-repo: "https://github.com/c-cube/printbox.git"
+bug-reports: "https://github.com/c-cube/printbox/issues/"
+
