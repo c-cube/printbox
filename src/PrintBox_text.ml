@@ -10,9 +10,10 @@ type position = PrintBox.position = {
   y:int;
 }
 
-let _string_len = ref Bytes.length
-
-let set_string_len f = _string_len := f
+let _cmp pos1 pos2 =
+  match Pervasives.compare pos1.y pos2.y with
+  | 0 -> Pervasives.compare pos1.x pos2.x
+  | x -> x
 
 let origin = {x=0; y=0;}
 
@@ -22,98 +23,88 @@ let _minus pos1 pos2 = _move pos1 (- pos2.x) (- pos2.y)
 let _move_x pos x = _move pos x 0
 let _move_y pos y = _move pos 0 y
 
+
+(* String length *)
+
+let _string_len = ref Bytes.length
+
+let set_string_len f = _string_len := f
+
 (** {2 Output: where to print to} *)
 
 module Output = struct
   type t = {
     put_char : position -> char -> unit;
     put_string : position -> string -> unit;
-    put_sub_string : position -> string -> int -> int -> unit;
     flush : unit -> unit;
   }
 
   let put_char out pos c = out.put_char pos c
   let put_string out pos s = out.put_string pos s
 
-  (** An internal buffer, suitable for writing efficiently, then
-      convertable into a list of lines *)
-  type buffer = {
-    mutable buf_lines : buf_line array;
-    mutable buf_len : int;
-  }
-  and buf_line = {
-    mutable bl_str : Bytes.t;
-    mutable bl_len : int;
-  }
+  (** Internal multi-line buffer suitable for unicode strings.
+      It is a map from start position to a printable entity (string or character)
+      All printable sequences are supposed to *NOT* introduce new lines *)
+  type printable =
+    | Char of char
+    | String of string
 
-  let _make_line _ = {bl_str=Bytes.empty; bl_len=0}
-
-  let _ensure_lines buf i =
-    if i >= Array.length buf.buf_lines
-    then (
-      let lines' = Array.init (2 * i + 5) _make_line in
-      Array.blit buf.buf_lines 0 lines' 0 buf.buf_len;
-      buf.buf_lines <- lines';
-    )
-
-  let _ensure_line line i =
-    if i >= !_string_len line.bl_str
-    then (
-      let str' = Bytes.make (2 * i + 5) ' ' in
-      Bytes.blit line.bl_str 0 str' 0 line.bl_len;
-      line.bl_str <- str';
-    )
-
+  (* Note: we trust the user not to mess things up relating to
+     strings overlapping because of bad positions *)
   let _buf_put_char buf pos c =
-    _ensure_lines buf pos.y;
-    _ensure_line buf.buf_lines.(pos.y) pos.x;
-    buf.buf_len <- max buf.buf_len (pos.y+1);
-    let line = buf.buf_lines.(pos.y) in
-    Bytes.set line.bl_str pos.x c;
-    line.bl_len <- max line.bl_len (pos.x+1)
-
-  let _buf_put_sub_string buf pos s s_i s_len =
-    _ensure_lines buf pos.y;
-    _ensure_line buf.buf_lines.(pos.y) (pos.x + s_len);
-    buf.buf_len <- max buf.buf_len (pos.y+1);
-    let line = buf.buf_lines.(pos.y) in
-    String.blit s s_i line.bl_str pos.x s_len;
-    line.bl_len <- max line.bl_len (pos.x+s_len)
+    Hashtbl.add buf pos (Char c)
 
   let _buf_put_string buf pos s =
-    _buf_put_sub_string buf pos s 0 (!_string_len (Bytes.unsafe_of_string s))
+    Hashtbl.add buf pos (String s)
 
-  (* create a new buffer *)
   let make_buffer () =
-    let buf = {
-      buf_lines = Array.init 16 _make_line;
-      buf_len = 0;
-    } in
+    let buf = Hashtbl.create 42 in
     let buf_out = {
       put_char = _buf_put_char buf;
-      put_sub_string = _buf_put_sub_string buf;
       put_string = _buf_put_string buf;
       flush = (fun () -> ());
     } in
     buf, buf_out
 
-  let buf_to_lines ?(indent=0) buf =
-    let buffer = Buffer.create (5 + buf.buf_len * 32) in
-    for i = 0 to buf.buf_len - 1 do
-      for _ = 1 to indent do Buffer.add_char buffer ' ' done;
-      let line = buf.buf_lines.(i) in
-      Buffer.add_substring buffer (Bytes.unsafe_to_string line.bl_str) 0 line.bl_len;
-      Buffer.add_char buffer '\n';
+  let buf_out_aux ?(indent=0) buf start_pos p curr_pos =
+    assert (_cmp curr_pos start_pos <= 0);
+    (* Go up to the expected location *)
+    for _ = curr_pos.y to start_pos.y - 1 do
+      Buffer.add_char buf '\n';
+      for _ = 1 to indent do
+        Buffer.add_char buf ' '
+      done
     done;
-    Buffer.contents buffer
+    for _ = curr_pos.x to start_pos.x - 1 do
+      Buffer.add_char buf ' '
+    done;
+    (* Print the interesting part *)
+    match p with
+    | Char c ->
+      Buffer.add_char buf c;
+      _move_x start_pos 1
+    | String s ->
+      Buffer.add_string buf s;
+      (* We could use Bytes.unsafe_of_string as long as !string_len
+         does not try to mutate the string (which it should have no
+         reason to do), but just to be safe... *)
+      let l = !_string_len (Bytes.of_string s) in
+      _move_x start_pos l
 
-  let buf_output ?(indent=0) oc buf =
-    for i = 0 to buf.buf_len - 1 do
-      for _ = 1 to indent do output_char oc ' '; done;
-      let line = buf.buf_lines.(i) in
-      output oc line.bl_str 0 line.bl_len;
-      output_char oc '\n';
-    done
+  let buf_out ?(indent=0) buf b =
+    for _ = 1 to indent do Buffer.add_char buf ' ' done;
+    let _pos = Hashtbl.fold (buf_out_aux ~indent buf) b origin in ()
+
+  let buf_to_lines ?indent b =
+    let buf = Buffer.create 42 in
+    buf_out ?indent buf b;
+    Buffer.contents buf
+
+  let buf_output ?indent oc b =
+    let buf = Buffer.create 42 in
+    buf_out ?indent buf b;
+    Buffer.output_buffer oc buf
+
 end
 
 module Box_inner = struct
@@ -353,3 +344,4 @@ let output ?(indent=0) oc b =
   render out (Box_inner.of_box b);
   Output.buf_output ~indent oc buf;
   flush oc
+
