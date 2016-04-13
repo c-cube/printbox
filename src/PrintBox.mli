@@ -3,176 +3,147 @@
 
 (** {1 Pretty-Printing of nested Boxes}
 
-Allows to print nested boxes, lists, arrays, tables in a nice way
-on any monospaced support.
+    Allows to print nested boxes, lists, arrays, tables in a nice way
+    on any monospaced support.
 
-{[
-  # let b = PrintBox.(
-  frame
-    (vlist [ line "hello";
-             hlist [line "world"; line "yolo"]])
-  );;
-val b : Box.t = <abstr>
-# PrintBox.output ~indent:2 stdout b;;
-  +----------+
-  |hello     |
-  |----------|
-  |world|yolo|
-  +----------+
-- : unit = ()
-# let b2 = PrintBox.(
-  frame
-    (hlist [ text "I love\nto\npress\nenter";
-             grid_text [| [|"a"; "bbb"|];
-                          [|"c"; "hello world"|] |]])
-  );;
-val b2 : PrintBox.Box.t = <abstr>
-# PrintBox.output stdout b2;; 
-+--------------------+
-|I love|a|bbb        |
-|to    |-+-----------|
-|press |c|hello world|
-|enter | |           |
-+--------------------+
+    {[
+      # let b = PrintBox.(
+          frame
+            (vlist [ line "hello";
+                     hlist [line "world"; line "yolo"]])
+        );;
+      val b : t = <abstr>
 
-- : unit = ()
+      # PrintBox.output ~indent:2 stdout b;;
+      +----------+
+      |hello     |
+      |----------|
+      |world|yolo|
+      +----------+
+      - : unit = ()
 
-]}
+      # let b2 = PrintBox.(
+          frame
+            (hlist [ text "I love\nto\npress\nenter";
+                     grid_text [| [|"a"; "bbb"|];
+                                  [|"c"; "hello world"|] |]])
+        );;
+      val b2 : PrintBox.t = <abstr>
+
+      # PrintBox.output stdout b2;; 
+      +--------------------+
+      |I love|a|bbb        |
+      |to    |-+-----------|
+      |press |c|hello world|
+      |enter | |           |
+      +--------------------+
+
+     - : unit = ()
+
+    ]}
 
 *)
 
 type position = { x:int ; y: int }
 (** Positions are relative to the upper-left corner, that is,
-when [x] increases we go toward the right, and when [y] increases
-we go toward the bottom (same order as a printer) *)
-
-val origin : position
-(** Initial position *)
-
-val set_string_len : (Bytes.t -> int) -> unit
-(** Set which function is used to compute string length. Typically
-    to be used with a unicode-sensitive length function *)
-
-(** {2 Output} *)
-
-module Output : sig
-  type t = {
-    put_char : position -> char -> unit;
-    put_string : position -> string -> unit;
-    put_sub_string : position -> string -> int -> int -> unit;
-    flush : unit -> unit;
-  }
-
-  (** {6 Default Instance: a buffer} *)
-
-  type buffer
-
-  val make_buffer : unit -> buffer * t
-  (** New buffer, and the corresponding output (buffers are mutable) *)
-
-  val buf_to_lines : ?indent:int -> buffer -> string
-  (** Print the content of the buffer into a string.
-      @param indent number of spaces to insert in front of the lines *)
-
-  val buf_output : ?indent:int -> out_channel -> buffer -> unit
-  (** Print the buffer on the given channel *)
-end
+    when [x] increases we go toward the right, and when [y] increases
+    we go toward the bottom (same order as a printer) *)
 
 (** {2 Box Combinators} *)
 
-module Box : sig
-  type t
+type t =
+  | Empty
+  | Text of string
+  | Frame of t
+  | Pad of position * t (* vertical and horizontal padding *)
+  | Grid of [`Bars | `None] * t array array
+  | Tree of int * t * t array (* int: indent *)
 
-  val size : t -> position
-  (** Size needed to print the box *)
-end
+(** A box, either empty, containing directly text,  or a table or
+    tree of sub-boxes *)
 
-val empty : Box.t
+val empty : t
 (** Empty box, of size 0 *)
 
-val line : string -> Box.t
+val line : string -> t
 (** Make a single-line box.
     @raise Invalid_argument if the string contains ['\n'] *)
 
-val text : string -> Box.t
+val text : string -> t
 (** Any text, possibly with several lines *)
 
-val sprintf : ('a, Buffer.t, unit, Box.t) format4 -> 'a
+val sprintf : ('a, Buffer.t, unit, t) format4 -> 'a
 (** Formatting for {!text} *)
 
-val lines : string list -> Box.t
+val lines : string list -> t
 (** Shortcut for {!text}, with a list of lines *)
 
-val int_ : int -> Box.t
+val int_ : int -> t
 
-val bool_ : bool -> Box.t
+val bool_ : bool -> t
 
-val float_ : float -> Box.t
+val float_ : float -> t
 
-val frame : Box.t -> Box.t
+val frame : t -> t
 (** Put a single frame around the box *)
 
-val pad : Box.t -> Box.t
+val pad : t -> t
 (** Pad the given box with some free space *)
 
-val pad' : col:int -> lines:int -> Box.t -> Box.t
+val pad' : col:int -> lines:int -> t -> t
 (** Pad with the given number of free cells for lines and columns *)
 
-val vpad : int -> Box.t -> Box.t
+val vpad : int -> t -> t
 (** Pad vertically *)
 
-val hpad : int -> Box.t -> Box.t
+val hpad : int -> t -> t
 (** Pad horizontally *)
 
-val grid : ?pad:(Box.t -> Box.t) -> ?bars:bool ->
-           Box.t array array -> Box.t
+val grid :
+  ?pad:(t -> t) ->
+  ?bars:bool ->
+  t array array -> t
 (** Grid of boxes (no frame between boxes). The matrix is indexed
     with lines first, then columns. The array must be a proper matrix,
     that is, all lines must have the same number of columns!
     @param framed if [true], each item of the grid will be framed.
       default value is [true] *)
 
-val grid_text : ?pad:(Box.t -> Box.t) -> ?bars:bool ->
-                string array array -> Box.t
+val grid_text :
+  ?pad:(t -> t) -> ?bars:bool ->
+  string array array -> t
 (** Same as {!grid}, but wraps every cell into a {!text} box *)
 
 val transpose : 'a array array -> 'a array array
 (** Transpose a matrix *)
 
 val init_grid : ?bars:bool ->
-                line:int -> col:int -> (line:int -> col:int -> Box.t) -> Box.t
+  line:int -> col:int -> (line:int -> col:int -> t) -> t
 (** Same as {!grid} but takes the matrix as a function *)
 
-val vlist : ?pad:(Box.t -> Box.t) -> ?bars:bool -> Box.t list -> Box.t
+val vlist : ?pad:(t -> t) -> ?bars:bool -> t list -> t
 (** Vertical list of boxes *)
 
-val hlist : ?pad:(Box.t -> Box.t) -> ?bars:bool -> Box.t list -> Box.t
+val hlist : ?pad:(t -> t) -> ?bars:bool -> t list -> t
 (** Horizontal list of boxes *)
 
-val grid_map : ?bars:bool -> ('a -> Box.t) -> 'a array array -> Box.t
+val grid_map : ?bars:bool -> ('a -> t) -> 'a array array -> t
 
-val vlist_map : ?bars:bool -> ('a -> Box.t) -> 'a list -> Box.t
+val vlist_map : ?bars:bool -> ('a -> t) -> 'a list -> t
 
-val hlist_map : ?bars:bool -> ('a -> Box.t) -> 'a list -> Box.t
+val hlist_map : ?bars:bool -> ('a -> t) -> 'a list -> t
 
-val tree : ?indent:int -> Box.t -> Box.t list -> Box.t
+val tree : ?indent:int -> t -> t list -> t
 (** Tree structure, with a node label and a list of children nodes *)
 
-val mk_tree : ?indent:int -> ('a -> Box.t * 'a list) -> 'a -> Box.t
+val mk_tree : ?indent:int -> ('a -> t * 'a list) -> 'a -> t
 (** Definition of a tree with a local function that maps nodes to
     their content and children *)
-
-(** {2 Rendering} *)
-
-val render : Output.t -> Box.t -> unit
-
-val to_string : Box.t -> string
-
-val output : ?indent:int -> out_channel -> Box.t -> unit
 
 (** {2 Simple Structural Interface} *)
 
 type 'a ktree = unit -> [`Nil | `Node of 'a * 'a ktree list]
+type box = t
 
 module Simple : sig
   type t =
@@ -191,14 +162,17 @@ module Simple : sig
   val map_ktree : ('a -> t) -> 'a ktree -> t
   (** Helper to map trees into recursive boxes *)
 
-  val to_box : t -> Box.t
+  val to_box : t -> box
 
   val sprintf : ('a, Buffer.t, unit, t) format4 -> 'a
   (** Formatting for [`Text] *)
-
-  val render : Output.t -> t -> unit
-
-  val to_string : t -> string
-
-  val output : ?indent:int -> out_channel -> t -> unit
 end
+
+(**/**)
+
+(** Utils *)
+
+val dim_matrix : _ array array -> position
+val map_matrix : ('a -> 'b) -> 'a array array -> 'b array array
+
+(**/**)

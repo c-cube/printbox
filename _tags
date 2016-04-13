@@ -1,0 +1,2 @@
+<src/**/*>: package(bytes)
+true: bin_annot, safe_string, warn(+a-4-44-29)
