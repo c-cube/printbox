@@ -62,9 +62,13 @@ let to_string b =
 let to_string_doc b =
   let meta_str = "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">" in
   let footer_str =
-    "<script>[...document.querySelectorAll('p')].forEach(el => \
-     el.addEventListener('click', () => el.nextSibling.style.display = \
-     el.nextSibling.style.display === 'none' ? 'block' : 'none')) </script>"
+    "<script> \
+     [...document.querySelectorAll('p')].forEach(el => \
+       el.addEventListener('click', () => el.nextSibling.style.display = \
+       el.nextSibling.style.display === 'none' ? 'block' : 'none')); \
+     [...document.querySelectorAll('ul ul')].forEach(el => \
+       el.style.display = 'none'); \
+     </script>"
   in
   Format.asprintf "<head>%s%s</head><body>@[%a@]%s</body>@."
     meta_str prelude_str (H.pp_elt ()) (to_html b) footer_str
