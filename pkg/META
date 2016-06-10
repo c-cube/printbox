@@ -1,3 +1,4 @@
+# Meta
 name = "printbox"
 version = "0.1"
 requires = "bytes"
@@ -8,3 +9,13 @@ archive(native) = "printbox.cmxa"
 archive(native, plugin) = "printbox.cmxs"
 exists_if = "printbox.cma"
 
+package "html" (
+ version = "0.1"
+ description = "print nested boxes in HTML"
+ requires = "bytes unix printbox tyxml"
+ archive(byte) = "printbox_html.cma"
+ archive(byte, plugin) = "printbox_html.cma"
+ archive(native) = "printbox_html.cmxa"
+ archive(native, plugin) = "printbox_html.cmxs"
+ exists_if = "printbox_html.cma"
+)
