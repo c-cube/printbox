@@ -6,10 +6,12 @@ NATIVE ?= true
 NATIVE_DYNLINK ?= true
 HTML ?= true
 
-all:
+all: build test
+
+build:
 	./pkg/build.ml native=$(NATIVE) native-dynlink=$(NATIVE_DYNLINK) html=$(HTML)
 
-install: all
+install: build
 	ocamlfind install printbox src/META $(TARGETS) _build/src/*.cmi
 
 doc:
