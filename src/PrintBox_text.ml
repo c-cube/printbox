@@ -211,10 +211,14 @@ module Box_inner = struct
       ; y=s.y + dim_children.y
       }
 
-  let rec lines_ s i k = match String.index_from s i '\n' with
-    | -1 ->
+  let str_idx s i c =
+    try Some (String.index_from s i c)
+    with Not_found -> None
+
+  let rec lines_ s i k = match str_idx s i '\n' with
+    | None ->
       if i<String.length s then k (String.sub s i (String.length s-i))
-    | j ->
+    | Some j ->
       let s' = String.sub s i (j-i) in
       k s';
       lines_ s (j+1) k
