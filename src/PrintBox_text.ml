@@ -185,7 +185,9 @@ module Box_inner = struct
     | Empty -> origin
     | Text l ->
       let width = List.fold_left
-          (fun acc line -> max acc (!_string_len (Bytes.unsafe_of_string line))) 0 l
+          (fun acc line ->
+             max acc (!_string_len (Bytes.unsafe_of_string line)))
+          0 l
       in
       { x=width; y=List.length l; }
     | Frame t ->
