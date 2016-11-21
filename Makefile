@@ -15,6 +15,14 @@ install: all
 doc:
 	ocamlbuild src/printbox.docdir/index.html
 
+TEST_TARGETS=test/test1.native
+
+test:
+	ocamlbuild -I _build/src $(TEST_TARGETS)
+	for i in $(wildcard ./test*.native) ; do \
+	  ./$$i ; \
+	done
+
 clean:
 	ocamlbuild -clean
 watch:
@@ -23,4 +31,4 @@ watch:
 		make ; \
 	done
 
-.PHONY: all clean
+.PHONY: all clean test
