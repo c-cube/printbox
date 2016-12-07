@@ -23,6 +23,10 @@ let _minus pos1 pos2 = _move pos1 (- pos2.x) (- pos2.y)
 let _move_x pos x = _move pos x 0
 let _move_y pos y = _move pos 0 y
 
+module M = Map.Make(struct
+    type t = position
+    let compare = _cmp
+  end)
 
 (* String length *)
 
@@ -52,13 +56,13 @@ module Output = struct
   (* Note: we trust the user not to mess things up relating to
      strings overlapping because of bad positions *)
   let _buf_put_char buf pos c =
-    Hashtbl.add buf pos (Char c)
+    buf := M.add pos (Char c) !buf
 
   let _buf_put_string buf pos s =
-    Hashtbl.add buf pos (String s)
+    buf := M.add pos (String s) !buf
 
   let make_buffer () =
-    let buf = Hashtbl.create 42 in
+    let buf = ref M.empty in
     let buf_out = {
       put_char = _buf_put_char buf;
       put_string = _buf_put_string buf;
@@ -93,7 +97,7 @@ module Output = struct
 
   let buf_out ?(indent=0) buf b =
     for _ = 1 to indent do Buffer.add_char buf ' ' done;
-    let _pos = Hashtbl.fold (buf_out_aux ~indent buf) b origin in ()
+    let _pos = M.fold (buf_out_aux ~indent buf) !b origin in ()
 
   let buf_to_lines ?indent b =
     let buf = Buffer.create 42 in
