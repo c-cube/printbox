@@ -25,6 +25,19 @@ simple box::
 +
 [source,OCaml]
 ----
+let box = B.(hlist [ text "hello"; text "world"; ]);;
+
+PrintBox_text.output stdout box;;
+----
++
+====
+  hello|world : unit = ()
+====
++
+less simple boxes::
++
+[source,OCaml]
+----
 let box =
   B.(hlist
   [ text "I love\nto\npress\nenter";
@@ -128,10 +141,6 @@ output_string out (PrintBox_html.to_string_doc (square 5));;
 ----
 +
 which prints some HTML in the file link:docs/foo.html[foo.html]
-+
-====
-
-====
 
 
 == Documentation
