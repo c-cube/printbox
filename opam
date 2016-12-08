@@ -4,11 +4,16 @@ version: "dev"
 authors: ["Simon Cruanes" "Guillaume Bury"]
 maintainer: "simon.cruanes.2007@m4x.org"
 build: [
-  ["ocaml" "pkg/build.ml"
-    "native=%{ocaml-native}%"
-    "native-dynlink=%{ocaml-native-dynlink}%"
-    "html=%{tyxml:installed}%"
-  ]
+  ["./configure"
+    "--%{tyxml:enable}%-html"
+    "--enable-docs"]
+  [make "build"]
+]
+install: [
+  [make "install"]
+]
+remove:[
+  ["ocamlfind" "remove" "printbox"]
 ]
 build-doc: [ make "doc" ]
 depends: [
