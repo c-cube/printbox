@@ -10,8 +10,10 @@ including:
 - HTML (using https://github.com/ocsigen/tyxml/[tyxml] )
 - LaTeX (*not implemented yet*)
 
-printing a table::
+A few examples:
 
+printing a table::
++
 [source,OCaml]
 ----
 #require "printbox";;
@@ -31,9 +33,9 @@ let sq = square 5;;
 (* now, display the table *)
 PrintBox_text.output stdout sq;;
 ----
-
++
 You should obtain something like:
-
++
 ====
   (0,0)|(0,1)|(0,2)|(0,3)|(0,4)
   -----------------------------
@@ -45,16 +47,20 @@ You should obtain something like:
   -----------------------------
   (4,0)|(4,1)|(4,2)|(4,3)|(4,4)- : unit = ()
 ====
-
++
+frame::
++
 Why not put a frame around this? That's easy.
-
++
 [source,OCaml]
 ----
 let sq2 = square 3 |> B.frame ;;
 
 PrintBox_text.output stdout sq2;;
 ----
-
++
+obtaining:
++
 ====
   +-----------------+
   |(0,0)|(0,1)|(0,2)|
