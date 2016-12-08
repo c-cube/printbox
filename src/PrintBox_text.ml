@@ -330,12 +330,14 @@ let rec render_rec ?(offset=origin) ?expected_size ~out b pos =
       assert (Array.length a > 0);
       let _ = Box_inner._array_foldi
           (fun pos' i b ->
-             Output.put_string out pos' "+- ";
+             let s = "+- " in
+             let n = String.length s in
+             Output.put_string out pos' s;
              if i<Array.length a-1
              then (
                _write_vline ~out (_move_y pos' 1) ((Box_inner.size b).y-1)
              );
-             render_rec ~out b (_move_x pos' 2);
+             render_rec ~out b (_move_x pos' n);
              _move_y pos' (Box_inner.size b).y
           ) pos' a
       in
