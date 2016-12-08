@@ -15,3 +15,12 @@ let () =
       (PrintBox_text.output ?indent:None)
       (square i)
   done
+
+let tree =
+  B.tree (B.text "root")
+    [ B.tree (B.text "a") [B.text "a1"; B.text "a2"];
+      B.tree (B.text "b") [B.text "b1"; B.text "b2"; B.text "b3"];
+    ]
+
+let () =
+  PrintBox_text.output stdout tree

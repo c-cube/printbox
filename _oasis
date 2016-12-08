@@ -32,11 +32,11 @@ Executable test1
   Path:           test
   MainIs:         test1.ml
   Build$:         flag(tests)
-  CompiledObject: best
+  CompiledObject: native
   Install:        false
 
 Test alltests
-  Command:        ./test1
+  Command:        ./test1.native
   TestTools:      test1
   Run$:           flag(tests)
 
