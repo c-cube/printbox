@@ -30,7 +30,7 @@
         );;
       val b2 : PrintBox.t = <abstr>
 
-      # PrintBox.output stdout b2;; 
+      # PrintBox.output stdout b2;;
       +--------------------+
       |I love|a|bbb        |
       |to    |-+-----------|
