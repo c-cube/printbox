@@ -324,7 +324,7 @@ let rec render_rec ?(offset=origin) ?expected_size ~out b pos =
       end
     | Box_inner.Tree (indent, n, a) ->
       render_rec ~out n pos;
-      (* star position for the children *)
+      (* start position for the children *)
       let pos' = _move pos indent (Box_inner.size n).y in
       Output.put_char out (_move_x pos' ~-1) '`';
       assert (Array.length a > 0);
@@ -333,8 +333,7 @@ let rec render_rec ?(offset=origin) ?expected_size ~out b pos =
              let s = "+- " in
              let n = String.length s in
              Output.put_string out pos' s;
-             if i<Array.length a-1
-             then (
+             if i<Array.length a-1 then (
                _write_vline ~out (_move_y pos' 1) ((Box_inner.size b).y-1)
              );
              render_rec ~out b (_move_x pos' n);
