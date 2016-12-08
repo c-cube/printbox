@@ -16,8 +16,8 @@ let () =
 
 let tree =
   B.tree (B.text "root")
-    [ B.tree (B.text "a") [B.text "a1"; B.text "a2"];
-      B.tree (B.text "b") [B.text "b1"; B.text "b2"; B.text "b3"];
+    [ B.tree (B.text "a") [B.text "a1\na1"; B.text "a2\na2\na2"];
+      B.tree (B.text "b") [B.text "b1\nb1"; B.text "b2"; B.text "b3"];
     ]
 
 let () =

@@ -120,12 +120,27 @@ We can also create trees and display them using indentation:
 ----
 let tree =
   B.tree (B.text "root")
-    [ B.tree (B.text "a") [B.text "a1"; B.text "a2"];
-      B.tree (B.text "b") [B.text "b1"; B.text "b2"; B.text "b3"];
+    [ B.tree (B.text "a") [B.text "a1\na1"; B.text "a2\na2\na2"];
+      B.tree (B.text "b") [B.text "b1\nb1"; B.text "b2"; B.text "b3"];
     ];;
 
 PrintBox_text.output stdout tree;;
 ----
++
+====
+    root
+    `+- a
+     |  `+- a1
+     |   |  a1
+     |   +- a2
+     |      a2
+     |      a2
+     +- b
+        `+- b1
+         |  b1
+         +- b2
+         +- b3
+====
 +
 HTML output (with `tyxml`)::
 +
@@ -140,7 +155,11 @@ let out = open_out "/tmp/foo.html";;
 output_string out (PrintBox_html.to_string_doc (square 5));;
 ----
 +
-which prints some HTML in the file link:docs/foo.html[foo.html]
+which prints some HTML in the file link:docs/foo.html[foo.html].
+Note that trees are printed in HTML using nested lists, and
+that `PrintBox_html.to_string_doc` will insert some javascript to
+make sub-lists fold/unfold on click (this is useful to display very large
+trees compactly and exploring them incrementally).
 
 
 == Documentation
