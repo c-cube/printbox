@@ -1,0 +1,64 @@
+OASISFormat:    0.4
+Name:           printbox
+Version:        0.1
+LicenseFile:    LICENSE
+License:        BSD-2-clause
+Authors:        Simon Cruanes, Guillaume Bury
+BuildTools:     ocamlbuild
+Plugins:        DevFiles (0.2), META (0.2)
+AlphaFeatures:  ocamlbuild_more_args
+
+Synopsis:       print nested boxes, tables, etc.
+
+Flag html
+  Description:    build the HTML rendering library
+  Default:        true
+
+Library printbox
+  Path:           src
+  Modules:        PrintBox, PrintBox_text
+  FindlibName:    printbox
+  BuildDepends:   bytes
+
+Library "prinbox_html"
+  Path:           src/html
+  Modules:        PrintBox_html
+  Build$:         flag(html)
+  FindlibName:    html
+  FindlibParent:  printbox
+  BuildDepends:   printbox, tyxml
+
+Executable test1
+  Path:           test
+  MainIs:         test1.ml
+  Build$:         flag(tests)
+  CompiledObject: best
+  Install:        false
+
+Test alltests
+  Command:        ./test1
+  TestTools:      test1
+  Run$:           flag(tests)
+
+Document printbox
+  Title:                Printbox Documentation
+  Type:                 ocamlbuild (0.3)
+  BuildTools+:          ocamldoc
+  Build$:               flag(docs)
+  Install:              true
+  XOCamlbuildPath:      src
+  XOCamlbuildExtraArgs:
+    "-docflags '-colorize-code -short-functors -charset utf-8'"
+  XOCamlbuildLibraries: printbox
+
+Document printbox_html
+  Title:                Printbox_html Documentation
+  Type:                 ocamlbuild (0.3)
+  BuildTools+:          ocamldoc
+  Build$:               flag(docs) && flag(html)
+  Install:              true
+  XOCamlbuildPath:      src/html
+  XOCamlbuildExtraArgs:
+    "-docflags '-colorize-code -short-functors -charset utf-8'"
+  XOCamlbuildLibraries: printbox.html
+

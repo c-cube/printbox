@@ -1,32 +1,45 @@
+# OASIS_START
+# DO NOT EDIT (digest: a3c674b4239234cbbe53afe090018954)
 
-OPT = -use-ocamlfind -classic-display
-TARGETS = src/printbox.cma src/printbox.cmxa src/printbox.cmxs \
+SETUP = ocaml setup.ml
 
-NATIVE ?= true
-NATIVE_DYNLINK ?= true
-HTML ?= true
+build: setup.data
+	$(SETUP) -build $(BUILDFLAGS)
 
-all: build test
+doc: setup.data build
+	$(SETUP) -doc $(DOCFLAGS)
 
-build:
-	./pkg/build.ml native=$(NATIVE) native-dynlink=$(NATIVE_DYNLINK) html=$(HTML)
+test: setup.data build
+	$(SETUP) -test $(TESTFLAGS)
 
-install: build
-	ocamlfind install printbox src/META $(TARGETS) _build/src/*.cmi
+all:
+	$(SETUP) -all $(ALLFLAGS)
 
-doc:
-	ocamlbuild src/printbox.docdir/index.html
+install: setup.data
+	$(SETUP) -install $(INSTALLFLAGS)
 
-TEST_TARGETS=test/test1.native
+uninstall: setup.data
+	$(SETUP) -uninstall $(UNINSTALLFLAGS)
 
-test:
-	ocamlbuild -I _build/src $(TEST_TARGETS)
-	for i in $(wildcard ./test*.native) ; do \
-	  ./$$i ; \
-	done
+reinstall: setup.data
+	$(SETUP) -reinstall $(REINSTALLFLAGS)
 
 clean:
-	ocamlbuild -clean
+	$(SETUP) -clean $(CLEANFLAGS)
+
+distclean:
+	$(SETUP) -distclean $(DISTCLEANFLAGS)
+
+setup.data:
+	$(SETUP) -configure $(CONFIGUREFLAGS)
+
+configure:
+	$(SETUP) -configure $(CONFIGUREFLAGS)
+
+.PHONY: build doc test all install uninstall reinstall clean distclean configure
+
+# OASIS_STOP
+
 watch:
 	while find src/ -print0 | xargs -0 inotifywait -e delete_self -e modify ; do \
 		echo "============ at `date` ==========" ; \

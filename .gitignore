@@ -2,3 +2,5 @@ _build
 *.native
 *.docdir
 *.install
+setup.log
+setup.data
