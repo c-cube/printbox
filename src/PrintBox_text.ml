@@ -70,18 +70,28 @@ module Output = struct
     } in
     buf, buf_out
 
-  let buf_out_aux ?(indent=0) buf start_pos p curr_pos =
-    assert (_cmp curr_pos start_pos <= 0);
-    (* Go up to the expected location *)
-    for _ = curr_pos.y to start_pos.y - 1 do
+  let goto ?(indent=0) buf start dest =
+    (** Go to the line before the one we want *)
+    for _ = start.y to dest.y - 2 do
+      Buffer.add_char buf '\n'
+    done;
+    (** Emit the last line and indent it *)
+    if start.y < dest.y then begin
       Buffer.add_char buf '\n';
       for _ = 1 to indent do
         Buffer.add_char buf ' '
       done
-    done;
-    for _ = curr_pos.x to start_pos.x - 1 do
+    end;
+    (** Now that we are on the correct line, go the right column. *)
+    let x_start = if start.y < dest.y then 0 else start.x in
+    for _ = x_start to dest.x - 1 do
       Buffer.add_char buf ' '
-    done;
+    done
+
+  let buf_out_aux ?(indent=0) buf start_pos p curr_pos =
+    assert (_cmp curr_pos start_pos <= 0);
+    (* Go up to the expected location *)
+    goto ~indent buf curr_pos start_pos;
     (* Print the interesting part *)
     match p with
     | Char c ->
