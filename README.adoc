@@ -1,0 +1,86 @@
+= PrintBox
+:toc: macro
+:toclevels: 4
+:source-highlighter: pygments
+
+Allows to print nested boxes, lists, arrays, tables in several formats,
+including:
+
+- text (assuming monospace font)
+- HTML (using https://github.com/ocsigen/tyxml/[tyxml] )
+- LaTeX (*not implemented yet*)
+
+printing a table::
+
+[source,OCaml]
+----
+#require "printbox";;
+
+module B = PrintBox;;
+
+let init n f = Array.to_list (Array.init n f);;
+
+(* function to make a square *)
+let square n =
+  init n
+    (fun i -> init n (fun j -> B.sprintf "(%d,%d)" i j) |> B.hlist)
+  |> B.vlist ;;
+
+let sq = square 5;;
+
+(* now, display the table *)
+PrintBox_text.output stdout sq;;
+----
+
+You should obtain something like:
+
+====
+  (0,0)|(0,1)|(0,2)|(0,3)|(0,4)
+  -----------------------------
+  (1,0)|(1,1)|(1,2)|(1,3)|(1,4)
+  -----------------------------
+  (2,0)|(2,1)|(2,2)|(2,3)|(2,4)
+  -----------------------------
+  (3,0)|(3,1)|(3,2)|(3,3)|(3,4)
+  -----------------------------
+  (4,0)|(4,1)|(4,2)|(4,3)|(4,4)- : unit = ()
+====
+
+Why not put a frame around this? That's easy.
+
+[source,OCaml]
+----
+let sq2 = square 3 |> B.frame ;;
+
+PrintBox_text.output stdout sq2;;
+----
+
+====
+  +-----------------+
+  |(0,0)|(0,1)|(0,2)|
+  |-----------------|
+  |(1,0)|(1,1)|(1,2)|
+  |-----------------|
+  |(2,0)|(2,1)|(2,2)|
+  +-----------------+- : unit = ()
+====
+
+
+== Documentation
+
+See https://c-cube.github.io/printbox/
+
+== Build
+
+Ideally, use http://opam.ocaml.org/[opam] :
+
+----
+opam install printbox
+----
+
+Manually:
+
+----
+./configure  # optional
+make build
+----
