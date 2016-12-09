@@ -72,19 +72,19 @@ module Output = struct
 
   let goto ?(indent=0) buf start dest =
     (** Go to the line before the one we want *)
-    for _ = start.y to dest.y - 2 do
+    for _i = start.y to dest.y - 2 do
       Buffer.add_char buf '\n'
     done;
     (** Emit the last line and indent it *)
     if start.y < dest.y then begin
       Buffer.add_char buf '\n';
-      for _ = 1 to indent do
+      for _i = 1 to indent do
         Buffer.add_char buf ' '
       done
     end;
     (** Now that we are on the correct line, go the right column. *)
     let x_start = if start.y < dest.y then 0 else start.x in
-    for _ = x_start to dest.x - 1 do
+    for _i = x_start to dest.x - 1 do
       Buffer.add_char buf ' '
     done
 
@@ -106,7 +106,7 @@ module Output = struct
       _move_x start_pos l
 
   let buf_out ?(indent=0) buf b =
-    for _ = 1 to indent do Buffer.add_char buf ' ' done;
+    for _i = 1 to indent do Buffer.add_char buf ' ' done;
     let _pos = M.fold (buf_out_aux ~indent buf) !b origin in ()
 
   let buf_to_lines ?indent b =
