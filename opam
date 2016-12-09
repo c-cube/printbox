@@ -28,4 +28,5 @@ tags: [ "print" "box" "table" "tree" ]
 homepage: "https://github.com/c-cube/printbox/"
 dev-repo: "https://github.com/c-cube/printbox.git"
 bug-reports: "https://github.com/c-cube/printbox/issues/"
+available: [ocaml-version >= "4.00.0"]
 
