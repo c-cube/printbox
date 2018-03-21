@@ -6,7 +6,9 @@ maintainer: "simon.cruanes.2007@m4x.org"
 build: [
   ["./configure"
     "--%{tyxml:enable}%-html"
-    "--enable-docs"]
+    "--docdir" "%{doc}%"
+    "--%{doc:enable}%-docs"
+    ]
   [make "build"]
 ]
 install: [
@@ -15,7 +17,13 @@ install: [
 remove:[
   ["ocamlfind" "remove" "printbox"]
 ]
-build-doc: [ make "doc" ]
+build-doc: [
+  ["./configure"
+    "--docdir" "%{printbox:doc}%"
+    "--enable-docs"
+    ]
+  [ make "doc" ]
+]
 depends: [
   "ocamlfind" {build}
   "ocamlbuild" {build}
