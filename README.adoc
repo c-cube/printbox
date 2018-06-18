@@ -10,6 +10,8 @@ including:
 - HTML (using https://github.com/ocsigen/tyxml/[tyxml] )
 - LaTeX (*not implemented yet*)
 
+image::https://api.travis-ci.org/c-cube/printbox.svg?branch=master[alt="build status", link="https://travis-ci.org/c-cube/printbox"]
+
 A few examples:
 
 importing the module::
