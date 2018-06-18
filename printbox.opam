@@ -4,30 +4,15 @@ version: "0.1"
 authors: ["Simon Cruanes" "Guillaume Bury"]
 maintainer: "simon.cruanes.2007@m4x.org"
 build: [
-  ["./configure"
-    "--%{tyxml:enable}%-html"
-    "--docdir" "%{doc}%"
-    "--%{doc:enable}%-docs"
-    ]
-  [make "build"]
-]
-install: [
-  [make "install"]
-]
-remove:[
-  ["ocamlfind" "remove" "printbox"]
+  ["jbuilder" "build"]
 ]
 build-doc: [
-  ["./configure"
-    "--docdir" "%{printbox:doc}%"
-    "--enable-docs"
-    ]
-  [ make "doc" ]
+  ["jbuilder" "build" "@doc"]
 ]
 depends: [
-  "ocamlfind" {build}
-  "ocamlbuild" {build}
+  "jbuilder" {build}
   "base-bytes"
+  "odoc" {doc}
 ]
 depopts: [
   "tyxml"
@@ -36,5 +21,4 @@ tags: [ "print" "box" "table" "tree" ]
 homepage: "https://github.com/c-cube/printbox/"
 dev-repo: "https://github.com/c-cube/printbox.git"
 bug-reports: "https://github.com/c-cube/printbox/issues/"
-available: [ocaml-version >= "4.00.0"]
 

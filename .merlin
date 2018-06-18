@@ -1,6 +1,0 @@
-S src
-S src/html/
-B _build/src/
-B _build/src/html
-PKG tyxml
-FLG -w +a-4-44-29

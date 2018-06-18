@@ -4,3 +4,5 @@ _build
 *.install
 setup.log
 setup.data
+.merlin
+*.install
