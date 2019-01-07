@@ -7,6 +7,9 @@ build:
 test:
 	@dune runtest --no-buffer --force
 
+install: build
+	@dune install
+
 doc:
 	@dune build @doc
 

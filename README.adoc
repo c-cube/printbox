@@ -179,6 +179,5 @@ opam install printbox
 Manually:
 
 ----
-./configure  # optional
-make build
+make install
 ----
