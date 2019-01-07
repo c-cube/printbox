@@ -71,18 +71,18 @@ module Output = struct
     buf, buf_out
 
   let goto ?(indent=0) buf start dest =
-    (** Go to the line before the one we want *)
+    (* Go to the line before the one we want *)
     for _i = start.y to dest.y - 2 do
       Buffer.add_char buf '\n'
     done;
-    (** Emit the last line and indent it *)
+    (* Emit the last line and indent it *)
     if start.y < dest.y then begin
       Buffer.add_char buf '\n';
       for _i = 1 to indent do
         Buffer.add_char buf ' '
       done
     end;
-    (** Now that we are on the correct line, go the right column. *)
+    (* Now that we are on the correct line, go the right column. *)
     let x_start = if start.y < dest.y then 0 else start.x in
     for _i = x_start to dest.x - 1 do
       Buffer.add_char buf ' '

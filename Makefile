@@ -2,15 +2,15 @@
 all: build
 
 build:
-	jbuilder build @install
+	@dune build @install
 
 test:
-	jbuilder runtest --no-buffer --force
+	@dune runtest --no-buffer --force
 
 doc:
-	jbuilder build @doc
+	@dune build @doc
 
 clean:
-	jbuilder clean
+	@dune clean
 
 .PHONY: all build test clean doc
