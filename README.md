@@ -29,6 +29,7 @@ $ make install
 ## A few examples
 
 <details>
+<summary>A few examples</summary>
 
 #### importing the module
 
@@ -116,39 +117,33 @@ val sq2 : B.t = <abstr>
 - : unit = ()
 ```
 
-> +-----------------+
-> |(0,0)|(0,1)|(0,2)|
-> |-----------------|
-> |(1,0)|(1,1)|(1,2)|
-> |-----------------|
-> |(2,0)|(2,1)|(2,2)|
-> +-----------------+- : unit = ()
-
 #### tree
 
 We can also create trees and display them using indentation:
 
 ```ocaml
-let tree =
+# let tree =
   B.tree (B.text "root")
     [ B.tree (B.text "a") [B.text "a1\na1"; B.text "a2\na2\na2"];
       B.tree (B.text "b") [B.text "b1\nb1"; B.text "b2"; B.text "b3"];
     ];;
+val tree : B.t = <abstr>
 
-PrintBox_text.output stdout tree;;
+# PrintBox_text.output stdout tree;;
+root
+`+- a
+ |  `+- a1
+ |   |  a1
+ |   +- a2
+ |      a2
+ |      a2
+ +- b
+    `+- b1
+     |  b1
+     +- b2
+     +- b3
+- : unit = ()
 ```
->  root
->  `+- a
->   |  `+- a1
->   |   |  a1
->   |   +- a2
->   |      a2
->   |      a2
->   +- b
->      `+- b1
->       |  b1
->       +- b2
->       +- b3
 
 #### HTML output (with `tyxml`)
 
