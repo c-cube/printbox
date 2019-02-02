@@ -6,6 +6,7 @@ maintainer: "simon.cruanes.2007@m4x.org"
 synopsis: "Allows to print nested boxes, lists, arrays, tables in several formats"
 build: [
   ["dune" "build" "@install" "-p" name "-j" jobs]
+  ["dune" "runtest" "-p" name "-j" jobs] {with-test}
   ["dune" "build" "@doc" "-p" name "-j" jobs] {with-doc}
 ]
 depends: [
@@ -13,6 +14,7 @@ depends: [
   "base-bytes"
   "odoc" {with-doc}
   "ocaml" { >= "4.03" }
+  "mdx" {with-test}
 ]
 depopts: [
   "tyxml"
