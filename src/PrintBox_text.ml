@@ -10,42 +10,43 @@ type position = PrintBox.position = {
   y:int;
 }
 
-let _cmp pos1 pos2 =
-  match Pervasives.compare pos1.y pos2.y with
-  | 0 -> Pervasives.compare pos1.x pos2.x
-  | x -> x
+module Pos = struct
+  type t = position
 
-let origin = {x=0; y=0;}
+  let[@inline] equal pos1 pos2 : bool = pos1.x = pos2.x && pos1.y = pos2.y
+  let[@inline] hash pos : int = Hashtbl.seeded_hash pos.x pos.y
 
-let _move pos x y = {x=pos.x + x; y=pos.y + y}
-let _add pos1 pos2 = _move pos1 pos2.x pos2.y
-let _minus pos1 pos2 = _move pos1 (- pos2.x) (- pos2.y)
-let _move_x pos x = _move pos x 0
-let _move_y pos y = _move pos 0 y
+  let[@inline] compare pos1 pos2 =
+    match Pervasives.compare pos1.y pos2.y with
+    | 0 -> Pervasives.compare pos1.x pos2.x
+    | x -> x
 
-module M = Map.Make(struct
-    type t = position
-    let compare = _cmp
-  end)
+  let origin = {x=0; y=0;}
+
+  let[@inline] move pos x y = {x=pos.x + x; y=pos.y + y}
+  let[@inline] (+) pos1 pos2 = move pos1 pos2.x pos2.y
+  let[@inline] move_x pos x = move pos x 0
+  let[@inline] move_y pos y = move pos 0 y
+end
+
+module M = Map.Make(Pos)
 
 (* String length *)
 
-let _string_len = ref Bytes.length
+let str_len_ = ref Bytes.length
 
-let set_string_len f = _string_len := f
+let set_string_len f = str_len_ := f
 
 (** {2 Output: where to print to} *)
 
-module Output = struct
-  type t = {
-    put_char : position -> char -> unit;
-    put_string : position -> string -> unit;
-    flush : unit -> unit;
-  }
-
-  let put_char out pos c = out.put_char pos c
-  let put_string out pos s = out.put_string pos s
-
+module Output : sig
+  type t
+  val create : unit -> t
+  val put_char : t -> position -> char -> unit
+  val put_string : t -> position -> string -> unit
+  val to_string : ?indent:int -> t -> string
+  val to_chan : ?indent:int -> out_channel -> t -> unit
+end = struct
   (** Internal multi-line buffer suitable for unicode strings.
       It is a map from start position to a printable entity (string or character)
       All printable sequences are supposed to *NOT* introduce new lines *)
@@ -53,22 +54,17 @@ module Output = struct
     | Char of char
     | String of string
 
+  type t = printable M.t ref
+
   (* Note: we trust the user not to mess things up relating to
      strings overlapping because of bad positions *)
-  let _buf_put_char buf pos c =
-    buf := M.add pos (Char c) !buf
+  let[@inline] put_char (self:t) pos c =
+    self := M.add pos (Char c) !self
 
-  let _buf_put_string buf pos s =
-    buf := M.add pos (String s) !buf
+  let[@inline] put_string (self:t) pos s =
+    self := M.add pos (String s) !self
 
-  let make_buffer () =
-    let buf = ref M.empty in
-    let buf_out = {
-      put_char = _buf_put_char buf;
-      put_string = _buf_put_string buf;
-      flush = (fun () -> ());
-    } in
-    buf, buf_out
+  let create () : t = ref M.empty
 
   let goto ?(indent=0) buf start dest =
     (* Go to the line before the one we want *)
@@ -88,35 +84,35 @@ module Output = struct
       Buffer.add_char buf ' '
     done
 
-  let buf_out_aux ?(indent=0) buf start_pos p curr_pos =
-    assert (_cmp curr_pos start_pos <= 0);
+  let to_buf_aux_ ?(indent=0) buf start_pos p curr_pos =
+    assert (Pos.compare curr_pos start_pos <= 0);
     (* Go up to the expected location *)
     goto ~indent buf curr_pos start_pos;
     (* Print the interesting part *)
     match p with
     | Char c ->
       Buffer.add_char buf c;
-      _move_x start_pos 1
+      Pos.move_x start_pos 1
     | String s ->
       Buffer.add_string buf s;
       (* We could use Bytes.unsafe_of_string as long as !string_len
          does not try to mutate the string (which it should have no
          reason to do), but just to be safe... *)
-      let l = !_string_len (Bytes.of_string s) in
-      _move_x start_pos l
+      let l = !str_len_ (Bytes.of_string s) in
+      Pos.move_x start_pos l
 
-  let buf_out ?(indent=0) buf b =
+  let to_buf_ ?(indent=0) buf b =
     for _i = 1 to indent do Buffer.add_char buf ' ' done;
-    let _pos = M.fold (buf_out_aux ~indent buf) !b origin in ()
+    let _pos = M.fold (to_buf_aux_ ~indent buf) !b Pos.origin in ()
 
-  let buf_to_lines ?indent b =
+  let to_string  ?indent b =
     let buf = Buffer.create 42 in
-    buf_out ?indent buf b;
+    to_buf_ ?indent buf b;
     Buffer.contents buf
 
-  let buf_output ?indent oc b =
+  let to_chan ?indent oc b =
     let buf = Buffer.create 42 in
-    buf_out ?indent buf b;
+    to_buf_ ?indent buf b;
     Buffer.output_buffer oc buf
 
 end
@@ -196,11 +192,11 @@ module Box_inner = struct
     lines, columns
 
   let size_of_shape = function
-    | Empty -> origin
+    | Empty -> Pos.origin
     | Text l ->
       let width = List.fold_left
           (fun acc line ->
-             max acc (!_string_len (Bytes.unsafe_of_string line)))
+             max acc (!str_len_ (Bytes.unsafe_of_string line)))
           0 l
       in
       { x=width; y=List.length l; }
@@ -229,7 +225,8 @@ module Box_inner = struct
     try Some (String.index_from s i c)
     with Not_found -> None
 
-  let rec lines_ s i k = match str_idx s i '\n' with
+  let rec lines_ s i k : unit =
+    match str_idx s i '\n' with
     | None ->
       if i<String.length s then k (String.sub s i (String.length s-i))
     | Some j ->
@@ -237,7 +234,7 @@ module Box_inner = struct
       k s';
       lines_ s (j+1) k
 
-  let rec of_box b =
+  let rec of_box (b:B.t) : t =
     let shape = match b with
       | B.Empty -> Empty
       | B.Text s ->
@@ -257,40 +254,40 @@ end
 
 let _write_vline ~out pos n =
   for j=0 to n-1 do
-    Output.put_char out (_move_y pos j) '|'
+    Output.put_char out (Pos.move_y pos j) '|'
   done
 
 let _write_hline ~out pos n =
   for i=0 to n-1 do
-    Output.put_char out (_move_x pos i) '-'
+    Output.put_char out (Pos.move_x pos i) '-'
   done
 
 (* render given box on the output, starting with upper left corner
     at the given position. [expected_size] is the size of the
     available surrounding space. [offset] is the offset of the box
     w.r.t the surrounding box *)
-let rec render_rec ?(offset=origin) ?expected_size ~out b pos =
+let rec render_rec ?(offset=Pos.origin) ?expected_size ~out b pos =
   match Box_inner.shape b with
     | Box_inner.Empty -> ()
     | Box_inner.Text l ->
       List.iteri
         (fun i line ->
-           Output.put_string out (_move_y pos i) line
+           Output.put_string out (Pos.move_y pos i) line
         ) l
     | Box_inner.Frame b' ->
       let {x;y} = Box_inner.size b' in
       Output.put_char out pos '+';
-      Output.put_char out (_move pos (x+1) (y+1)) '+';
-      Output.put_char out (_move pos 0 (y+1)) '+';
-      Output.put_char out (_move pos (x+1) 0) '+';
-      _write_hline ~out (_move_x pos 1) x;
-      _write_hline ~out (_move pos 1 (y+1)) x;
-      _write_vline ~out (_move_y pos 1) y;
-      _write_vline ~out (_move pos (x+1) 1) y;
-      render_rec ~out b' (_move pos 1 1)
+      Output.put_char out (Pos.move pos (x+1) (y+1)) '+';
+      Output.put_char out (Pos.move pos 0 (y+1)) '+';
+      Output.put_char out (Pos.move pos (x+1) 0) '+';
+      _write_hline ~out (Pos.move_x pos 1) x;
+      _write_hline ~out (Pos.move pos 1 (y+1)) x;
+      _write_vline ~out (Pos.move_y pos 1) y;
+      _write_vline ~out (Pos.move pos (x+1) 1) y;
+      render_rec ~out b' (Pos.move pos 1 1)
     | Box_inner.Pad (dim, b') ->
       let expected_size = Box_inner.size b in
-      render_rec ~offset:(_add dim offset) ~expected_size ~out b' (_add pos dim)
+      render_rec ~offset:Pos.(dim + offset) ~expected_size ~out b' Pos.(pos + dim)
     | Box_inner.Grid (style,m) ->
       let dim = B.dim_matrix m in
       let bars = match style with
@@ -306,7 +303,7 @@ let rec render_rec ?(offset=origin) ?expected_size ~out b pos =
             x=columns.(i+1)-columns.(i);
             y=lines.(j+1)-lines.(j);
           } in
-          let pos' = _move pos (columns.(i)) (lines.(j)) in
+          let pos' = Pos.move pos (columns.(i)) (lines.(j)) in
           render_rec ~expected_size ~out m.(j).(i) pos'
         done;
       done;
@@ -321,22 +318,22 @@ let rec render_rec ?(offset=origin) ?expected_size ~out b pos =
         | `None -> ()
         | `Bars ->
           for j=1 to dim.y - 1 do
-            _write_hline ~out (_move pos (-offset.x) (lines.(j)-1)) len_hlines
+            _write_hline ~out (Pos.move pos (-offset.x) (lines.(j)-1)) len_hlines
           done;
           for i=1 to dim.x - 1 do
-            _write_vline ~out (_move pos (columns.(i)-1) (-offset.y)) len_vlines
+            _write_vline ~out (Pos.move pos (columns.(i)-1) (-offset.y)) len_vlines
           done;
           for j=1 to dim.y - 1 do
             for i=1 to dim.x - 1 do
-              Output.put_char out (_move pos (columns.(i)-1) (lines.(j)-1)) '+'
+              Output.put_char out (Pos.move pos (columns.(i)-1) (lines.(j)-1)) '+'
             done
           done
       end
     | Box_inner.Tree (indent, n, a) ->
       render_rec ~out n pos;
       (* start position for the children *)
-      let pos' = _move pos indent (Box_inner.size n).y in
-      Output.put_char out (_move_x pos' ~-1) '`';
+      let pos' = Pos.move pos indent (Box_inner.size n).y in
+      Output.put_char out (Pos.move_x pos' ~-1) '`';
       assert (Array.length a > 0);
       let _ = Box_inner._array_foldi
           (fun pos' i b ->
@@ -344,25 +341,25 @@ let rec render_rec ?(offset=origin) ?expected_size ~out b pos =
              let n = String.length s in
              Output.put_string out pos' s;
              if i<Array.length a-1 then (
-               _write_vline ~out (_move_y pos' 1) ((Box_inner.size b).y-1)
+               _write_vline ~out (Pos.move_y pos' 1) ((Box_inner.size b).y-1)
              );
-             render_rec ~out b (_move_x pos' n);
-             _move_y pos' (Box_inner.size b).y
+             render_rec ~out b (Pos.move_x pos' n);
+             Pos.move_y pos' (Box_inner.size b).y
           ) pos' a
       in
       ()
 
 let render out b =
-  render_rec ~out b origin
+  render_rec ~out b Pos.origin
 
 let to_string b =
-  let buf, out = Output.make_buffer () in
-  render out (Box_inner.of_box b);
-  Output.buf_to_lines buf
+  let buf = Output.create() in
+  render buf (Box_inner.of_box b);
+  Output.to_string buf
 
 let output ?(indent=0) oc b =
-  let buf, out = Output.make_buffer () in
-  render out (Box_inner.of_box b);
-  Output.buf_output ~indent oc buf;
+  let buf = Output.create () in
+  render buf (Box_inner.of_box b);
+  Output.to_chan ~indent oc buf;
   flush oc
 
