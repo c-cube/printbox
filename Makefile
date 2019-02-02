@@ -1,5 +1,5 @@
 
-all: build
+dev: build test
 
 build:
 	@dune build @install
