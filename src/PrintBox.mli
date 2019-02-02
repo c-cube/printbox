@@ -75,14 +75,28 @@ val text : string -> t
 val sprintf : ('a, Buffer.t, unit, t) format4 -> 'a
 (** Formatting for {!text} *)
 
+val asprintf : ('a, Format.formatter, unit, t) format4 -> 'a
+(** Formatting for {!text}.
+    @since NEXT_RELEASE *)
+
 val lines : string list -> t
-(** Shortcut for {!text}, with a list of lines *)
+(** Shortcut for {!text}, with a list of lines.
+    [lines l] is the same as [text (String.concat "\n" l)]. *)
 
 val int_ : int -> t
 
 val bool_ : bool -> t
 
 val float_ : float -> t
+
+val int : int -> t
+(** @since NEXT_RELEASE *)
+
+val bool : bool -> t
+(** @since NEXT_RELEASE *)
+
+val float : float -> t
+(** @since NEXT_RELEASE *)
 
 val frame : t -> t
 (** Put a single frame around the box *)
@@ -166,6 +180,10 @@ module Simple : sig
 
   val sprintf : ('a, Buffer.t, unit, t) format4 -> 'a
   (** Formatting for [`Text] *)
+
+  val asprintf : ('a, Format.formatter, unit, t) format4 -> 'a
+  (** Formatting for [`Text].
+      @since NEXT_RELEASE *)
 end
 
 (**/**)
