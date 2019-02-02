@@ -1,8 +1,0 @@
-
-(executable
-  ((name test1)
-   (libraries (printbox))))
-
-(alias
-  ((name runtest)
-   (action (run ./test1.exe))))
