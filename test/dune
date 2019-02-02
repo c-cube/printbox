@@ -3,6 +3,10 @@
   (name test1)
   (libraries printbox))
 
+(rule
+  (targets test1.output)
+  (action (with-stdout-to %{targets} (run ./test1.exe))))
+
 (alias
   (name runtest)
-  (action (run ./test1.exe)))
+  (action (diff test1.expected test1.output)))
