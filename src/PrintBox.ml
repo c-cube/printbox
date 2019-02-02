@@ -5,7 +5,7 @@
 
 type position = { x:int ; y: int }
 
-type t =
+type view =
   | Empty
   | Text of string list
   | Frame of t
@@ -13,7 +13,10 @@ type t =
   | Grid of [`Bars | `None] * t array array
   | Tree of int * t * t array
 
+and t = view
+
 let empty = Empty
+let[@inline] view (t:t) : view = t
 
 let[@inline] line_ s = Text [s]
 

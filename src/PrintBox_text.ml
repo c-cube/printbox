@@ -256,7 +256,8 @@ module Box_inner = struct
       List.iter (fun s -> lines_ s 0 k) tl
 
   let rec of_box (b:B.t) : t =
-    let shape = match b with
+    let shape =
+      match B.view b with
       | B.Empty -> Empty
       | B.Text l ->
         (* split into lines *)

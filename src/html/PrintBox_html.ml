@@ -25,9 +25,8 @@ let prelude =
 let prelude_str =
   Format.asprintf "%a@." (H.pp_elt ()) prelude
 
-let rec to_html_rec
-  : B.t -> [< Html_types.flow5 > `Div `Ul `Table `P] html
-  = function
+let rec to_html_rec (b: B.t) : [< Html_types.flow5 > `Div `Ul `Table `P] html = 
+  match B.view b with
   | B.Empty -> H.div []
   | B.Text s -> H.p (List.map H.txt s)
   | B.Pad (_, b)

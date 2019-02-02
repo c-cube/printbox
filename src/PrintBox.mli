@@ -51,13 +51,22 @@ type position = { x:int ; y: int }
 
 (** {2 Box Combinators} *)
 
-type t = private
+type t
+
+(** The type [t] is now opaque @since NEXT_RELEASE .
+    The type [view] can be used to observe the inside of the box.
+    *)
+type view = private
   | Empty
   | Text of string list
   | Frame of t
   | Pad of position * t (* vertical and horizontal padding *)
   | Grid of [`Bars | `None] * t array array
   | Tree of int * t * t array (* int: indent *)
+
+val view : t -> view
+(** Observe the content of the box.
+    @since NEXT_RELEASE *)
 
 (** A box, either empty, containing directly text,  or a table or
     tree of sub-boxes *)
