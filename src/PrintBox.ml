@@ -7,7 +7,7 @@ type position = { x:int ; y: int }
 
 type t =
   | Empty
-  | Text of string
+  | Text of string list
   | Frame of t
   | Pad of position * t (* vertical and horizontal padding *)
   | Grid of [`Bars | `None] * t array array
@@ -15,30 +15,35 @@ type t =
 
 let empty = Empty
 
-let line s =
-  assert (not (String.contains s '\n'));
-  Text s
+let[@inline] line_ s = Text [s]
 
-let text s = Text s
+let line s =
+  if String.contains s '\n' then invalid_arg "PrintBox.line";
+  line_ s
+
+let text s = Text [s]
 
 let sprintf format =
   let buffer = Buffer.create 64 in
   Printf.kbprintf
-    (fun _ -> text (Buffer.contents buffer))
+    (fun _ -> Text [Buffer.contents buffer])
     buffer
     format
 
-(* TODO: dual representation of "text"? one with lines, one with
-   arbitrary text that will be split, or not, depending on output *)
-let lines l =
-  assert (List.for_all (fun s -> not (String.contains s '\n')) l);
-  Text (String.concat "\n" l)
+let asprintf format =
+  Format.kasprintf (fun s -> Text [s]) format
 
-let int_ x = line (string_of_int x)
-let float_ x = line (string_of_float x)
-let bool_ x = line (string_of_bool x)
+let[@inline] lines l = Text l
 
-let frame b = Frame b
+let int x = line_ (string_of_int x)
+let float x = line_ (string_of_float x)
+let bool x = line_ (string_of_bool x)
+
+let int_ = int
+let float_ = float
+let bool_ = bool
+
+let[@inline] frame b = Frame b
 
 let pad' ~col ~lines b =
   assert (col >=0 || lines >= 0);
@@ -91,14 +96,14 @@ let tree ?(indent=1) node children =
     List.filter
       (function
         | Empty -> false
-        | _ -> true
-      ) children
+        | _ -> true)
+      children
   in
   match children with
-    | [] -> node
-    | _::_ ->
-      let children = Array.of_list children in
-      Tree (indent, node, children)
+  | [] -> node
+  | _::_ ->
+    let children = Array.of_list children in
+    Tree (indent, node, children)
 
 let mk_tree ?indent f root =
   let rec make x = match f x with
@@ -146,4 +151,7 @@ module Simple = struct
       (fun _ -> `Text (Buffer.contents buffer))
       buffer
       format
+
+  let asprintf format =
+    Format.kasprintf (fun s -> `Text s) format
 end

@@ -29,7 +29,7 @@ let rec to_html_rec
   : B.t -> [< Html_types.flow5 > `Div `Ul `Table `P] html
   = function
   | B.Empty -> H.div []
-  | B.Text s -> H.p [H.pcdata s]
+  | B.Text s -> H.p (List.map H.txt s)
   | B.Pad (_, b)
   | B.Frame b -> to_html_rec b
   | B.Grid (bars, a) ->

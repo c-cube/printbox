@@ -51,9 +51,9 @@ type position = { x:int ; y: int }
 
 (** {2 Box Combinators} *)
 
-type t =
+type t = private
   | Empty
-  | Text of string
+  | Text of string list
   | Frame of t
   | Pad of position * t (* vertical and horizontal padding *)
   | Grid of [`Bars | `None] * t array array
