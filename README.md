@@ -28,9 +28,6 @@ $ make install
 
 ## A few examples
 
-<details>
-<summary>A few examples</summary>
-
 #### importing the module
 
 ```ocaml
@@ -194,4 +191,3 @@ that `PrintBox_html.to_string_doc` will insert some javascript to
 make sub-lists fold/unfold on click (this is useful to display very large
 trees compactly and exploring them incrementally).
 
-</details>
