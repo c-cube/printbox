@@ -1,0 +1,50 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+<link rel="Start" href="index.html">
+<link rel="previous" href="PrintBox.html">
+<link rel="Up" href="index.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="PrintBox" rel="Chapter" href="PrintBox.html">
+<link title="PrintBox_text" rel="Chapter" href="PrintBox_text.html"><title>PrintBox_text</title>
+</head>
+<body>
+<div class="navbar"><a class="pre" href="PrintBox.html" title="PrintBox">Previous</a>
+&nbsp;<a class="up" href="index.html" title="Index">Up</a>
+&nbsp;</div>
+<h1>Module <a href="type_PrintBox_text.html">PrintBox_text</a></h1>
+
+<pre><span class="keyword">module</span> PrintBox_text: <code class="code"><span class="keyword">sig</span></code> <a href="PrintBox_text.html">..</a> <code class="code"><span class="keyword">end</span></code></pre><div class="info module top">
+<h1 id="1_RendertoText">Render to Text</h1>
+<p>
+
+    This module should be used to output boxes directly to a terminal, or
+    another  area of monospace text<br>
+</div>
+<hr width="100%">
+
+<pre><span id="VALset_string_len"><span class="keyword">val</span> set_string_len</span> : <code class="type">(Bytes.t -> int) -> unit</code></pre><div class="info ">
+Set which function is used to compute string length. Typically
+    to be used with a unicode-sensitive length function
+    An example of such function for utf8 encoded strings is the following
+    (it uses the Uutf library):
+    <pre class="codepre"><code class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;string_leng&nbsp;s&nbsp;=
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;d&nbsp;=&nbsp;<span class="constructor">Uutf</span>.decoder&nbsp;(<span class="keywordsign">`</span><span class="constructor">String</span>&nbsp;s)&nbsp;<span class="keyword">in</span>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">while</span>&nbsp;(<span class="keyword">let</span>&nbsp;c&nbsp;=&nbsp;<span class="constructor">Uutf</span>.decode&nbsp;d&nbsp;<span class="keyword">in</span>&nbsp;c&nbsp;&lt;&gt;&nbsp;<span class="keywordsign">`</span><span class="constructor">Await</span>&nbsp;<span class="keywordsign">||</span>&nbsp;c&nbsp;&lt;&gt;&nbsp;<span class="keywordsign">`</span><span class="constructor">End</span>)&nbsp;<span class="keyword">do</span>&nbsp;()&nbsp;<span class="keyword">done</span>;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Uutf</span>.decoder_count&nbsp;d
+&nbsp;&nbsp;&nbsp;&nbsp;</code></pre>
+    Note that this function assumes there is no newline character in the given string.<br>
+</div>
+
+<pre><span id="VALto_string"><span class="keyword">val</span> to_string</span> : <code class="type"><a href="PrintBox.html#TYPEt">PrintBox.t</a> -> string</code></pre><div class="info ">
+Returns a string representation of the given structure.<br>
+</div>
+
+<pre><span id="VALoutput"><span class="keyword">val</span> output</span> : <code class="type">?indent:int -> Pervasives.out_channel -> <a href="PrintBox.html#TYPEt">PrintBox.t</a> -> unit</code></pre><div class="info ">
+Outputs the given structure on the channel.<br>
+</div>
+</body></html>

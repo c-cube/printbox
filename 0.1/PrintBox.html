@@ -1,0 +1,233 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+<link rel="Start" href="index.html">
+<link rel="next" href="PrintBox_text.html">
+<link rel="Up" href="index.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="PrintBox" rel="Chapter" href="PrintBox.html">
+<link title="PrintBox_text" rel="Chapter" href="PrintBox_text.html"><link title="Box Combinators" rel="Section" href="#2_BoxCombinators">
+<link title="Simple Structural Interface" rel="Section" href="#2_SimpleStructuralInterface">
+<title>PrintBox</title>
+</head>
+<body>
+<div class="navbar">&nbsp;<a class="up" href="index.html" title="Index">Up</a>
+&nbsp;<a class="post" href="PrintBox_text.html" title="PrintBox_text">Next</a>
+</div>
+<h1>Module <a href="type_PrintBox.html">PrintBox</a></h1>
+
+<pre><span class="keyword">module</span> PrintBox: <code class="code"><span class="keyword">sig</span></code> <a href="PrintBox.html">..</a> <code class="code"><span class="keyword">end</span></code></pre><div class="info module top">
+<h1 id="1_PrettyPrintingofnestedBoxes">Pretty-Printing of nested Boxes</h1>
+<p>
+
+    Allows to print nested boxes, lists, arrays, tables in a nice way
+    on any monospaced support.
+<p>
+
+    <pre class="codepre"><code class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">#</span>&nbsp;<span class="keyword">let</span>&nbsp;b&nbsp;=&nbsp;<span class="constructor">PrintBox</span>.(
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;frame
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(vlist&nbsp;[&nbsp;line&nbsp;<span class="string">"hello"</span>;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;hlist&nbsp;[line&nbsp;<span class="string">"world"</span>;&nbsp;line&nbsp;<span class="string">"yolo"</span>]])
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;);;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;b&nbsp;:&nbsp;t&nbsp;=&nbsp;&lt;abstr&gt;
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">#</span>&nbsp;<span class="constructor">PrintBox</span>.output&nbsp;~indent:2&nbsp;stdout&nbsp;b;;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+----------+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>hello&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|----------|
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>world<span class="keywordsign">|</span>yolo<span class="keywordsign">|</span>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+----------+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;:&nbsp;unit&nbsp;=&nbsp;()
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">#</span>&nbsp;<span class="keyword">let</span>&nbsp;b2&nbsp;=&nbsp;<span class="constructor">PrintBox</span>.(
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;frame
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(hlist&nbsp;[&nbsp;text&nbsp;<span class="string">"I&nbsp;love\nto\npress\nenter"</span>;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;grid_text&nbsp;[|&nbsp;[|<span class="string">"a"</span>;&nbsp;<span class="string">"bbb"</span>|];
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[|<span class="string">"c"</span>;&nbsp;<span class="string">"hello&nbsp;world"</span>|]&nbsp;|]])
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;);;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;b2&nbsp;:&nbsp;<span class="constructor">PrintBox</span>.t&nbsp;=&nbsp;&lt;abstr&gt;
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">#</span>&nbsp;<span class="constructor">PrintBox</span>.output&nbsp;stdout&nbsp;b2;;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+--------------------+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span><span class="constructor">I</span>&nbsp;love<span class="keywordsign">|</span>a<span class="keywordsign">|</span>bbb&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span><span class="keyword">to</span>&nbsp;&nbsp;&nbsp;&nbsp;|-+-----------|
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>press&nbsp;<span class="keywordsign">|</span>c<span class="keywordsign">|</span>hello&nbsp;world<span class="keywordsign">|</span>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>enter&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="keywordsign">|</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+--------------------+
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;:&nbsp;unit&nbsp;=&nbsp;()
+
+&nbsp;&nbsp;&nbsp;&nbsp;</code></pre><br>
+</div>
+<hr width="100%">
+
+<pre><code><span id="TYPEposition"><span class="keyword">type</span> <code class="type"></code>position</span> = {</code></pre><table class="typetable">
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTposition.x">x</span>&nbsp;: <code class="type">int</code>;</code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTposition.y">y</span>&nbsp;: <code class="type">int</code>;</code></td>
+
+</tr></table>
+}
+
+<div class="info ">
+Positions are relative to the upper-left corner, that is,
+    when <code class="code">x</code> increases we go toward the right, and when <code class="code">y</code> increases
+    we go toward the bottom (same order as a printer)<br>
+</div>
+
+<br>
+<h2 id="2_BoxCombinators">Box Combinators</h2><br>
+
+<pre><code><span id="TYPEt"><span class="keyword">type</span> <code class="type"></code>t</span> = </code></pre><table class="typetable">
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTt.Empty"><span class="constructor">Empty</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTt.Text"><span class="constructor">Text</span></span> <span class="keyword">of</span> <code class="type">string</code></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTt.Frame"><span class="constructor">Frame</span></span> <span class="keyword">of</span> <code class="type"><a href="PrintBox.html#TYPEt">t</a></code></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTt.Pad"><span class="constructor">Pad</span></span> <span class="keyword">of</span> <code class="type"><a href="PrintBox.html#TYPEposition">position</a> * <a href="PrintBox.html#TYPEt">t</a></code></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTt.Grid"><span class="constructor">Grid</span></span> <span class="keyword">of</span> <code class="type">[ `Bars | `None ] * <a href="PrintBox.html#TYPEt">t</a> array array</code></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTt.Tree"><span class="constructor">Tree</span></span> <span class="keyword">of</span> <code class="type">int * <a href="PrintBox.html#TYPEt">t</a> * <a href="PrintBox.html#TYPEt">t</a> array</code></code></td>
+
+</tr></table>
+
+
+<br>
+A box, either empty, containing directly text,  or a table or
+    tree of sub-boxes<br>
+
+<pre><span id="VALempty"><span class="keyword">val</span> empty</span> : <code class="type"><a href="PrintBox.html#TYPEt">t</a></code></pre><div class="info ">
+Empty box, of size 0<br>
+</div>
+
+<pre><span id="VALline"><span class="keyword">val</span> line</span> : <code class="type">string -> <a href="PrintBox.html#TYPEt">t</a></code></pre><div class="info ">
+Make a single-line box.<br>
+<b>Raises</b> <code>Invalid_argument</code> if the string contains <code class="code"><span class="string">'\n'</span></code><br>
+</div>
+
+<pre><span id="VALtext"><span class="keyword">val</span> text</span> : <code class="type">string -> <a href="PrintBox.html#TYPEt">t</a></code></pre><div class="info ">
+Any text, possibly with several lines<br>
+</div>
+
+<pre><span id="VALsprintf"><span class="keyword">val</span> sprintf</span> : <code class="type">('a, Buffer.t, unit, <a href="PrintBox.html#TYPEt">t</a>) Pervasives.format4 -> 'a</code></pre><div class="info ">
+Formatting for <a href="PrintBox.html#VALtext"><code class="code"><span class="constructor">PrintBox</span>.text</code></a><br>
+</div>
+
+<pre><span id="VALlines"><span class="keyword">val</span> lines</span> : <code class="type">string list -> <a href="PrintBox.html#TYPEt">t</a></code></pre><div class="info ">
+Shortcut for <a href="PrintBox.html#VALtext"><code class="code"><span class="constructor">PrintBox</span>.text</code></a>, with a list of lines<br>
+</div>
+
+<pre><span id="VALint_"><span class="keyword">val</span> int_</span> : <code class="type">int -> <a href="PrintBox.html#TYPEt">t</a></code></pre>
+<pre><span id="VALbool_"><span class="keyword">val</span> bool_</span> : <code class="type">bool -> <a href="PrintBox.html#TYPEt">t</a></code></pre>
+<pre><span id="VALfloat_"><span class="keyword">val</span> float_</span> : <code class="type">float -> <a href="PrintBox.html#TYPEt">t</a></code></pre>
+<pre><span id="VALframe"><span class="keyword">val</span> frame</span> : <code class="type"><a href="PrintBox.html#TYPEt">t</a> -> <a href="PrintBox.html#TYPEt">t</a></code></pre><div class="info ">
+Put a single frame around the box<br>
+</div>
+
+<pre><span id="VALpad"><span class="keyword">val</span> pad</span> : <code class="type"><a href="PrintBox.html#TYPEt">t</a> -> <a href="PrintBox.html#TYPEt">t</a></code></pre><div class="info ">
+Pad the given box with some free space<br>
+</div>
+
+<pre><span id="VALpad'"><span class="keyword">val</span> pad'</span> : <code class="type">col:int -> lines:int -> <a href="PrintBox.html#TYPEt">t</a> -> <a href="PrintBox.html#TYPEt">t</a></code></pre><div class="info ">
+Pad with the given number of free cells for lines and columns<br>
+</div>
+
+<pre><span id="VALvpad"><span class="keyword">val</span> vpad</span> : <code class="type">int -> <a href="PrintBox.html#TYPEt">t</a> -> <a href="PrintBox.html#TYPEt">t</a></code></pre><div class="info ">
+Pad vertically<br>
+</div>
+
+<pre><span id="VALhpad"><span class="keyword">val</span> hpad</span> : <code class="type">int -> <a href="PrintBox.html#TYPEt">t</a> -> <a href="PrintBox.html#TYPEt">t</a></code></pre><div class="info ">
+Pad horizontally<br>
+</div>
+
+<pre><span id="VALgrid"><span class="keyword">val</span> grid</span> : <code class="type">?pad:(<a href="PrintBox.html#TYPEt">t</a> -> <a href="PrintBox.html#TYPEt">t</a>) -><br>       ?bars:bool -> <a href="PrintBox.html#TYPEt">t</a> array array -> <a href="PrintBox.html#TYPEt">t</a></code></pre><div class="info ">
+Grid of boxes (no frame between boxes). The matrix is indexed
+    with lines first, then columns. The array must be a proper matrix,
+    that is, all lines must have the same number of columns!<br>
+</div>
+
+<pre><span id="VALgrid_text"><span class="keyword">val</span> grid_text</span> : <code class="type">?pad:(<a href="PrintBox.html#TYPEt">t</a> -> <a href="PrintBox.html#TYPEt">t</a>) -><br>       ?bars:bool -> string array array -> <a href="PrintBox.html#TYPEt">t</a></code></pre><div class="info ">
+Same as <a href="PrintBox.html#VALgrid"><code class="code"><span class="constructor">PrintBox</span>.grid</code></a>, but wraps every cell into a <a href="PrintBox.html#VALtext"><code class="code"><span class="constructor">PrintBox</span>.text</code></a> box<br>
+</div>
+
+<pre><span id="VALtranspose"><span class="keyword">val</span> transpose</span> : <code class="type">'a array array -> 'a array array</code></pre><div class="info ">
+Transpose a matrix<br>
+</div>
+
+<pre><span id="VALinit_grid"><span class="keyword">val</span> init_grid</span> : <code class="type">?bars:bool -><br>       line:int -> col:int -> (line:int -> col:int -> <a href="PrintBox.html#TYPEt">t</a>) -> <a href="PrintBox.html#TYPEt">t</a></code></pre><div class="info ">
+Same as <a href="PrintBox.html#VALgrid"><code class="code"><span class="constructor">PrintBox</span>.grid</code></a> but takes the matrix as a function<br>
+</div>
+
+<pre><span id="VALvlist"><span class="keyword">val</span> vlist</span> : <code class="type">?pad:(<a href="PrintBox.html#TYPEt">t</a> -> <a href="PrintBox.html#TYPEt">t</a>) -><br>       ?bars:bool -> <a href="PrintBox.html#TYPEt">t</a> list -> <a href="PrintBox.html#TYPEt">t</a></code></pre><div class="info ">
+Vertical list of boxes<br>
+</div>
+
+<pre><span id="VALhlist"><span class="keyword">val</span> hlist</span> : <code class="type">?pad:(<a href="PrintBox.html#TYPEt">t</a> -> <a href="PrintBox.html#TYPEt">t</a>) -><br>       ?bars:bool -> <a href="PrintBox.html#TYPEt">t</a> list -> <a href="PrintBox.html#TYPEt">t</a></code></pre><div class="info ">
+Horizontal list of boxes<br>
+</div>
+
+<pre><span id="VALgrid_map"><span class="keyword">val</span> grid_map</span> : <code class="type">?bars:bool -> ('a -> <a href="PrintBox.html#TYPEt">t</a>) -> 'a array array -> <a href="PrintBox.html#TYPEt">t</a></code></pre>
+<pre><span id="VALvlist_map"><span class="keyword">val</span> vlist_map</span> : <code class="type">?bars:bool -> ('a -> <a href="PrintBox.html#TYPEt">t</a>) -> 'a list -> <a href="PrintBox.html#TYPEt">t</a></code></pre>
+<pre><span id="VALhlist_map"><span class="keyword">val</span> hlist_map</span> : <code class="type">?bars:bool -> ('a -> <a href="PrintBox.html#TYPEt">t</a>) -> 'a list -> <a href="PrintBox.html#TYPEt">t</a></code></pre>
+<pre><span id="VALtree"><span class="keyword">val</span> tree</span> : <code class="type">?indent:int -> <a href="PrintBox.html#TYPEt">t</a> -> <a href="PrintBox.html#TYPEt">t</a> list -> <a href="PrintBox.html#TYPEt">t</a></code></pre><div class="info ">
+Tree structure, with a node label and a list of children nodes<br>
+</div>
+
+<pre><span id="VALmk_tree"><span class="keyword">val</span> mk_tree</span> : <code class="type">?indent:int -> ('a -> <a href="PrintBox.html#TYPEt">t</a> * 'a list) -> 'a -> <a href="PrintBox.html#TYPEt">t</a></code></pre><div class="info ">
+Definition of a tree with a local function that maps nodes to
+    their content and children<br>
+</div>
+<br>
+<h2 id="2_SimpleStructuralInterface">Simple Structural Interface</h2><br>
+
+<pre><span id="TYPEktree"><span class="keyword">type</span> <code class="type">'a</code> ktree</span> = <code class="type">unit -> [ `Nil | `Node of 'a * 'a <a href="PrintBox.html#TYPEktree">ktree</a> list ]</code> </pre>
+
+
+<pre><span id="TYPEbox"><span class="keyword">type</span> <code class="type"></code>box</span> = <code class="type"><a href="PrintBox.html#TYPEt">t</a></code> </pre>
+
+
+<pre><span class="keyword">module</span> <a href="PrintBox.Simple.html">Simple</a>: <code class="code"><span class="keyword">sig</span></code> <a href="PrintBox.Simple.html">..</a> <code class="code"><span class="keyword">end</span></code></pre></body></html>
