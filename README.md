@@ -181,13 +181,11 @@ some text +---+
 
 #### HTML output (with `tyxml`)
 
-```ocaml
-# #require "printbox.html";;
+Assuming you have loaded `printbox.html` somehow:
 
-# let out = open_out "/tmp/foo.html";;
-val out : out_channel = <abstr>
-# output_string out (PrintBox_html.to_string_doc (square 5));;
-- : unit = ()
+```ocaml non-deterministic=command
+let out = open_out "/tmp/foo.html";;
+output_string out (PrintBox_html.to_string_doc (square 5));;
 ```
 
 which prints some HTML in the file [foo.html](docs/foo.html).
