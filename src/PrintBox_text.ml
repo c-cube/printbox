@@ -272,21 +272,18 @@ module Box_inner = struct
       ; y=s.y + dim_children.y
       }
 
-  let str_idx s i c =
-    try Some (String.index_from s i c)
-    with Not_found -> None
-
   let[@unroll 2] rec lines_ s i (k: string -> int -> int -> unit) : unit =
-    match str_idx s i '\n' with
-    | None ->
+    match String.index_from s i '\n' with
+    | j ->
+      k s i (j-i);
+      lines_ s (j+1) k
+    | exception Not_found ->
       if i<String.length s then (
         k s i (String.length s-i)
       )
-    | Some j ->
-      k s i (j-i);
-      lines_ s (j+1) k
 
-  let lines_l_ l k = match l with
+  let lines_l_ l k =
+    match l with
     | [] -> ()
     | [s] -> lines_ s 0 k
     | s1::s2::tl ->
