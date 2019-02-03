@@ -10,10 +10,11 @@ val set_string_len : (String.t -> int -> int -> int) -> unit
 (** Set which function is used to compute string length. Typically
     to be used with a unicode-sensitive length function
     An example of such function for utf8 encoded strings is the following
-    (it uses the Uutf library):
+    (it uses the [Uutf] and [Uucp] libraries):
     {[
       let string_leng s i len =
-        Uutf.String.fold_utf_8 ~pos:i ~len (fun n _ _ -> n+1) 0 s
+        Uutf.String.fold_utf_8 ~pos:i ~len
+          (fun n _ c -> n+ max 0 (Uucp.Break.tty_width_hint c)) 0 s
     ]}
     Note that this function assumes there is no newline character in the given string.
 *)

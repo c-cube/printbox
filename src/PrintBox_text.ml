@@ -32,7 +32,8 @@ module M = Map.Make(Pos)
 
 let str_len_ = ref (fun _ _ len -> len)
 
-let set_string_len f = str_len_ := f
+let[@inline] set_string_len f = str_len_ := f
+let[@inline] str_display_width_ s i len : int = !str_len_ s i len
 
 (** {2 Output: where to print to} *)
 
@@ -111,17 +112,11 @@ end = struct
         Pos.move_x start_pos 1
       | String s ->
         O.output_string out s;
-        (* We could use Bytes.unsafe_of_string as long as !string_len
-           does not try to mutate the string (which it should have no
-           reason to do), but just to be safe... *)
-        let l = !str_len_ s 0 (String.length s) in
+        let l = str_display_width_ s 0 (String.length s) in
         Pos.move_x start_pos l
       | Str_slice (s, i, len) ->
         O.output_substring out s i len;
-        (* We could use Bytes.unsafe_of_string as long as !string_len
-           does not try to mutate the string (which it should have no
-           reason to do), but just to be safe... *)
-        let l = !str_len_ s i len in
+        let l = str_display_width_ s i len in
         Pos.move_x start_pos l
 
     let render ?(indent=0) (out:O.t) (self:t) : unit =
@@ -248,7 +243,7 @@ module Box_inner = struct
     | Text l ->
       let width =
         List.fold_left
-          (fun acc (s,i,len) -> max acc (!str_len_ s i len))
+          (fun acc (s,i,len) -> max acc (str_display_width_ s i len))
           0 l
       in
       { x=width; y=List.length l; }
