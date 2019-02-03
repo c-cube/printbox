@@ -145,6 +145,40 @@ root
 - : unit = ()
 ```
 
+#### Installing the pretty-printer in the toplevel
+
+`PrintBox_text` contains a `Format`-compatible pretty-printer that
+can be used as a default printer for boxes.
+
+```ocaml
+# #install_printer PrintBox_text.pp;;
+# PrintBox.(frame @@ frame @@ init_grid ~line:3 ~col:2 (fun ~line:i ~col:j -> sprintf "%d.%d" i j));;
+- : B.t =
++---------+
+|+-------+|
+||0.0|0.1||
+||---+---||
+||1.0|1.1||
+||---+---||
+||2.0|2.1||
+|+-------+|
++---------+
+# #remove_printer PrintBox_text.pp;;
+```
+
+Note that this pretty-printer plays nicely with `Format` boxes:
+
+```ocaml
+# let b = PrintBox.(frame @@ hlist [text "a\nb"; text "c"]);;
+val b : B.t = <abstr>
+# Format.printf "some text %a around@." PrintBox_text.pp b;;
+some text +---+
+          |a|c|
+          |b| |
+          +---+ around
+- : unit = ()
+```
+
 #### HTML output (with `tyxml`)
 
 ```ocaml
