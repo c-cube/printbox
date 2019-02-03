@@ -44,6 +44,7 @@ module Output : sig
   val put_sub_string : t -> position -> string -> int -> int -> unit
   val to_string : ?indent:int -> t -> string
   val to_chan : ?indent:int -> out_channel -> t -> unit
+  val pp : Format.formatter -> t -> unit
 end = struct
   (** Internal multi-line buffer suitable for unicode strings.
       It is a map from start position to a printable entity (string or character)
@@ -70,63 +71,101 @@ end = struct
 
   let create () : t = {m=M.empty}
 
-  let goto ?(indent=0) buf start dest =
-    (* Go to the line before the one we want *)
-    for _i = start.y to dest.y - 2 do
-      Buffer.add_char buf '\n'
-    done;
-    (* Emit the last line and indent it *)
-    if start.y < dest.y then begin
-      Buffer.add_char buf '\n';
-      for _i = 1 to indent do
-        Buffer.add_char buf ' '
+  module type OUT = sig
+    type t
+    val output_char : t -> char -> unit
+    val output_string : t -> string -> unit
+    val output_substring : t -> string -> int -> int -> unit
+    val newline : t -> unit
+  end
+
+  module Make_out(O : OUT) : sig
+    val render : ?indent:int -> O.t -> t -> unit
+  end = struct
+    let goto ?(indent=0) (out:O.t) start dest =
+      (* Go to the line before the one we want *)
+      for _i = start.y to dest.y - 2 do
+        O.newline out;
+      done;
+      (* Emit the last line and indent it *)
+      if start.y < dest.y then (
+        O.newline out;
+        for _i = 1 to indent do
+          O.output_char out ' ';
+        done
+      );
+      (* Now that we are on the correct line, go the right column. *)
+      let x_start = if start.y < dest.y then 0 else start.x in
+      for _i = x_start to dest.x - 1 do
+        O.output_char out ' '
       done
-    end;
-    (* Now that we are on the correct line, go the right column. *)
-    let x_start = if start.y < dest.y then 0 else start.x in
-    for _i = x_start to dest.x - 1 do
-      Buffer.add_char buf ' '
-    done
 
-  let to_buf_aux_ ?(indent=0) buf start_pos p curr_pos =
-    assert (Pos.compare curr_pos start_pos <= 0);
-    (* Go up to the expected location *)
-    goto ~indent buf curr_pos start_pos;
-    (* Print the interesting part *)
-    match p with
-    | Char c ->
-      Buffer.add_char buf c;
-      Pos.move_x start_pos 1
-    | String s ->
-      Buffer.add_string buf s;
-      (* We could use Bytes.unsafe_of_string as long as !string_len
-         does not try to mutate the string (which it should have no
-         reason to do), but just to be safe... *)
-      let l = !str_len_ s 0 (String.length s) in
-      Pos.move_x start_pos l
-    | Str_slice (s, i, len) ->
-      Buffer.add_substring buf s i len;
-      (* We could use Bytes.unsafe_of_string as long as !string_len
-         does not try to mutate the string (which it should have no
-         reason to do), but just to be safe... *)
-      let l = !str_len_ s i len in
-      Pos.move_x start_pos l
+    let to_buf_aux_ ?(indent=0) (out:O.t) start_pos p curr_pos =
+      assert (Pos.compare curr_pos start_pos <= 0);
+      (* Go up to the expected location *)
+      goto ~indent out curr_pos start_pos;
+      (* Print the interesting part *)
+      match p with
+      | Char c ->
+        O.output_char out c;
+        Pos.move_x start_pos 1
+      | String s ->
+        O.output_string out s;
+        (* We could use Bytes.unsafe_of_string as long as !string_len
+           does not try to mutate the string (which it should have no
+           reason to do), but just to be safe... *)
+        let l = !str_len_ s 0 (String.length s) in
+        Pos.move_x start_pos l
+      | Str_slice (s, i, len) ->
+        O.output_substring out s i len;
+        (* We could use Bytes.unsafe_of_string as long as !string_len
+           does not try to mutate the string (which it should have no
+           reason to do), but just to be safe... *)
+        let l = !str_len_ s i len in
+        Pos.move_x start_pos l
 
-  let to_buf_ ?(indent=0) buf (self:t) : unit =
-    for _i = 1 to indent do Buffer.add_char buf ' ' done;
-    ignore (M.fold (to_buf_aux_ ~indent buf) self.m Pos.origin : position);
-    ()
+    let render ?(indent=0) (out:O.t) (self:t) : unit =
+      for _i = 1 to indent do O.output_char out ' ' done;
+      ignore (M.fold (to_buf_aux_ ~indent out) self.m Pos.origin : position);
+      ()
+  end
 
-  let to_string  ?indent self : string =
+  module Out_buf = Make_out(struct
+    type t = Buffer.t
+    let output_char = Buffer.add_char
+    let output_string = Buffer.add_string
+    let output_substring = Buffer.add_substring
+    let newline b = Buffer.add_char b '\n'
+  end)
+
+  let to_string ?indent self : string =
     let buf = Buffer.create 42 in
-    to_buf_ ?indent buf self;
+    Out_buf.render ?indent buf self;
     Buffer.contents buf
 
-  let to_chan ?indent oc self : unit =
-    let buf = Buffer.create 42 in
-    to_buf_ ?indent buf self;
-    Buffer.output_buffer oc buf
+  module Out_chan = Make_out(struct
+    type t = out_channel
+    let output_char = output_char
+    let output_string = output_string
+    let output_substring = output_substring
+    let newline oc = output_char oc '\n'
+  end)
 
+  let to_chan ?indent oc self : unit =
+    Out_chan.render ?indent oc self
+
+  module Out_format = Make_out(struct
+    type t = Format.formatter
+    let output_char = Format.pp_print_char
+    let output_string = Format.pp_print_string
+    let output_substring out s i len =
+      let s = if i=0 && len=String.length s then s else String.sub s i len in
+      Format.pp_print_string out s
+    let newline out = Format.pp_print_cut out ()
+  end)
+
+  let pp out (self:t) : unit =
+    Format.fprintf out "@[<v>%a@]" (Out_format.render ~indent:0) self
 end
 
 module Box_inner = struct
@@ -383,4 +422,9 @@ let output ?(indent=0) oc b =
   Box_inner.render buf (Box_inner.of_box b);
   Output.to_chan ~indent oc buf;
   flush oc
+
+let pp out b =
+  let buf = Output.create () in
+  Box_inner.render buf (Box_inner.of_box b);
+  Output.pp out buf
 

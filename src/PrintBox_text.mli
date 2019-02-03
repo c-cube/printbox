@@ -24,3 +24,6 @@ val to_string : PrintBox.t -> string
 val output : ?indent:int -> out_channel -> PrintBox.t -> unit
 (** Outputs the given structure on the channel. *)
 
+val pp : Format.formatter -> PrintBox.t -> unit
+(** Pretty-print the box into this formatter.
+    @since NEXT_RELEASE *)
