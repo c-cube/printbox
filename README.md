@@ -176,6 +176,53 @@ some text +---+
 - : unit = ()
 ```
 
+#### Handling unicode
+
+If the text boxes contain unicode (utf8) text, naive size computation for
+boxes will not cut it.
+Let's use the libraries `uutf` and `uucp` to compute more accurate size hints.
+
+```ocaml
+# #require "uutf";;
+# #require "uucp";;
+```
+
+```ocaml
+let string_len s i len =
+  Uutf.String.fold_utf_8 ~pos:i ~len
+    (fun n _ c -> match c with
+      | `Malformed _ -> 0
+      | `Uchar c -> n+ max 0 (Uucp.Break.tty_width_hint c))
+    0 s
+
+let () = PrintBox_text.set_string_len string_len
+```
+
+And now:
+
+```ocaml
+# let b =
+  PrintBox.(frame @@
+    hlist [
+      vlist[text "oï ωεird nums:\nπ/2\nτ/4";
+        tree (text "0")[text "1"; tree (text "ω") [text "ω²"]]];
+      frame @@ vlist [text "sum=Σ_i a·xᵢ²\n—————\n1+1"; text "Ōₒ\nÀ"]]);;
+val b : B.t = <abstr>
+
+# print_endline @@ PrintBox_text.to_string b;;
++------------------------------+
+|oï ωεird nums:|+-------------+|
+|π/2           ||sum=Σ_i a·xᵢ²||
+|τ/4           ||—————        ||
+|--------------||1+1          ||
+|0             ||-------------||
+|`+- 1         ||Ōₒ           ||
+| +- ω         ||À            ||
+|    `+- ω²    |+-------------+|
++------------------------------+
+- : unit = ()
+```
+
 #### HTML output (with `tyxml`)
 
 Assuming you have loaded `printbox.html` somehow:
