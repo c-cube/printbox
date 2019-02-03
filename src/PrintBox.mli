@@ -53,7 +53,7 @@ type position = { x:int ; y: int }
 
 type t
 
-(** The type [t] is now opaque @since NEXT_RELEASE .
+(** The type [t] is now opaque @since 0.2 .
     The type [view] can be used to observe the inside of the box.
     *)
 type view = private
@@ -66,7 +66,7 @@ type view = private
 
 val view : t -> view
 (** Observe the content of the box.
-    @since NEXT_RELEASE *)
+    @since 0.2 *)
 
 (** A box, either empty, containing directly text,  or a table or
     tree of sub-boxes *)
@@ -86,7 +86,7 @@ val sprintf : ('a, Buffer.t, unit, t) format4 -> 'a
 
 val asprintf : ('a, Format.formatter, unit, t) format4 -> 'a
 (** Formatting for {!text}.
-    @since NEXT_RELEASE *)
+    @since 0.2 *)
 
 val lines : string list -> t
 (** Shortcut for {!text}, with a list of lines.
@@ -99,13 +99,13 @@ val bool_ : bool -> t
 val float_ : float -> t
 
 val int : int -> t
-(** @since NEXT_RELEASE *)
+(** @since 0.2 *)
 
 val bool : bool -> t
-(** @since NEXT_RELEASE *)
+(** @since 0.2 *)
 
 val float : float -> t
-(** @since NEXT_RELEASE *)
+(** @since 0.2 *)
 
 val frame : t -> t
 (** Put a single frame around the box *)
@@ -192,7 +192,7 @@ module Simple : sig
 
   val asprintf : ('a, Format.formatter, unit, t) format4 -> 'a
   (** Formatting for [`Text].
-      @since NEXT_RELEASE *)
+      @since 0.2 *)
 end
 
 (**/**)

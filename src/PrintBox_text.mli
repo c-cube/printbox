@@ -26,4 +26,4 @@ val output : ?indent:int -> out_channel -> PrintBox.t -> unit
 
 val pp : Format.formatter -> PrintBox.t -> unit
 (** Pretty-print the box into this formatter.
-    @since NEXT_RELEASE *)
+    @since 0.2 *)
