@@ -127,6 +127,7 @@ module Simple = struct
   type t =
     [ `Empty
     | `Pad of t
+    | `Align_right of t
     | `Text of string
     | `Vlist of t list
     | `Hlist of t list
@@ -137,6 +138,7 @@ module Simple = struct
   let rec to_box = function
     | `Empty -> empty
     | `Pad b -> pad (to_box b)
+    | `Align_right b -> align_right (to_box b)
     | `Text t -> text t
     | `Vlist l -> vlist (List.map to_box l)
     | `Hlist l -> hlist (List.map to_box l)

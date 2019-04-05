@@ -176,6 +176,7 @@ module Simple : sig
   type t =
     [ `Empty
     | `Pad of t
+    | `Align_right of t
     | `Text of string
     | `Vlist of t list
     | `Hlist of t list
