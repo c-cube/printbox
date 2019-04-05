@@ -174,6 +174,7 @@ module Box_inner = struct
     | Text of (string * int * int) list  (* list of lines *)
     | Frame of 'a
     | Pad of position * 'a (* vertical and horizontal padding *)
+    | Align_right of 'a (* dynamic left-padding *)
     | Grid of [`Bars | `None] * 'a array array
     | Tree of int * 'a * 'a array
 
@@ -257,6 +258,7 @@ module Box_inner = struct
     | Pad (dim, b') ->
       let {x;y} = size b' in
       { x=x+2*dim.x; y=y+2*dim.y; }
+    | Align_right b' -> size b'
     | Grid (style,m) ->
       let bars = match style with
         | `Bars -> true
@@ -302,6 +304,7 @@ module Box_inner = struct
         Text (List.rev !acc)
       | B.Frame t -> Frame (of_box t)
       | B.Pad (dim, t) -> Pad (dim, of_box t)
+      | B.Align_right t -> Align_right (of_box t)
       | B.Grid (bars, m) -> Grid (bars, B.map_matrix of_box m)
       | B.Tree (i, b, l) -> Tree (i, of_box b, Array.map of_box l)
     in
@@ -345,6 +348,15 @@ module Box_inner = struct
     | Pad (dim, b') ->
       let expected_size = size b in
       render_rec ~offset:Pos.(dim + offset) ~expected_size ~out b' Pos.(pos + dim)
+    | Align_right b' ->
+      begin match expected_size with
+        | Some expected_size ->
+          let left_pad = expected_size.x - (size b').x in
+          let pos' = Pos.move_x pos left_pad in
+          render_rec ~offset ~expected_size ~out b' pos'
+        | None ->
+          render_rec ~offset ~out b' pos
+      end
     | Grid (style,m) ->
       let dim = B.dim_matrix m in
       let bars = match style with

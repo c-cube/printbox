@@ -61,6 +61,7 @@ type view = private
   | Text of string list
   | Frame of t
   | Pad of position * t (* vertical and horizontal padding *)
+  | Align_right of t (* dynamic left-padding *)
   | Grid of [`Bars | `None] * t array array
   | Tree of int * t * t array (* int: indent *)
 
@@ -121,6 +122,9 @@ val vpad : int -> t -> t
 
 val hpad : int -> t -> t
 (** Pad horizontally *)
+
+val align_right : t -> t
+(** Left-pad to the size of the surrounding box *)
 
 val grid :
   ?pad:(t -> t) ->

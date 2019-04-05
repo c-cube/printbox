@@ -10,6 +10,7 @@ type view =
   | Text of string list
   | Frame of t
   | Pad of position * t (* vertical and horizontal padding *)
+  | Align_right of t (* dynamic left-padding *)
   | Grid of [`Bars | `None] * t array array
   | Tree of int * t * t array
 
@@ -58,6 +59,8 @@ let pad b = pad' ~col:1 ~lines:1 b
 
 let hpad col b = pad' ~col ~lines:0 b
 let vpad lines b = pad' ~col:0 ~lines b
+
+let align_right b = Align_right b
 
 let map_matrix f m =
   Array.map (Array.map f) m
