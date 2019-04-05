@@ -18,6 +18,7 @@ let prelude =
     ; "th, td { padding: 3px; }"
     ; "tr:nth-child(even) { background-color: #eee; }"
     ; "tr:nth-child(odd) { background-color: #fff; }"
+    ; ".align-right { text-align: right; }"
     ]
   in
   H.style (List.map H.pcdata l)
@@ -25,12 +26,14 @@ let prelude =
 let prelude_str =
   Format.asprintf "%a@." (H.pp_elt ()) prelude
 
-let rec to_html_rec (b: B.t) : [< Html_types.flow5 > `Div `Ul `Table `P] html = 
+let rec to_html_rec (b: B.t) : [< Html_types.flow5 > `Div `Ul `Table `P] html =
   match B.view b with
   | B.Empty -> H.div []
   | B.Text s -> H.p (List.map H.txt s)
   | B.Pad (_, b)
   | B.Frame b -> to_html_rec b
+  | B.Align_right b ->
+    H.div ~a:[H.a_class ["align-right"]] [ to_html_rec b ]
   | B.Grid (bars, a) ->
     let class_ = match bars with
       | `Bars -> "framed"
@@ -71,4 +74,3 @@ let to_string_doc b =
   in
   Format.asprintf "<head>%s%s</head><body>@[%a@]%s</body>@."
     meta_str prelude_str (H.pp_elt ()) (to_html b) footer_str
-
