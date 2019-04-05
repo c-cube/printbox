@@ -22,3 +22,15 @@ let tree =
 
 let () =
   PrintBox_text.output stdout tree
+
+let () =
+  Printf.printf "\n\n"
+
+let grid =
+  B.vlist
+    [ B.align_right (B.text "i'm aligned right")
+    ; B.text "looooooooooooooooooooooooong"
+    ]
+
+let () =
+  PrintBox_text.output stdout grid
