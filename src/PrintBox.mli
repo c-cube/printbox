@@ -55,7 +55,9 @@ type t
 
 (** The type [t] is now opaque @since 0.2 .
     The type [view] can be used to observe the inside of the box.
-    *)
+
+    [Align_right] added @since NEXT_RELEASE
+*)
 type view = private
   | Empty
   | Text of string list
@@ -118,10 +120,10 @@ val pad' : col:int -> lines:int -> t -> t
 (** Pad with the given number of free cells for lines and columns *)
 
 val vpad : int -> t -> t
-(** Pad vertically *)
+(** Pad vertically by [n] spaces *)
 
 val hpad : int -> t -> t
-(** Pad horizontally *)
+(** Pad horizontally by [n] spaces *)
 
 val align_right : t -> t
 (** Left-pad to the size of the surrounding box *)
@@ -133,7 +135,9 @@ val grid :
 (** Grid of boxes (no frame between boxes). The matrix is indexed
     with lines first, then columns. The array must be a proper matrix,
     that is, all lines must have the same number of columns!
-    @param framed if [true], each item of the grid will be framed.
+    @param pad used to pad each cell (for example with {!vpad} or {!hpad}),
+      default doesn't do anything
+    @param bars if true, each item of the grid will be framed.
       default value is [true] *)
 
 val grid_text :
