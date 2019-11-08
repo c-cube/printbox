@@ -22,4 +22,7 @@ update_next_tag:
 	sed -i "s/NEXT_RELEASE/$(VERSION)/g" $(wildcard src/**/*.ml) $(wildcard src/**/*.mli)
 	sed -i "s/NEXT_RELEASE/$(VERSION)/g" $(wildcard src/*.ml) $(wildcard src/*.mli)
 
-.PHONY: all build test clean doc
+watch:
+	@dune build @all -w
+
+.PHONY: all build test clean doc watch
