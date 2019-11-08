@@ -1,4 +1,3 @@
-
 (* This file is free software. See file "license" for more details. *)
 
 (** {1 Pretty-Printing of nested Boxes}
@@ -201,6 +200,39 @@ val tree : ?indent:int -> t -> t list -> t
 val mk_tree : ?indent:int -> ('a -> t * 'a list) -> 'a -> t
 (** Definition of a tree with a local function that maps nodes to
     their content and children *)
+
+(** {2 Style}
+
+    @since NEXT_RELEASE *)
+module Style : sig
+  type color =
+    | Black
+    | Red
+    | Yellow
+    | Green
+    | Blue
+    | Magenta
+    | Cyan
+    | White
+
+  type t = {
+    bold: bool;
+    bg_color: color option;
+    fg_color: color option;
+  }
+
+  val default : t
+
+  val bg_color : color -> t -> t
+
+  val fg_color : color -> t -> t
+
+  val bold : bool -> t -> t
+end
+
+val with_style : Style.t -> t -> t
+(** Sets the style for this box.
+    @since NEXT_RELEASE *)
 
 (** {2 Simple Structural Interface} *)
 
