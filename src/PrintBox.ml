@@ -1,9 +1,31 @@
-
 (* This file is free software. See file "license" for more details. *)
 
 (** {1 Pretty-Printing of Boxes} *)
 
 type position = { x:int ; y: int }
+
+module Style = struct
+  type color =
+    | Black
+    | Red
+    | Yellow
+    | Green
+    | Blue
+    | Magenta
+    | Cyan
+    | White
+
+  type t = {
+    bold: bool;
+    bg_color: color option;
+    fg_color: color option;
+  }
+
+  let default = {bold=false; bg_color=None; fg_color=None}
+  let bg_color c self = {self with bg_color=Some c}
+  let fg_color c self = {self with fg_color=Some c}
+  let bold b self = {self with bold=b}
+end
 
 type view =
   | Empty
@@ -13,6 +35,7 @@ type view =
   | Align_right of t (* dynamic left-padding *)
   | Grid of [`Bars | `None] * t array array
   | Tree of int * t * t array
+  | Style of Style.t * t
 
 and t = view
 
@@ -20,6 +43,8 @@ let empty = Empty
 let[@inline] view (t:t) : view = t
 
 let[@inline] line_ s = Text [s]
+
+let style s t = Style (s,t)
 
 let line s =
   if String.contains s '\n' then invalid_arg "PrintBox.line";
