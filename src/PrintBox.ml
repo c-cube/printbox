@@ -22,47 +22,56 @@ module Style = struct
   }
 
   let default = {bold=false; bg_color=None; fg_color=None}
-  let bg_color c self = {self with bg_color=Some c}
-  let fg_color c self = {self with fg_color=Some c}
-  let bold b self = {self with bold=b}
+  let set_bg_color c self = {self with bg_color=Some c}
+  let set_fg_color c self = {self with fg_color=Some c}
+  let set_bold b self = {self with bold=b}
+
+  let bold : t = set_bold true default
+  let bg_color c : t = set_bg_color c default
+  let fg_color c : t = set_fg_color c default
 end
 
 type view =
   | Empty
-  | Text of string list
+  | Text of {
+      l: string list;
+      style: Style.t;
+    }
   | Frame of t
   | Pad of position * t (* vertical and horizontal padding *)
   | Align_right of t (* dynamic left-padding *)
   | Grid of [`Bars | `None] * t array array
   | Tree of int * t * t array
-  | Style of Style.t * t
 
 and t = view
 
 let empty = Empty
 let[@inline] view (t:t) : view = t
 
-let[@inline] line_ s = Text [s]
+let[@inline] line_ s = Text {l=[s]; style=Style.default}
 
-let style s t = Style (s,t)
-
-let line s =
+let line_with_style style s =
   if String.contains s '\n' then invalid_arg "PrintBox.line";
-  line_ s
+  Text {l=[s]; style}
 
-let text s = Text [s]
+let line s = line_with_style Style.default s
 
-let sprintf format =
+let text s = Text {l=[s]; style=Style.default}
+let text_with_style style s = Text {l=[s]; style}
+
+let sprintf_with_style style format =
   let buffer = Buffer.create 64 in
   Printf.kbprintf
-    (fun _ -> Text [Buffer.contents buffer])
+    (fun _ -> text_with_style style (Buffer.contents buffer))
     buffer
     format
 
-let asprintf format =
-  Format.kasprintf (fun s -> Text [s]) format
+let sprintf format = sprintf_with_style Style.default format
+let asprintf format = Format.kasprintf text format
+let asprintf_with_style style format = Format.kasprintf (text_with_style style) format
 
-let[@inline] lines l = Text l
+let[@inline] lines l = Text {l; style=Style.default}
+let[@inline] lines_with_style style l = Text {l; style}
 
 let int x = line_ (string_of_int x)
 let float x = line_ (string_of_float x)

@@ -1,4 +1,3 @@
-
 (* This file is free software. See file "license" for more details. *)
 
 (** {1 Render to Text} *)
@@ -9,6 +8,46 @@ type position = PrintBox.position = {
   x:int;
   y:int;
 }
+
+module Style_ansi : sig
+  val brackets : B.Style.t -> string * string
+end = struct
+  open B.Style
+
+  let int_of_color_ = function
+    | Black -> 0
+    | Red -> 1
+    | Green -> 2
+    | Yellow -> 3
+    | Blue -> 4
+    | Magenta -> 5
+    | Cyan -> 6
+    | White -> 7
+
+  let codes_of_style (self:t) : int list = 
+    let {bold;fg_color;bg_color} = self in
+    (if bold then [1] else []) @
+    (match bg_color with None -> [] | Some c -> [40 + int_of_color_ c]) @
+    (match fg_color with None -> [] | Some c -> [30 + int_of_color_ c])
+
+  let ansi_l_to_str_ = function
+    | [] -> "", ""
+    | [a] -> Printf.sprintf "\x1b[%dm" a, "\x1b[0m"
+    | [a;b] -> Printf.sprintf "\x1b[%d;%dm" a b, "\x1b[0m"
+    | l ->
+      let buf = Buffer.create 16 in
+      let pp_num c = Buffer.add_string buf (string_of_int c) in
+      Buffer.add_string buf "\x1b[";
+      List.iteri
+        (fun i c ->
+           if i>0 then Buffer.add_char buf ';';
+           pp_num c)
+        l;
+      Buffer.add_string buf "m";
+      Buffer.contents buf, "\x1b[0m"
+
+  let brackets s = ansi_l_to_str_ (codes_of_style s)
+end
 
 module Pos = struct
   type t = position
@@ -45,6 +84,8 @@ module Output : sig
   val put_char : t -> position -> char -> unit
   val put_string : t -> position -> string -> unit
   val put_sub_string : t -> position -> string -> int -> int -> unit
+  val put_sub_string_brack :
+    t -> position -> pre:string -> string -> int -> int -> post:string -> unit
   val to_string : ?indent:int -> t -> string
   val to_chan : ?indent:int -> out_channel -> t -> unit
   val pp : Format.formatter -> t -> unit
@@ -56,6 +97,7 @@ end = struct
     | Char of char
     | String of string
     | Str_slice of string * int * int
+    | Str_slice_bracket of string * string * int * int * string
 
   type t = {
     mutable m: printable M.t;
@@ -71,6 +113,9 @@ end = struct
 
   let[@inline] put_sub_string (self:t) pos s i len =
     self.m <- M.add pos (Str_slice (s,i,len)) self.m
+
+  let[@inline] put_sub_string_brack (self:t) pos ~pre s i len ~post =
+    self.m <- M.add pos (Str_slice_bracket (pre,s,i,len,post)) self.m
 
   let create () : t = {m=M.empty}
 
@@ -127,6 +172,15 @@ end = struct
         O.output_substring out s i len;
         let l = str_display_width_ s i len in
         Pos.move_x start_pos l
+      | Str_slice_bracket (pre, s, i, len, post) ->
+        O.output_string out pre;
+        O.output_substring out s i len;
+        (* We could use Bytes.unsafe_of_string as long as !string_len
+           does not try to mutate the string (which it should have no
+           reason to do), but just to be safe... *)
+        let l = !str_len_ s i len in
+        O.output_string out post;
+        Pos.move_x start_pos l
 
     let render ?(indent=0) (out:O.t) (self:t) : unit =
       for _i = 1 to indent do O.output_char out ' ' done;
@@ -172,10 +226,17 @@ end = struct
     Format.fprintf out "@[<v>%a@]" (Out_format.render ~indent:0) self
 end
 
-module Box_inner = struct
+module Box_inner : sig
+  type t
+  val of_box : B.box -> t
+  val render : ansi:bool -> Output.t -> t -> unit
+end = struct
   type 'a shape =
     | Empty
-    | Text of (string * int * int) list  (* list of lines *)
+    | Text of {
+        l: (string * int * int) list; (* list of lines *)
+        style: B.Style.t;
+      }
     | Frame of 'a
     | Pad of position * 'a (* vertical and horizontal padding *)
     | Align_right of 'a (* dynamic left-padding *)
@@ -249,7 +310,7 @@ module Box_inner = struct
 
   let size_of_shape = function
     | Empty -> Pos.origin
-    | Text l ->
+    | Text {l;style=_} ->
       let width =
         List.fold_left
           (fun acc (s,i,len) -> max acc (str_display_width_ s i len))
@@ -298,11 +359,11 @@ module Box_inner = struct
     let shape =
       match B.view b with
       | B.Empty -> Empty
-      | B.Text l ->
+      | B.Text {l;style} ->
         (* split into lines *)
         let acc = ref [] in
         lines_l_ l (fun s i len -> acc := (s,i,len) :: !acc);
-        Text (List.rev !acc)
+        Text {l=List.rev !acc; style}
       | B.Frame t -> Frame (of_box t)
       | B.Pad (dim, t) -> Pad (dim, of_box t)
       | B.Align_right t -> Align_right (of_box t)
@@ -327,13 +388,21 @@ module Box_inner = struct
       at the given position. [expected_size] is the size of the
       available surrounding space. [offset] is the offset of the box
       w.r.t the surrounding box *)
-  let rec render_rec ?(offset=Pos.origin) ?expected_size ~out b pos =
+  let rec render_rec ~ansi ?(offset=Pos.origin) ?expected_size ~out b pos =
     match shape b with
     | Empty -> ()
-    | Text l ->
+    | Text {l;style} ->
+      let ansi_prelude, ansi_suffix =
+        if ansi then Style_ansi.brackets style else "", "" in
+      let has_style = ansi_prelude <> "" || ansi_suffix <> "" in
       List.iteri
         (fun line_idx (s,s_i,len)->
-           Output.put_sub_string out (Pos.move_y pos line_idx) s s_i len)
+           if has_style then (
+             Output.put_sub_string_brack out (Pos.move_y pos line_idx)
+               ~pre:ansi_prelude s s_i len ~post:ansi_suffix
+           ) else (
+             Output.put_sub_string out (Pos.move_y pos line_idx) s s_i len
+           ))
         l
     | Frame b' ->
       let {x;y} = size b' in
@@ -349,13 +418,13 @@ module Box_inner = struct
         | Some p -> Some (Pos.move p (-2) (-2)) (* remove space for bars *)
         | None -> None
       in
-      render_rec ~out ?expected_size b' (Pos.move pos 1 1)
+      render_rec ~out ~ansi ?expected_size b' (Pos.move pos 1 1)
     | Pad (dim, b') ->
       let expected_size = match expected_size with
         | None -> None
         | Some p -> Some Pos.(p - (2*dim))
       in
-      render_rec ~offset:Pos.(offset+dim) ?expected_size ~out b' Pos.(pos + dim)
+      render_rec ~offset:Pos.(offset+dim) ~ansi ?expected_size ~out b' Pos.(pos + dim)
     | Align_right b' ->
       begin match expected_size with
         | Some expected_size ->
@@ -364,9 +433,9 @@ module Box_inner = struct
           let offset = Pos.move offset left_pad 0 in
           let pos' = Pos.move pos left_pad 0 in
           (* just render [b'] with new offset *)
-          render_rec ~offset ~out b' pos';
+          render_rec ~offset ~ansi ~out b' pos';
         | None ->
-          render_rec ~offset ~out b' pos
+          render_rec ~ansi ~offset ~out b' pos
       end
     | Grid (style,m) ->
       let dim = B.dim_matrix m in
@@ -384,7 +453,7 @@ module Box_inner = struct
             y=lines.(j+1)-lines.(j)- (if j=dim.y-1 then 0 else space_for_bars);
           } in
           let pos' = Pos.move pos (columns.(i)) (lines.(j)) in
-          render_rec ~expected_size ~out m.(j).(i) pos'
+          render_rec ~ansi ~expected_size ~out m.(j).(i) pos'
         done;
       done;
 
@@ -410,7 +479,7 @@ module Box_inner = struct
           done
       end
     | Tree (indent, n, a) ->
-      render_rec ~out n pos;
+      render_rec ~ansi ~out n pos;
       (* start position for the children *)
       let pos' = Pos.move pos indent (size n).y in
       Output.put_char out (Pos.move_x pos' ~-1) '`';
@@ -422,28 +491,31 @@ module Box_inner = struct
              if i<Array.length a-1 then (
                write_vline_ ~out (Pos.move_y pos' 1) ((size b).y-1)
              );
-             render_rec ~out b (Pos.move_x pos' (str_display_width_ s 0 (String.length s)));
+             render_rec ~out ~ansi b (Pos.move_x pos' (str_display_width_ s 0 (String.length s)));
              Pos.move_y pos' (size b).y
           ) pos' a
       in
       ()
 
-  let render out b = render_rec ~out b Pos.origin
+  let render ~ansi out b = render_rec ~ansi ~out b Pos.origin
 end
 
-let to_string b =
+let to_string_with ~style b =
   let buf = Output.create() in
-  Box_inner.render buf (Box_inner.of_box b);
+  Box_inner.render ~ansi:style buf (Box_inner.of_box b);
   Output.to_string buf
 
-let output ?(indent=0) oc b =
+let to_string = to_string_with ~style:true
+
+let output ?(style=true) ?(indent=0) oc b =
   let buf = Output.create () in
-  Box_inner.render buf (Box_inner.of_box b);
+  Box_inner.render ~ansi:style buf (Box_inner.of_box b);
   Output.to_chan ~indent oc buf;
   flush oc
 
-let pp out b =
+let pp_with ~style out b =
   let buf = Output.create () in
-  Box_inner.render buf (Box_inner.of_box b);
+  Box_inner.render ~ansi:style buf (Box_inner.of_box b);
   Output.pp out buf
 
+let pp = pp_with ~style:true

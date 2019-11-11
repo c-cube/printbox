@@ -13,7 +13,7 @@
         );;
       val b : t = <abstr>
 
-      # PrintBox.output ~indent:2 stdout b;;
+      # PrintBox_text.output ~indent:2 stdout b;;
       +----------+
       |hello     |
       |----------|
@@ -29,7 +29,7 @@
         );;
       val b2 : PrintBox.t = <abstr>
 
-      # PrintBox.output stdout b2;;
+      # PrintBox_text.output stdout b2;;
       +--------------------+
       |I love|a|bbb        |
       |to    |-+-----------|
@@ -41,12 +41,60 @@
 
     ]}
 
+    Since NEXT_RELEASE there is also basic support for coloring text:
+
+    {[
+      # let b = PrintBox.(
+          frame
+            (vlist [ line_with_style Style.(bg_color Green) "hello";
+                     hlist [line "world"; line_with_style Style.(fg_color Red) "yolo"]])
+        );;
+      val b : t = <abstr>
+    ]}
+
 *)
 
 type position = { x:int ; y: int }
 (** Positions are relative to the upper-left corner, that is,
     when [x] increases we go toward the right, and when [y] increases
     we go toward the bottom (same order as a printer) *)
+
+(** {2 Style}
+
+    @since NEXT_RELEASE *)
+module Style : sig
+  type color =
+    | Black
+    | Red
+    | Yellow
+    | Green
+    | Blue
+    | Magenta
+    | Cyan
+    | White
+
+  type t = {
+    bold: bool;
+    bg_color: color option; (** backgroud color *)
+    fg_color: color option; (** foreground color *)
+  }
+  (** Basic styling (color, bold).
+      @since NEXT_RELEASE *)
+
+  val default : t
+
+  val set_bg_color : color -> t -> t
+
+  val set_fg_color : color -> t -> t
+
+  val set_bold : bool -> t -> t
+
+  val bg_color : color -> t
+
+  val fg_color : color -> t
+
+  val bold : t
+end
 
 (** {2 Box Combinators} *)
 
@@ -61,7 +109,10 @@ type t
 *)
 type view = private
   | Empty
-  | Text of string list
+  | Text of {
+      l: string list;
+      style: Style.t;
+    }
   | Frame of t
   | Pad of position * t (* vertical and horizontal padding *)
   | Align_right of t (* dynamic left-padding *)
@@ -201,37 +252,26 @@ val mk_tree : ?indent:int -> ('a -> t * 'a list) -> 'a -> t
 (** Definition of a tree with a local function that maps nodes to
     their content and children *)
 
-(** {2 Style}
+(** {2 Styling combinators} *)
 
+val line_with_style : Style.t -> string -> t
+(** Like {!line} but with additional styling.
     @since NEXT_RELEASE *)
-module Style : sig
-  type color =
-    | Black
-    | Red
-    | Yellow
-    | Green
-    | Blue
-    | Magenta
-    | Cyan
-    | White
 
-  type t = {
-    bold: bool;
-    bg_color: color option;
-    fg_color: color option;
-  }
+val lines_with_style : Style.t -> string list -> t
+(** Like {!lines} but with additional styling.
+    @since NEXT_RELEASE *)
 
-  val default : t
+val text_with_style : Style.t -> string -> t
+(** Like {!text} but with additional styling.
+    @since NEXT_RELEASE *)
 
-  val bg_color : color -> t -> t
+val sprintf_with_style : Style.t -> ('a, Buffer.t, unit, t) format4 -> 'a
+(** Formatting for {!text}, with style
+    @since NEXT_RELEASE *)
 
-  val fg_color : color -> t -> t
-
-  val bold : bool -> t -> t
-end
-
-val with_style : Style.t -> t -> t
-(** Sets the style for this box.
+val asprintf_with_style : Style.t -> ('a, Format.formatter, unit, t) format4 -> 'a
+(** Formatting for {!text}, with style.
     @since NEXT_RELEASE *)
 
 (** {2 Simple Structural Interface} *)

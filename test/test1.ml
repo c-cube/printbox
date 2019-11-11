@@ -1,4 +1,3 @@
-
 module B = PrintBox
 
 (* make a square *)
@@ -10,7 +9,7 @@ let square n =
 let () =
   for i = 1 to 20 do
     Printf.printf "for %d:\n%a\n\n" i
-      (PrintBox_text.output ?indent:None)
+      (PrintBox_text.output ~style:true ?indent:None)
       (square i)
   done
 
@@ -35,6 +34,13 @@ let grid =
 let () =
   PrintBox_text.output stdout grid;
   print_endline ""
+
+let b2 = PrintBox.(
+    let style = Style.(fg_color Red) in
+    frame @@ hlist [text_with_style style "a\nb"; text "c"])
+
+let () =
+  PrintBox_text.output stdout b2; Printf.printf "\n\n"
 
 let grid2 =
   B.frame @@ B.record ~pad:B.align_right ["name1", B.int 1; "foo", B.bool true]

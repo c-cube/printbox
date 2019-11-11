@@ -1,4 +1,3 @@
-
 (* This file is free software. See file "license" for more details. *)
 
 (** {1 Output HTML} *)
@@ -26,10 +25,36 @@ let prelude =
 let prelude_str =
   Format.asprintf "%a@." (H.pp_elt ()) prelude
 
+let attrs_of_style (s:B.Style.t) : _ list * _ =
+  let open B.Style in
+  let {bold;bg_color;fg_color} = s in
+  let encode_color = function
+    | Red -> "red"
+    | Blue -> "blue"
+    | Green -> "green"
+    | Yellow -> "yellow"
+    | Cyan -> "cyan"
+    | Black -> "black"
+    | Magenta -> "magenta"
+    | White -> "white"
+  in
+  let s =
+    (match bg_color with None -> [] | Some c -> ["background-color", encode_color c]) @
+    (match fg_color with None -> [] | Some c -> ["color", encode_color c])
+  in
+  let a = match s with
+    | [] -> []
+    | s -> [H.a_style @@ String.concat ";" @@ List.map (fun (k,v) -> k ^ ": " ^ v) s] in
+  a, bold
+
 let rec to_html_rec (b: B.t) : [< Html_types.flow5 > `Div `Ul `Table `P] html =
   match B.view b with
   | B.Empty -> H.div []
-  | B.Text s -> H.p (List.map H.txt s)
+  | B.Text {l; style} ->
+    let a, bold = attrs_of_style style in
+    let l = List.map H.txt l in
+    let l = if bold then List.map (fun x->H.b [x]) l else l in
+    H.p ~a l
   | B.Pad (_, b)
   | B.Frame b -> to_html_rec b
   | B.Align_right b ->

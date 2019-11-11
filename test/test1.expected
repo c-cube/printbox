@@ -454,6 +454,11 @@ root
            i'm aligned right
 ----------------------------
 looooooooooooooooooooooooong
++---+
+|[31ma[0m|c|
+|[31mb[0m| |
++---+
+
 +----------+
 |name1| foo|
 |-----+----|

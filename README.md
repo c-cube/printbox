@@ -176,6 +176,21 @@ some text +---+
 - : unit = ()
 ```
 
+Also works with basic styling on text now:
+
+```ocaml
+# let b2 = PrintBox.(
+    let style = Style.(fg_color Red default) in
+  frame @@ hlist [text_with_style style "a\nb"; text "c"]);;
+val b2 : B.t = <abstr>
+# Format.printf "some text %a around@." (PrintBox_text.pp_with ~style:true) b2;;
+some text +---+
+          |a|c|
+          |b| |
+          +---+ around
+- : unit = ()
+```
+
 #### Handling unicode
 
 If the text boxes contain unicode (utf8) text, naive size computation for
