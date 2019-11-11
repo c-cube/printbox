@@ -1,4 +1,3 @@
-
 (* This file is free software. See file "license" for more details. *)
 
 (** {1 Render to Text}
@@ -22,11 +21,27 @@ val set_string_len : (String.t -> int -> int -> int) -> unit
 *)
 
 val to_string : PrintBox.t -> string
-(** Returns a string representation of the given structure. *)
+(** Returns a string representation of the given structure.
+    @param style if true, emit ANSI codes for styling (default true) (@since NEXT_RELEASE) *)
 
-val output : ?indent:int -> out_channel -> PrintBox.t -> unit
-(** Outputs the given structure on the channel. *)
+val to_string_with : style:bool -> PrintBox.t -> string
+(** Returns a string representation of the given structure, with style.
+    @param style if true, emit ANSI codes for styling
+    @since NEXT_RELEASE
+*)
+
+val output : ?style:bool -> ?indent:int -> out_channel -> PrintBox.t -> unit
+(** Outputs the given structure on the channel.
+    @param indent initial indentation to use
+    @param style if true, emit ANSI codes for styling (default true) (@since NEXT_RELEASE)
+*)
 
 val pp : Format.formatter -> PrintBox.t -> unit
 (** Pretty-print the box into this formatter.
     @since 0.2 *)
+
+val pp_with : style:bool -> Format.formatter -> PrintBox.t -> unit
+(** Pretty-print the box into this formatter, with style.
+    @param style if true, emit ANSI codes for styling
+    @since NEXT_RELEASE
+*)
