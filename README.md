@@ -180,7 +180,7 @@ Also works with basic styling on text now:
 
 ```ocaml
 # let b2 = PrintBox.(
-    let style = Style.(fg_color Red default) in
+    let style = Style.(fg_color Red) in
   frame @@ hlist [text_with_style style "a\nb"; text "c"]);;
 val b2 : B.t = <abstr>
 # Format.printf "some text %a around@." (PrintBox_text.pp_with ~style:true) b2;;
