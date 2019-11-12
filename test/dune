@@ -1,7 +1,7 @@
 
 (executable
   (name test1)
-  (libraries printbox uutf uucp))
+  (libraries printbox uutf uucp printbox.unicode))
 
 (rule
   (targets test1.output)

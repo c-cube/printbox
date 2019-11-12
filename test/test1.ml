@@ -54,14 +54,7 @@ module Box_in = struct
 end
 
 module Unicode = struct
-  let string_len s i len =
-    Uutf.String.fold_utf_8 ~pos:i ~len
-      (fun n _ c -> match c with
-        | `Malformed _ -> 0
-        | `Uchar c -> n+ max 0 (Uucp.Break.tty_width_hint c))
-      0 s
-
-  let () = PrintBox_text.set_string_len string_len
+  let () = PrintBox_unicode.setup()
 
   let b =
     B.(frame @@ vlist [text "nice unicode! 💪"; frame @@

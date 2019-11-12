@@ -52,11 +52,13 @@ type position = { x:int ; y: int }
 (** {2 Box Combinators} *)
 
 type t
+(** Main type for a document composed of nested boxes.
+    @since 0.2 the type [t] is opaque *)
 
-(** The type [t] is now opaque @since 0.2 .
-    The type [view] can be used to observe the inside of the box.
+(** The type [view] can be used to observe the inside of the box,
+    now that [t] is opaque.
 
-    [Align_right] added @since NEXT_RELEASE
+    @since NEXT_RELEASE added [Align_right]
 *)
 type view = private
   | Empty

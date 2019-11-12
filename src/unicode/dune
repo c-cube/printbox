@@ -1,0 +1,6 @@
+(library
+  (name printbox_unicode)
+  (public_name printbox.unicode)
+  (wrapped false)
+  (optional)
+  (libraries printbox uutf uucp))
