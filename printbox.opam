@@ -14,7 +14,6 @@ depends: [
   "base-bytes"
   "odoc" {with-doc}
   "ocaml" { >= "4.03" }
-  "mdx" {with-test}
   "uutf" {with-test}
   "uucp" {with-test}
 ]
