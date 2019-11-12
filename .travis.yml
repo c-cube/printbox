@@ -13,3 +13,4 @@ env:
   - PACKAGE="printbox" OCAML_VERSION="4.05" EXTRA_DEPS="tyxml"
   - PACKAGE="printbox" OCAML_VERSION="4.06" EXTRA_DEPS="tyxml"
   - PACKAGE="printbox" OCAML_VERSION="4.07" EXTRA_DEPS="tyxml"
+  - PACKAGE="printbox" OCAML_VERSION="4.09" EXTRA_DEPS="tyxml"
