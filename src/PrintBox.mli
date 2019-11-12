@@ -152,6 +152,35 @@ val init_grid : ?bars:bool ->
   line:int -> col:int -> (line:int -> col:int -> t) -> t
 (** Same as {!grid} but takes the matrix as a function *)
 
+val grid_l : 
+  ?pad:(t -> t) ->
+  ?bars:bool ->
+  t list list -> t
+(** Same as {!grid} but from lists.
+    @since NEXT_RELEASE *)
+
+val grid_text_l : 
+  ?pad:(t -> t) ->
+  ?bars:bool ->
+  string list list -> t
+(** Same as {!grid_text} but from lists.
+    @since NEXT_RELEASE *)
+
+val record :
+  ?pad:(t -> t) ->
+  ?bars:bool ->
+  (string * t) list -> t
+(** A record displayed as a table, each field being a columng [(label,value)].
+    {[
+      # frame @@ record ["a", int 1; "b", float 3.14; "c", bool true];;
+      - : t = +-----------+
+              |a|b   |c   |
+              |-+----+----|
+              |1|3.14|true|
+              +-----------+
+    ]}
+    @since NEXT_RELEASE *)
+
 val vlist : ?pad:(t -> t) -> ?bars:bool -> t list -> t
 (** Vertical list of boxes *)
 

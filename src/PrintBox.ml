@@ -69,6 +69,9 @@ let grid ?(pad=fun b->b) ?(bars=true) m =
   let m = map_matrix pad m in
   Grid ((if bars then `Bars else `None), m)
 
+let grid_l ?pad ?bars l =
+  grid ?pad ?bars (Array.of_list l |> Array.map Array.of_list)
+
 let init_grid ?bars ~line ~col f =
   let m = Array.init line (fun j-> Array.init col (fun i -> f ~line:j ~col:i)) in
   grid ?bars m
@@ -86,6 +89,13 @@ let grid_map ?bars f m = grid ?bars (Array.map (Array.map f) m)
 
 let grid_text ?(pad=fun x->x) ?bars m =
   grid_map ?bars (fun x -> pad (text x)) m
+
+let grid_text_l ?pad ?bars l =
+  grid_text ?pad ?bars (Array.of_list l |> Array.map Array.of_list)
+
+let record ?pad ?bars l =
+  let fields, vals = List.split l in
+  grid_l ?pad ?bars [List.map text fields; vals]
 
 let dim_matrix m =
   if Array.length m = 0 then {x=0;y=0}
