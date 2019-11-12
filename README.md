@@ -180,6 +180,18 @@ some text +---+
 
 If the text boxes contain unicode (utf8) text, naive size computation for
 boxes will not cut it.
+
+##### The easy way (since 0.3)
+
+The advice below can be replaced by simply using `printbox.unicode` with:
+
+```ocaml
+# #require "printbox.unicode";;
+# PrintBox_unicode.setup();
+````
+
+##### The manual way
+
 Let's use the libraries `uutf` and `uucp` to compute more accurate size hints.
 
 ```ocaml
