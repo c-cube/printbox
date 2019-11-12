@@ -106,6 +106,7 @@ type t
     now that [t] is opaque.
 
     @since NEXT_RELEASE added [Align_right]
+    @since NEXT_RELEASE added [Center]
 *)
 type view = private
   | Empty
@@ -116,6 +117,7 @@ type view = private
   | Frame of t
   | Pad of position * t (* vertical and horizontal padding *)
   | Align_right of t (* dynamic left-padding *)
+  | Center of t (* center vertically and horizontally *)
   | Grid of [`Bars | `None] * t array array
   | Tree of int * t * t array (* int: indent *)
 
@@ -178,7 +180,12 @@ val hpad : int -> t -> t
 (** Pad horizontally by [n] spaces *)
 
 val align_right : t -> t
-(** Left-pad to the size of the surrounding box *)
+(** Left-pad to the size of the surrounding box
+    @since NEXT_RELEASE *)
+
+val center : t -> t
+(** Try to center within the surrounding box
+    @since NEXT_RELEASE *)
 
 val grid :
   ?pad:(t -> t) ->
@@ -284,6 +291,7 @@ module Simple : sig
     [ `Empty
     | `Pad of t
     | `Align_right of t
+    | `Center of t
     | `Text of string
     | `Vlist of t list
     | `Hlist of t list

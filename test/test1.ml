@@ -26,9 +26,12 @@ let () =
   Printf.printf "\n\n"
 
 let grid =
-  B.vlist
-    [ B.align_right (B.text "i'm aligned right")
-    ; B.text "looooooooooooooooooooooooong"
+  B.frame @@ B.grid_l
+    [ [B.text "the center of the triangle is"; B.empty];
+      [B.center @@ B.text "lil' ol' me";
+       B.text "\n\n\n\n\n\nt\na\nl\nl\n\n\n\n\n\n\n"];
+      [B.align_right (B.text "i'm aligned right"); B.empty];
+       [ B.text "loooooooooooooooooooooooooooooooooong"; B.empty; ];
     ]
 
 let () =

@@ -59,6 +59,8 @@ let rec to_html_rec (b: B.t) : [< Html_types.flow5 > `Div `Ul `Table `P] html =
   | B.Frame b -> to_html_rec b
   | B.Align_right b ->
     H.div ~a:[H.a_class ["align-right"]] [ to_html_rec b ]
+  | B.Center b ->
+    H.div ~a:[H.a_class ["center"]] [ to_html_rec b ]
   | B.Grid (bars, a) ->
     let class_ = match bars with
       | `Bars -> "framed"
