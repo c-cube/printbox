@@ -454,10 +454,12 @@ root
            i'm aligned right
 ----------------------------
 looooooooooooooooooooooooong
-+---+
-|[31ma[0m|c|
-|[31mb[0m| |
-+---+
++--------+
+|[31ma[0m|[1;42mOH![0m   |
+|[31mb[0m|      |
+|-+------|
+|c|ballot|
++--------+
 
 +----------+
 |name1| foo|

@@ -37,7 +37,11 @@ let () =
 
 let b2 = PrintBox.(
     let style = Style.(fg_color Red) in
-    frame @@ hlist [text_with_style style "a\nb"; text "c"])
+    frame @@ grid_l [
+      [text_with_style style "a\nb";
+       line_with_style Style.(set_bold true @@ bg_color Green) "OH!"];
+      [text "c"; text "ballot"];
+    ])
 
 let () =
   PrintBox_text.output stdout b2; Printf.printf "\n\n"

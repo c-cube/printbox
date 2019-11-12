@@ -191,6 +191,20 @@ some text +---+
 - : unit = ()
 ```
 
+```ocaml
+# let b3 = PrintBox.(
+    let style = Style.(fg_color Red) in
+    frame @@ grid_l [
+      [text_with_style style "a\nb";
+       line_with_style Style.(set_bold true @@ bg_color Green) "OH!"];
+      [text "c"; text "ballot"];
+    ])
+val b3 : PrintBox.t = <abstr>
+utop [1]: print_endline @@ PrintBox_text.to_string b3;;
+```
+
+gives ![the following image](./.screen1.png).
+
 #### Handling unicode
 
 If the text boxes contain unicode (utf8) text, naive size computation for
