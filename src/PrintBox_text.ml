@@ -22,6 +22,8 @@ module Pos = struct
 
   let[@inline] move pos x y = {x=pos.x + x; y=pos.y + y}
   let[@inline] (+) pos1 pos2 = move pos1 pos2.x pos2.y
+  let[@inline] (-) pos1 pos2 = move pos1 (-pos2.x) (-pos2.y)
+  let[@inline] ( * ) n pos =  {x = n*pos.x; y=n*pos.y}
   let[@inline] move_x pos x = move pos x 0
   let[@inline] move_y pos y = move pos 0 y
 end
@@ -100,6 +102,13 @@ end = struct
       for _i = x_start to dest.x - 1 do
         O.output_char out ' '
       done
+
+    (*
+    let _pp_elem = function
+      | Char c -> Printf.sprintf "'%c'" c
+      | String s -> Printf.sprintf "%S" s
+      | Str_slice (s,i,len) -> Printf.sprintf "%S[%d,%d]" s i len
+    *)
 
     let to_buf_aux_ ?(indent=0) (out:O.t) start_pos p curr_pos =
       assert (Pos.compare curr_pos start_pos <= 0);
@@ -230,13 +239,13 @@ module Box_inner = struct
     done;
     (* lines *)
     let lines = Array.make (dim.y + 1) 0 in
-    for j = 1 to dim.y do
-      lines.(j) <- lines.(j-1) + (_height_line m.(j-1)) + additional_space
+    for j = 0 to dim.y-1 do
+      lines.(j+1) <- lines.(j) + (_height_line m.(j)) + additional_space
     done;
     (* no trailing bars, adjust *)
     columns.(dim.x) <- columns.(dim.x) - additional_space;
     lines.(dim.y) <- lines.(dim.y) - additional_space;
-    lines, columns
+    lines, columns, additional_space
 
   let size_of_shape = function
     | Empty -> Pos.origin
@@ -247,12 +256,9 @@ module Box_inner = struct
           0 l
       in
       { x=width; y=List.length l; }
-    | Frame t ->
-      let {x;y} = size t in
-      { x=x+2; y=y+2; }
+    | Frame t -> Pos.move (size t) 2 2
     | Pad (dim, b') ->
-      let {x;y} = size b' in
-      { x=x+2*dim.x; y=y+2*dim.y; }
+      Pos.(size b' + (2 * dim))
     | Align_right b' -> size b'
     | Grid (style,m) ->
       let bars = match style with
@@ -260,7 +266,7 @@ module Box_inner = struct
         | `None -> false
       in
       let dim = B.dim_matrix m in
-      let lines, columns = _size_matrix ~bars m in
+      let lines, columns, _space_for_bars = _size_matrix ~bars m in
       { y=lines.(dim.y); x=columns.(dim.x)}
     | Tree (indent, node, children) ->
       let dim_children = _dim_vertical_array children in
@@ -339,16 +345,26 @@ module Box_inner = struct
       write_hline_ ~out (Pos.move pos 1 (y+1)) x;
       write_vline_ ~out (Pos.move_y pos 1) y;
       write_vline_ ~out (Pos.move pos (x+1) 1) y;
-      render_rec ~out b' (Pos.move pos 1 1)
+      let expected_size = match expected_size with
+        | Some p -> Some (Pos.move p (-2) (-2)) (* remove space for bars *)
+        | None -> None
+      in
+      render_rec ~out ?expected_size b' (Pos.move pos 1 1)
     | Pad (dim, b') ->
-      let expected_size = size b in
-      render_rec ~offset:Pos.(dim + offset) ~expected_size ~out b' Pos.(pos + dim)
+      let expected_size = match expected_size with
+        | None -> None
+        | Some p -> Some Pos.(p - (2*dim))
+      in
+      render_rec ~offset:Pos.(offset+dim) ?expected_size ~out b' Pos.(pos + dim)
     | Align_right b' ->
       begin match expected_size with
         | Some expected_size ->
-          let left_pad = expected_size.x - (size b').x in
-          let pos' = Pos.move_x pos left_pad in
-          render_rec ~offset ~expected_size ~out b' pos'
+          (* add padding on the left *)
+          let left_pad = max 0 (expected_size.x - (size b').x) in
+          let offset = Pos.move offset left_pad 0 in
+          let pos' = Pos.move pos left_pad 0 in
+          (* just render [b'] with new offset *)
+          render_rec ~offset ~out b' pos';
         | None ->
           render_rec ~offset ~out b' pos
       end
@@ -358,14 +374,14 @@ module Box_inner = struct
         | `None -> false
         | `Bars -> true
       in
-      let lines, columns = _size_matrix ~bars m in
+      let lines, columns, space_for_bars = _size_matrix ~bars m in
 
       (* write boxes *)
       for j = 0 to dim.y - 1 do
         for i = 0 to dim.x - 1 do
           let expected_size = {
-            x=columns.(i+1)-columns.(i);
-            y=lines.(j+1)-lines.(j);
+            x=columns.(i+1)-columns.(i) - (if i=dim.x-1 then 0 else space_for_bars);
+            y=lines.(j+1)-lines.(j)- (if j=dim.y-1 then 0 else space_for_bars);
           } in
           let pos' = Pos.move pos (columns.(i)) (lines.(j)) in
           render_rec ~expected_size ~out m.(j).(i) pos'
@@ -402,12 +418,11 @@ module Box_inner = struct
       let _ = _array_foldi
           (fun pos' i b ->
              let s = "+- " in
-             let n = String.length s in
              Output.put_string out pos' s;
              if i<Array.length a-1 then (
                write_vline_ ~out (Pos.move_y pos' 1) ((size b).y-1)
              );
-             render_rec ~out b (Pos.move_x pos' n);
+             render_rec ~out b (Pos.move_x pos' (str_display_width_ s 0 (String.length s)));
              Pos.move_y pos' (size b).y
           ) pos' a
       in
