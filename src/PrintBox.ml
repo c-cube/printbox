@@ -40,6 +40,7 @@ type view =
   | Frame of t
   | Pad of position * t (* vertical and horizontal padding *)
   | Align_right of t (* dynamic left-padding *)
+  | Center of t (* center vertically and horizontally *)
   | Grid of [`Bars | `None] * t array array
   | Tree of int * t * t array
 
@@ -95,6 +96,7 @@ let hpad col b = pad' ~col ~lines:0 b
 let vpad lines b = pad' ~col:0 ~lines b
 
 let align_right b = Align_right b
+let center b = Center b
 
 let map_matrix f m =
   Array.map (Array.map f) m
@@ -172,6 +174,7 @@ module Simple = struct
     [ `Empty
     | `Pad of t
     | `Align_right of t
+    | `Center of t
     | `Text of string
     | `Vlist of t list
     | `Hlist of t list
@@ -183,6 +186,7 @@ module Simple = struct
     | `Empty -> empty
     | `Pad b -> pad (to_box b)
     | `Align_right b -> align_right (to_box b)
+    | `Center b -> center (to_box b)
     | `Text t -> text t
     | `Vlist l -> vlist (List.map to_box l)
     | `Hlist l -> hlist (List.map to_box l)
