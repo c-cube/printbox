@@ -433,7 +433,6 @@ end = struct
         | Some expected_size ->
           (* add padding on the left *)
           let left_pad = max 0 (expected_size.x - (size b').x) in
-          let offset = Pos.move offset left_pad 0 in
           let pos' = Pos.move pos left_pad 0 in
           (* just render [b'] with new offset *)
           render_rec ~offset ~ansi ~out b' pos';
@@ -446,7 +445,6 @@ end = struct
           (* add padding on every size *)
           let hpad = max 0 ((expected_size.x - (size b').x) / 2) in
           let vpad = max 0 ((expected_size.y - (size b').y) / 2) in
-          let offset = Pos.move offset hpad vpad in
           let pos' = Pos.move pos hpad vpad in
           (* just render [b'] with new offset *)
           render_rec ~offset ~ansi ~out b' pos';
