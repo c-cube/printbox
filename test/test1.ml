@@ -29,7 +29,7 @@ let grid =
   B.frame @@ B.grid_l
     [ [B.text "the center of the triangle is"; B.empty];
       [B.center @@ B.text "lil' ol' me";
-       B.text "\n\n\n\n\n\nt\na\nl\nl\n\n\n\n\n\n\n"];
+       B.pad' ~col:0 ~lines:6 @@ B.text "t\na\nl\nl"];
       [B.align_right (B.text "i'm aligned right"); B.empty];
        [ B.text "loooooooooooooooooooooooooooooooooong"; B.empty; ];
     ]
@@ -60,7 +60,9 @@ module Box_in = struct
     let open B in
     frame @@ grid_l [
       [ text "a"; text "looooooooooooooooooooooooo\noonng"];
-      [ text "bx"; align_right @@ frame @@ record ["x", int 1; "y", int 2]]
+      [ text "bx"; center @@ frame @@ record ["x", int 1; "y", int 2]];
+      [ pad' ~col:2 ~lines:2 @@ text "?";
+        center @@ record ["x", int 10; "y", int 20]];
     ]
 
   let () = print_endline @@ PrintBox_text.to_string b
@@ -73,7 +75,7 @@ module Unicode = struct
     B.(frame @@ vlist [text "nice unicode! 💪"; frame @@
     hlist [
       vlist[text "oï ωεird nums:\nπ/2\nτ/4";
-        pad @@ pad @@ tree (text "0")[text "1"; tree (text "ω") [text "ω²"]]];
+        center @@ tree (text "0")[text "1"; tree (text "ω") [text "ω²"]]];
       frame @@ frame @@ frame
       @@ vlist [text "sum=Σ_i a·xᵢ²\n—————\n1+1"; align_right @@ text "Ōₒ\nÀ"]]]);;
 
