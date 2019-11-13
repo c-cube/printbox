@@ -462,10 +462,14 @@ end = struct
       (* write boxes *)
       for j = 0 to dim.y - 1 do
         for i = 0 to dim.x - 1 do
-          let expected_size = {
-            x=columns.(i+1)-columns.(i) - (if i=dim.x-1 then 0 else space_for_bars);
-            y=lines.(j+1)-lines.(j)- (if j=dim.y-1 then 0 else space_for_bars);
-          } in
+          let expected_x = match expected_size with
+            | Some es when i=dim.x-1 -> es.x - columns.(i)
+            | _ -> columns.(i+1) - columns.(i) - (if i=dim.x-1 then 0 else space_for_bars)
+          and expected_y = match expected_size with
+            | Some es when j=dim.y-1 -> es.y - lines.(j)
+            | _ -> lines.(j+1) - lines.(j)- (if j=dim.y-1 then 0 else space_for_bars)
+          in
+          let expected_size = {x=expected_x; y=expected_y} in
           let pos' = Pos.move pos (columns.(i)) (lines.(j)) in
           render_rec ~ansi ~expected_size ~out m.(j).(i) pos'
         done;
