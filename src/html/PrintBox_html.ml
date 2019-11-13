@@ -18,6 +18,7 @@ let prelude =
     ; "tr:nth-child(even) { background-color: #eee; }"
     ; "tr:nth-child(odd) { background-color: #fff; }"
     ; ".align-right { text-align: right; }"
+    ; ".center { text-align: center; }"
     ]
   in
   H.style (List.map H.pcdata l)
