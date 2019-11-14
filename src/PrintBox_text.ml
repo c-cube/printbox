@@ -96,8 +96,14 @@ end = struct
   type printable =
     | Char of char
     | String of string
-    | Str_slice of string * int * int
-    | Str_slice_bracket of string * string * int * int * string
+    | Str_slice of {s: string; i: int; len: int}
+    | Str_slice_bracket of {
+        pre: string; (* prefix *)
+        s: string;
+        i: int;
+        len: int;
+        post: string; (* suffix *)
+      }
 
   type t = {
     mutable m: printable M.t;
@@ -112,10 +118,10 @@ end = struct
     self.m <- M.add pos (String s) self.m
 
   let[@inline] put_sub_string (self:t) pos s i len =
-    self.m <- M.add pos (Str_slice (s,i,len)) self.m
+    self.m <- M.add pos (Str_slice {s;i;len}) self.m
 
   let[@inline] put_sub_string_brack (self:t) pos ~pre s i len ~post =
-    self.m <- M.add pos (Str_slice_bracket (pre,s,i,len,post)) self.m
+    self.m <- M.add pos (Str_slice_bracket {pre;s;i;len;post}) self.m
 
   let create () : t = {m=M.empty}
 
@@ -168,11 +174,11 @@ end = struct
         O.output_string out s;
         let l = str_display_width_ s 0 (String.length s) in
         Pos.move_x start_pos l
-      | Str_slice (s, i, len) ->
+      | Str_slice {s; i; len} ->
         O.output_substring out s i len;
         let l = str_display_width_ s i len in
         Pos.move_x start_pos l
-      | Str_slice_bracket (pre, s, i, len, post) ->
+      | Str_slice_bracket {pre; s; i; len; post} ->
         O.output_string out pre;
         O.output_substring out s i len;
         (* We could use Bytes.unsafe_of_string as long as !string_len
