@@ -105,8 +105,7 @@ type t
 (** The type [view] can be used to observe the inside of the box,
     now that [t] is opaque.
 
-    @since NEXT_RELEASE added [Align_right]
-    @since NEXT_RELEASE added [Center]
+    @since NEXT_RELEASE added [Align]
 *)
 type view = private
   | Empty
@@ -116,8 +115,11 @@ type view = private
     }
   | Frame of t
   | Pad of position * t (* vertical and horizontal padding *)
-  | Align_right of t (* dynamic left-padding *)
-  | Center of t (* center vertically and horizontally *)
+  | Align of {
+      h: [`Left | `Center | `Right];
+      v: [`Top | `Center | `Bottom];
+      inner: t;
+    } (** Alignment within the surrounding box *)
   | Grid of [`Bars | `None] * t array array
   | Tree of int * t * t array (* int: indent *)
 
@@ -179,12 +181,34 @@ val vpad : int -> t -> t
 val hpad : int -> t -> t
 (** Pad horizontally by [n] spaces *)
 
-val align_right : t -> t
-(** Left-pad to the size of the surrounding box
+val align : h:[`Left | `Right | `Center] -> v:[`Top | `Bottom | `Center] -> t -> t
+(** Control alignment of the given box wrt its surrounding box, if any.
+    @param h horizontal alignment
+    @param v vertical alignment
     @since NEXT_RELEASE *)
 
-val center : t -> t
-(** Try to center within the surrounding box
+val align_right : t -> t
+(** Left-pad to the size of the surrounding box, as in [align ~h:`Right ~v:`Top]
+    @since NEXT_RELEASE *)
+
+val align_bottom : t -> t
+(** Align to the bottom, as in [align ~h:`Left ~v:`Bottom]
+    @since NEXT_RELEASE *)
+
+val align_bottom_right : t -> t
+(** Align to the right and to the bottom, as in [align ~h:`Right ~v:`Bottom]
+    @since NEXT_RELEASE *)
+
+val center_h : t -> t
+(** Horizontal center, as in .
+    @since NEXT_RELEASE *)
+
+val center_v : t -> t
+(** Vertical center.
+    @since NEXT_RELEASE *)
+
+val center_hv : t -> t
+(** Try to center within the surrounding box, as in [align ~h:`Center ~v:`Center]
     @since NEXT_RELEASE *)
 
 val grid :
@@ -290,8 +314,6 @@ module Simple : sig
   type t =
     [ `Empty
     | `Pad of t
-    | `Align_right of t
-    | `Center of t
     | `Text of string
     | `Vlist of t list
     | `Hlist of t list
