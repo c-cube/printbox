@@ -239,8 +239,11 @@ end = struct
       }
     | Frame of 'a
     | Pad of position * 'a (* vertical and horizontal padding *)
-    | Align_right of 'a (* dynamic left-padding *)
-    | Center of 'a
+    | Align of {
+        h: [`Left | `Center | `Right];
+        v: [`Top | `Center | `Bottom];
+        inner: 'a (* dynamic centering/alignment *)
+      }
     | Grid of [`Bars | `None] * 'a array array
     | Tree of int * 'a * 'a array
 
@@ -321,8 +324,7 @@ end = struct
     | Frame t -> Pos.move (size t) 2 2
     | Pad (dim, b') ->
       Pos.(size b' + (2 * dim))
-    | Align_right b' -> size b'
-    | Center b' -> size b'
+    | Align {inner=b';_} -> size b'
     | Grid (style,m) ->
       let bars = match style with
         | `Bars -> true
@@ -368,8 +370,7 @@ end = struct
         Text {l=List.rev !acc; style}
       | B.Frame t -> Frame (of_box t)
       | B.Pad (dim, t) -> Pad (dim, of_box t)
-      | B.Align_right t -> Align_right (of_box t)
-      | B.Center t -> Center (of_box t)
+      | B.Align {h;v;inner} -> Align {h;v;inner=of_box inner}
       | B.Grid (bars, m) -> Grid (bars, B.map_matrix of_box m)
       | B.Tree (i, b, l) -> Tree (i, of_box b, Array.map of_box l)
     in
@@ -428,23 +429,19 @@ end = struct
         | Some p -> Some Pos.(p - (2*dim))
       in
       render_rec ~offset:Pos.(offset+dim) ~ansi ?expected_size ~out b' Pos.(pos + dim)
-    | Align_right b' ->
+    | Align {h;v;inner=b'} ->
       begin match expected_size with
         | Some expected_size ->
           (* add padding on the left *)
-          let left_pad = max 0 (expected_size.x - (size b').x) in
-          let pos' = Pos.move pos left_pad 0 in
-          (* just render [b'] with new offset *)
-          render_rec ~offset ~ansi ~out b' pos';
-        | None ->
-          render_rec ~ansi ~offset ~out b' pos
-      end
-    | Center b' ->
-      begin match expected_size with
-        | Some expected_size ->
-          (* add padding on every size *)
-          let hpad = max 0 ((expected_size.x - (size b').x) / 2) in
-          let vpad = max 0 ((expected_size.y - (size b').y) / 2) in
+          let hpad = match h with
+            | `Left -> 0
+            | `Center -> max 0 ((expected_size.x - (size b').x) / 2)
+            | `Right -> max 0 (expected_size.x - (size b').x)
+          and vpad = match v with
+            | `Top -> 0
+            | `Center -> max 0 ((expected_size.y - (size b').y) / 2)
+            | `Bottom -> max 0 (expected_size.y - (size b').y)
+          in
           let pos' = Pos.move pos hpad vpad in
           (* just render [b'] with new offset *)
           render_rec ~offset ~ansi ~out b' pos';
