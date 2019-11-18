@@ -17,23 +17,23 @@ val set_string_len : (String.t -> int -> int -> int) -> unit
     ]}
     Note that this function assumes there is no newline character in the given string.
 
-    @since NEXT_RELEASE, this is also used in [printbox_unicode] to basically install the code above
+    @since 0.3, this is also used in [printbox_unicode] to basically install the code above
 *)
 
 val to_string : PrintBox.t -> string
 (** Returns a string representation of the given structure.
-    @param style if true, emit ANSI codes for styling (default true) (@since NEXT_RELEASE) *)
+    @param style if true, emit ANSI codes for styling (default true) (@since 0.3) *)
 
 val to_string_with : style:bool -> PrintBox.t -> string
 (** Returns a string representation of the given structure, with style.
     @param style if true, emit ANSI codes for styling
-    @since NEXT_RELEASE
+    @since 0.3
 *)
 
 val output : ?style:bool -> ?indent:int -> out_channel -> PrintBox.t -> unit
 (** Outputs the given structure on the channel.
     @param indent initial indentation to use
-    @param style if true, emit ANSI codes for styling (default true) (@since NEXT_RELEASE)
+    @param style if true, emit ANSI codes for styling (default true) (@since 0.3)
 *)
 
 val pp : Format.formatter -> PrintBox.t -> unit
@@ -43,5 +43,5 @@ val pp : Format.formatter -> PrintBox.t -> unit
 val pp_with : style:bool -> Format.formatter -> PrintBox.t -> unit
 (** Pretty-print the box into this formatter, with style.
     @param style if true, emit ANSI codes for styling
-    @since NEXT_RELEASE
+    @since 0.3
 *)

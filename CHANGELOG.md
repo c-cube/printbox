@@ -1,5 +1,17 @@
 # Changes
 
+## 0.3
+
+- improve code readability in text rendering
+- add `align` and `center`
+- add basic styling for text (ansi codes/html styles)
+- add `printbox_unicode` for setting up proper unicode printing
+- add `grid_l`, `grid_text_l`, and `record` helpers
+
+- use a more accurate length estimate for unicode, add test
+- remove mdx as a test dep
+- fix rendering bugs related to align right, and padding
+
 ## 0.2
 
 - make the box type opaque, with a view function

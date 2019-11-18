@@ -7,7 +7,7 @@
 
     It depends on Uucp and Uutf.
 
-    @since NEXT_RELEASE
+    @since 0.3
     *)
 
 let string_len s i len =

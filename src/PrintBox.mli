@@ -41,7 +41,7 @@
 
     ]}
 
-    Since NEXT_RELEASE there is also basic support for coloring text:
+    Since 0.3 there is also basic support for coloring text:
 
     {[
       # let b = PrintBox.(
@@ -61,7 +61,7 @@ type position = { x:int ; y: int }
 
 (** {2 Style}
 
-    @since NEXT_RELEASE *)
+    @since 0.3 *)
 module Style : sig
   type color =
     | Black
@@ -79,7 +79,7 @@ module Style : sig
     fg_color: color option; (** foreground color *)
   }
   (** Basic styling (color, bold).
-      @since NEXT_RELEASE *)
+      @since 0.3 *)
 
   val default : t
 
@@ -105,7 +105,7 @@ type t
 (** The type [view] can be used to observe the inside of the box,
     now that [t] is opaque.
 
-    @since NEXT_RELEASE added [Align]
+    @since 0.3 added [Align]
 *)
 type view = private
   | Empty
@@ -185,31 +185,31 @@ val align : h:[`Left | `Right | `Center] -> v:[`Top | `Bottom | `Center] -> t ->
 (** Control alignment of the given box wrt its surrounding box, if any.
     @param h horizontal alignment
     @param v vertical alignment
-    @since NEXT_RELEASE *)
+    @since 0.3 *)
 
 val align_right : t -> t
 (** Left-pad to the size of the surrounding box, as in [align ~h:`Right ~v:`Top]
-    @since NEXT_RELEASE *)
+    @since 0.3 *)
 
 val align_bottom : t -> t
 (** Align to the bottom, as in [align ~h:`Left ~v:`Bottom]
-    @since NEXT_RELEASE *)
+    @since 0.3 *)
 
 val align_bottom_right : t -> t
 (** Align to the right and to the bottom, as in [align ~h:`Right ~v:`Bottom]
-    @since NEXT_RELEASE *)
+    @since 0.3 *)
 
 val center_h : t -> t
 (** Horizontal center, as in .
-    @since NEXT_RELEASE *)
+    @since 0.3 *)
 
 val center_v : t -> t
 (** Vertical center.
-    @since NEXT_RELEASE *)
+    @since 0.3 *)
 
 val center_hv : t -> t
 (** Try to center within the surrounding box, as in [align ~h:`Center ~v:`Center]
-    @since NEXT_RELEASE *)
+    @since 0.3 *)
 
 val grid :
   ?pad:(t -> t) ->
@@ -240,14 +240,14 @@ val grid_l :
   ?bars:bool ->
   t list list -> t
 (** Same as {!grid} but from lists.
-    @since NEXT_RELEASE *)
+    @since 0.3 *)
 
 val grid_text_l : 
   ?pad:(t -> t) ->
   ?bars:bool ->
   string list list -> t
 (** Same as {!grid_text} but from lists.
-    @since NEXT_RELEASE *)
+    @since 0.3 *)
 
 val record :
   ?pad:(t -> t) ->
@@ -262,7 +262,7 @@ val record :
               |1|3.14|true|
               +-----------+
     ]}
-    @since NEXT_RELEASE *)
+    @since 0.3 *)
 
 val vlist : ?pad:(t -> t) -> ?bars:bool -> t list -> t
 (** Vertical list of boxes *)
@@ -287,23 +287,23 @@ val mk_tree : ?indent:int -> ('a -> t * 'a list) -> 'a -> t
 
 val line_with_style : Style.t -> string -> t
 (** Like {!line} but with additional styling.
-    @since NEXT_RELEASE *)
+    @since 0.3 *)
 
 val lines_with_style : Style.t -> string list -> t
 (** Like {!lines} but with additional styling.
-    @since NEXT_RELEASE *)
+    @since 0.3 *)
 
 val text_with_style : Style.t -> string -> t
 (** Like {!text} but with additional styling.
-    @since NEXT_RELEASE *)
+    @since 0.3 *)
 
 val sprintf_with_style : Style.t -> ('a, Buffer.t, unit, t) format4 -> 'a
 (** Formatting for {!text}, with style
-    @since NEXT_RELEASE *)
+    @since 0.3 *)
 
 val asprintf_with_style : Style.t -> ('a, Format.formatter, unit, t) format4 -> 'a
 (** Formatting for {!text}, with style.
-    @since NEXT_RELEASE *)
+    @since 0.3 *)
 
 (** {2 Simple Structural Interface} *)
 
