@@ -68,6 +68,26 @@ module Box_in = struct
   let () = print_endline @@ PrintBox_text.to_string b
 end
 
+let b =
+  let open PrintBox in
+  frame @@ record [
+    ("subject", text_with_style Style.bold "announce: printbox 0.3");
+    ("explanation",
+    frame @@ text {|PrintBox is a library for rendering nested tables,
+    trees, and similar structures in monospace text or HTML.|});
+    ("github",
+    text_with_style Style.(bg_color Blue) "https://github.com/c-cube/printbox/releases/tag/0.3");
+    ("contributors",
+     vlist_map (text_with_style Style.(fg_color Green)) ["Simon"; "Guillaume"; "Matt"]);
+    ("dependencies",
+    tree empty
+      [tree (text "mandatory")
+         [text "dune"; text "bytes"];
+       tree (text "optional")
+         [text "uutf"; text "uucp"; text "tyxml"]]);
+    ("expected reaction", text "🎉");
+  ]
+
 module Unicode = struct
   let () = PrintBox_unicode.setup()
 
