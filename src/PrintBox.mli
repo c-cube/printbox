@@ -264,6 +264,23 @@ val record :
     ]}
     @since 0.3 *)
 
+val v_record :
+  ?pad:(t -> t) ->
+  ?bars:bool ->
+  (string * t) list -> t
+(** Like {!record}, but printed vertically rather than horizontally.
+    {[
+      # frame @@ v_record ["a", int 1; "b", float 3.14; "c", bool true];;
+      - : t = +------+
+              |a|1   |
+              |-+----|
+              |b|3.14|
+              |-+----|
+              |c|true|
+              +------+
+    ]}
+    @since NEXT_RELEASE *)
+
 val vlist : ?pad:(t -> t) -> ?bars:bool -> t list -> t
 (** Vertical list of boxes *)
 
@@ -271,6 +288,10 @@ val hlist : ?pad:(t -> t) -> ?bars:bool -> t list -> t
 (** Horizontal list of boxes *)
 
 val grid_map : ?bars:bool -> ('a -> t) -> 'a array array -> t
+
+val grid_map_l : ?bars:bool -> ('a -> t) -> 'a list list -> t
+(** Same as {!grid_map} but with lists.
+    @since NEXT_RELEASE *)
 
 val vlist_map : ?bars:bool -> ('a -> t) -> 'a list -> t
 

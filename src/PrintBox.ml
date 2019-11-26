@@ -131,6 +131,8 @@ let hlist_map ?bars f l = hlist ?bars (List.map f l)
 let vlist_map ?bars f l = vlist ?bars (List.map f l)
 let grid_map ?bars f m = grid ?bars (Array.map (Array.map f) m)
 
+let grid_map_l ?bars f m = grid_l ?bars (List.map (List.map f) m)
+
 let grid_text ?(pad=fun x->x) ?bars m =
   grid_map ?bars (fun x -> pad (text x)) m
 
@@ -140,6 +142,9 @@ let grid_text_l ?pad ?bars l =
 let record ?pad ?bars l =
   let fields, vals = List.split l in
   grid_l ?pad ?bars [List.map text fields; vals]
+
+let v_record ?pad ?bars l =
+  grid_l ?pad ?bars (List.map (fun (f,v) -> [text f; v]) l)
 
 let dim_matrix m =
   if Array.length m = 0 then {x=0;y=0}

@@ -55,6 +55,13 @@ let grid2 =
 let () =
   PrintBox_text.output stdout grid2; print_endline ""
 
+let grid3 =
+  B.frame @@ B.v_record ~pad:B.center_h
+    ["name_int_long", B.int 1; "foo", B.bool true; "bar!", B.int 42]
+
+let () =
+  PrintBox_text.output stdout grid3; print_endline ""
+
 module Box_in = struct
   let b =
     let open B in
