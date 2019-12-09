@@ -55,7 +55,7 @@ let rec to_html_rec (b: B.t) : [< Html_types.flow5 > `Div `Ul `Table `P] html =
     let a, bold = attrs_of_style style in
     let l = List.map H.txt l in
     let l = if bold then List.map (fun x->H.b [x]) l else l in
-    H.p ~a l
+    H.div ~a l
   | B.Pad (_, b)
   | B.Frame b -> to_html_rec b
   | B.Align {h=`Right;inner=b;v=_} ->
