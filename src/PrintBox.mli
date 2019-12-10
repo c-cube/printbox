@@ -279,7 +279,7 @@ val v_record :
               |c|true|
               +------+
     ]}
-    @since NEXT_RELEASE *)
+    @since 0.4 *)
 
 val vlist : ?pad:(t -> t) -> ?bars:bool -> t list -> t
 (** Vertical list of boxes *)
@@ -291,7 +291,7 @@ val grid_map : ?bars:bool -> ('a -> t) -> 'a array array -> t
 
 val grid_map_l : ?bars:bool -> ('a -> t) -> 'a list list -> t
 (** Same as {!grid_map} but with lists.
-    @since NEXT_RELEASE *)
+    @since 0.4 *)
 
 val vlist_map : ?bars:bool -> ('a -> t) -> 'a list -> t
 

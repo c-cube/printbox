@@ -1,5 +1,11 @@
 # Changes
 
+## 0.4
+
+- remove `<p>` in rendering text to html
+- add `grid_map_l` and `v_record`
+- add another test
+
 ## 0.3
 
 - improve code readability in text rendering
