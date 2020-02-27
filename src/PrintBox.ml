@@ -46,6 +46,10 @@ type view =
     }
   | Grid of [`Bars | `None] * t array array
   | Tree of int * t * t array
+  | Link of {
+      uri: string;
+      inner: t;
+    }
 
 and t = view
 
@@ -176,6 +180,8 @@ let mk_tree ?indent f root =
     | b, children -> tree ?indent b (List.map make children)
   in
   make root
+
+let link ~uri inner : t = Link {uri; inner}
 
 (** {2 Simple Structural Interface} *)
 

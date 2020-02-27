@@ -84,6 +84,8 @@ let rec to_html_rec (b: B.t) : [< Html_types.flow5 > `Div `Ul `Table `P] html =
       [ to_html_rec b
       ; H.ul (List.map (fun x -> H.li [to_html_rec x]) l)
       ]
+  | B.Link {uri; inner} ->
+    H.div [H.a ~a:[H.a_href uri] [to_html_rec inner]]
 
 let to_html b = H.div [to_html_rec b]
 

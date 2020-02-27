@@ -12,6 +12,8 @@ val prelude : [> Html_types.style] html
 
 val prelude_str : string
 
+(* TODO: custom classes (e.g. for tables) *)
+
 val to_html : PrintBox.t -> [`Div] html
 (** HTML for one box *)
 

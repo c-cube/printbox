@@ -379,6 +379,12 @@ end = struct
       | B.Align {h;v;inner} -> Align {h;v;inner=of_box inner}
       | B.Grid (bars, m) -> Grid (bars, B.map_matrix of_box m)
       | B.Tree (i, b, l) -> Tree (i, of_box b, Array.map of_box l)
+      | B.Link {inner;uri} ->
+        (* just encode as a record *)
+        let self =
+          of_box (B.v_record ["uri", B.text uri; "inner", inner])
+        in
+        self.shape
     in
     { shape; size = lazy (size_of_shape shape) }
 

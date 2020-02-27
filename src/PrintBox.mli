@@ -106,6 +106,7 @@ type t
     now that [t] is opaque.
 
     @since 0.3 added [Align]
+    @since 0.5 added [Link]
 *)
 type view = private
   | Empty
@@ -122,6 +123,10 @@ type view = private
     } (** Alignment within the surrounding box *)
   | Grid of [`Bars | `None] * t array array
   | Tree of int * t * t array (* int: indent *)
+  | Link of {
+      uri: string;
+      inner: t;
+    }
 
 val view : t -> view
 (** Observe the content of the box.
@@ -303,6 +308,13 @@ val tree : ?indent:int -> t -> t list -> t
 val mk_tree : ?indent:int -> ('a -> t * 'a list) -> 'a -> t
 (** Definition of a tree with a local function that maps nodes to
     their content and children *)
+
+val link : uri:string -> t -> t
+(** [link ~uri inner] points to the given URI, with the visible description
+    being [inner].
+    Will render in HTML as a "<a>" element.
+    @since 0.5
+*)
 
 (** {2 Styling combinators} *)
 
