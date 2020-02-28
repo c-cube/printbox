@@ -1,5 +1,12 @@
 # Changes
 
+## 0.5
+
+- reenable mdx for tests
+- custom classes/attributes for html translation in `PrintBox_html`
+- add `link` case
+- examples: add lambda.ml
+
 ## 0.4
 
 - remove `<p>` in rendering text to html
