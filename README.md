@@ -191,7 +191,7 @@ some text +---+
 - : unit = ()
 ```
 
-```ocaml
+```ocaml non-deterministic=command
 # let b3 = PrintBox.(
     let style = Style.(fg_color Red) in
     frame @@ grid_l [
@@ -214,10 +214,10 @@ boxes will not cut it.
 
 The advice below can be replaced by simply using `printbox.unicode` with:
 
-```ocaml
+```ocaml non-deterministic=command
 # #require "printbox.unicode";;
-# PrintBox_unicode.setup();
-````
+# PrintBox_unicode.setup();;
+```
 
 ##### The manual way
 
