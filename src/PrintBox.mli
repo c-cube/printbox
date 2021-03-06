@@ -14,11 +14,11 @@
       val b : t = <abstr>
 
       # PrintBox_text.output ~indent:2 stdout b;;
-      +----------+
-      |hello     |
-      |----------|
-      |world|yolo|
-      +----------+
+        +----------+
+        |hello     |
+        |----------|
+        |world|yolo|
+        +----------+
       - : unit = ()
 
       # let b2 = PrintBox.(
