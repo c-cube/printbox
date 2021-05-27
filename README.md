@@ -219,6 +219,8 @@ The advice below can be replaced by simply using `printbox.unicode` with:
 # PrintBox_unicode.setup();;
 ```
 
+> Notice that in order for printbox.unicode to be available, [uutf](https://opam.ocaml.org/packages/uutf/) and [uucp](https://opam.ocaml.org/packages/uucp/) need to be installed.
+
 ##### The manual way
 
 Let's use the libraries `uutf` and `uucp` to compute more accurate size hints.
