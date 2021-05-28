@@ -24,7 +24,7 @@ end = struct
     | Cyan -> 6
     | White -> 7
 
-  let codes_of_style (self:t) : int list = 
+  let codes_of_style (self:t) : int list =
     let {bold;fg_color;bg_color} = self in
     (if bold then [1] else []) @
     (match bg_color with None -> [] | Some c -> [40 + int_of_color_ c]) @
@@ -53,8 +53,8 @@ module Pos = struct
   type t = position
 
   let[@inline] compare pos1 pos2 =
-    match Pervasives.compare pos1.y pos2.y with
-    | 0 -> Pervasives.compare pos1.x pos2.x
+    match compare pos1.y pos2.y with
+    | 0 -> compare pos1.x pos2.x
     | x -> x
 
   let origin = {x=0; y=0;}

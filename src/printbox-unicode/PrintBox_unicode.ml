@@ -1,4 +1,3 @@
-
 (** {1 Setup Unicode-aware text printing}
 
     This module just provides a function, {!setup},
@@ -14,9 +13,8 @@ let string_len s i len =
   Uutf.String.fold_utf_8 ~pos:i ~len
     (fun n _ c -> match c with
       | `Malformed _ -> 0
-      | `Uchar c -> n+ max 0 (Uucp.Break.tty_width_hint c))
+      | `Uchar c -> n + max 0 (Uucp.Break.tty_width_hint c))
     0 s
 
 let setup () =
   PrintBox_text.set_string_len string_len
-
