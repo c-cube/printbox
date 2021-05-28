@@ -17,7 +17,7 @@ See https://c-cube.github.io/printbox/
 Ideally, use [opam](http://opam.ocaml.org/):
 
 ```sh non-deterministic=command
-$ opam install printbox
+$ opam install printbox printbox-unicode
 ```
 
 Manually:
@@ -215,7 +215,8 @@ boxes will not cut it.
 The advice below can be replaced by simply using `printbox.unicode` with:
 
 ```ocaml non-deterministic=command
-# #require "printbox.unicode";;
+# #require "printbox-unicode";;
+# open Printbox_unicode;;
 # PrintBox_unicode.setup();;
 ```
 
@@ -280,4 +281,3 @@ Note that trees are printed in HTML using nested lists, and
 that `PrintBox_html.to_string_doc` will insert some javascript to
 make sub-lists fold/unfold on click (this is useful to display very large
 trees compactly and exploring them incrementally).
-

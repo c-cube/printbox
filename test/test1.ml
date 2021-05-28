@@ -96,6 +96,8 @@ let b =
   ]
 
 module Unicode = struct
+  open Printbox_unicode
+
   let () = PrintBox_unicode.setup()
 
   let b =
@@ -108,4 +110,3 @@ module Unicode = struct
 
   let () = print_endline @@ PrintBox_text.to_string b
 end
-

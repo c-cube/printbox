@@ -1,7 +1,7 @@
 
 (executables
   (names test1 test_ann_0_3)
-  (libraries printbox uutf uucp printbox.unicode))
+  (libraries printbox printbox-unicode))
 
 (rule
   (targets test1.output)
