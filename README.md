@@ -269,7 +269,7 @@ val b : B.t = <abstr>
 
 #### HTML output (with `tyxml`)
 
-Assuming you have loaded `printbox.html` somehow:
+Assuming you have loaded `printbox-html` somehow:
 
 ```ocaml non-deterministic=command
 let out = open_out "/tmp/foo.html";;

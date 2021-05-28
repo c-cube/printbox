@@ -2,20 +2,19 @@ opam-version: "2.0"
 authors: ["Simon Cruanes" "Guillaume Bury"]
 maintainer: "simon.cruanes.2007@m4x.org"
 version: "0.5"
-synopsis: "Allows to print nested boxes, lists, arrays, tables in several formats"
+synopsis: "Printbox unicode handling"
+description: """
+Adds html output handling to the printbox package.
+Printbox allows to print nested boxes, lists, arrays, tables in several formats
+"""
 build: [
   ["dune" "build" "@install" "-p" name "-j" jobs]
   ["dune" "runtest" "-p" name "-j" jobs] {with-test}
   ["dune" "build" "@doc" "-p" name "-j" jobs] {with-doc}
 ]
 depends: [
-  "dune" { >= "1.1" }
-  "base-bytes"
-  "odoc" {with-doc}
-  "ocaml" { >= "4.03" }
-  "uutf" {with-test}
-  "uucp" {with-test}
-  "mdx" {with-test & >= "1.4" & < "1.6" }
+  "printbox" {= version}
+  "tyxml"
 ]
 tags: [ "print" "box" "table" "tree" ]
 homepage: "https://github.com/c-cube/printbox/"
