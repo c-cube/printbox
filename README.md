@@ -1,4 +1,4 @@
-# PrintBox [![Build Status](https://travis-ci.org/c-cube/printbox.svg?branch=master)](https://travis-ci.org/c-cube/printbox)
+# PrintBox [![build](https://github.com/c-cube/printbox/actions/workflows/main.yml/badge.svg)](https://github.com/c-cube/printbox/actions/workflows/main.yml)
 
 Allows to print nested boxes, lists, arrays, tables in several formats,
 including:
