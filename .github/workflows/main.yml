@@ -12,9 +12,9 @@ jobs:
     strategy:
       matrix:
         os:
-          - macos-latest
           - ubuntu-latest
-          - windows-latest
+          #- windows-latest
+          #- macos-latest
         ocaml-compiler:
           - 4.03.x
           - 4.08.x
