@@ -1,4 +1,0 @@
-(library
-  (name printbox_unicode)
-  (public_name printbox-unicode)
-  (libraries printbox uutf uucp))

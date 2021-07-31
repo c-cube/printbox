@@ -13,8 +13,8 @@ depends: [
   "base-bytes"
   "odoc" {with-doc}
   "ocaml" { >= "4.03" }
-  "uutf" {with-test}
-  "uucp" {with-test}
+  "uutf"
+  "uucp"
   "mdx" {with-test & >= "1.4" }
 ]
 tags: [ "print" "box" "table" "tree" ]

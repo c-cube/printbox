@@ -17,7 +17,7 @@ See https://c-cube.github.io/printbox/
 Ideally, use [opam](http://opam.ocaml.org/):
 
 ```sh non-deterministic=command
-$ opam install printbox printbox-unicode
+$ opam install printbox
 ```
 
 Manually:
@@ -44,7 +44,7 @@ module B = PrintBox
 val box : B.t = <abstr>
 
 # PrintBox_text.output stdout box;;
-hello|world
+hello│world
 - : unit = ()
 ```
 
@@ -61,12 +61,12 @@ hello|world
 val box : B.t = <abstr>
 
 # PrintBox_text.output stdout box;;
-+--------------------+
-|I love|a|bbb        |
-|to    |-+-----------|
-|press |c|hello world|
-|enter | |           |
-+--------------------+
+┌────────────────────┐
+│I love│a│bbb        │
+│to    │─┼───────────│
+│press │c│hello world│
+│enter │ │           │
+└────────────────────┘
 - : unit = ()
 ```
 
@@ -83,15 +83,15 @@ val square : int -> B.t = <fun>
 # let sq = square 5;;
 val sq : B.t = <abstr>
 # PrintBox_text.output stdout sq;;
-(0,0)|(0,1)|(0,2)|(0,3)|(0,4)
------+-----+-----+-----+-----
-(1,0)|(1,1)|(1,2)|(1,3)|(1,4)
------+-----+-----+-----+-----
-(2,0)|(2,1)|(2,2)|(2,3)|(2,4)
------+-----+-----+-----+-----
-(3,0)|(3,1)|(3,2)|(3,3)|(3,4)
------+-----+-----+-----+-----
-(4,0)|(4,1)|(4,2)|(4,3)|(4,4)
+(0,0)│(0,1)│(0,2)│(0,3)│(0,4)
+─────┼─────┼─────┼─────┼─────
+(1,0)│(1,1)│(1,2)│(1,3)│(1,4)
+─────┼─────┼─────┼─────┼─────
+(2,0)│(2,1)│(2,2)│(2,3)│(2,4)
+─────┼─────┼─────┼─────┼─────
+(3,0)│(3,1)│(3,2)│(3,3)│(3,4)
+─────┼─────┼─────┼─────┼─────
+(4,0)│(4,1)│(4,2)│(4,3)│(4,4)
 - : unit = ()
 ```
 
@@ -104,13 +104,13 @@ Why not put a frame around this? That's easy.
 val sq2 : B.t = <abstr>
 
 # PrintBox_text.output stdout sq2;;
-+-----------------+
-|(0,0)|(0,1)|(0,2)|
-|-----+-----+-----|
-|(1,0)|(1,1)|(1,2)|
-|-----+-----+-----|
-|(2,0)|(2,1)|(2,2)|
-+-----------------+
+┌─────────────────┐
+│(0,0)│(0,1)│(0,2)│
+│─────┼─────┼─────│
+│(1,0)│(1,1)│(1,2)│
+│─────┼─────┼─────│
+│(2,0)│(2,1)│(2,2)│
+└─────────────────┘
 - : unit = ()
 ```
 
@@ -129,14 +129,14 @@ val tree : B.t = <abstr>
 # PrintBox_text.output stdout tree;;
 root
 `+- a
- |  `+- a1
- |   |  a1
- |   +- a2
- |      a2
- |      a2
+ │  `+- a1
+ │   │  a1
+ │   +- a2
+ │      a2
+ │      a2
  +- b
     `+- b1
-     |  b1
+     │  b1
      +- b2
      +- b3
 - : unit = ()
@@ -151,15 +151,15 @@ can be used as a default printer for boxes.
 # #install_printer PrintBox_text.pp;;
 # PrintBox.(frame @@ frame @@ init_grid ~line:3 ~col:2 (fun ~line:i ~col:j -> sprintf "%d.%d" i j));;
 - : B.t =
-+---------+
-|+-------+|
-||0.0|0.1||
-||---+---||
-||1.0|1.1||
-||---+---||
-||2.0|2.1||
-|+-------+|
-+---------+
+┌─────────┐
+│┌───────┐│
+││0.0│0.1││
+││───┼───││
+││1.0│1.1││
+││───┼───││
+││2.0│2.1││
+│└───────┘│
+└─────────┘
 # #remove_printer PrintBox_text.pp;;
 ```
 
@@ -169,10 +169,10 @@ Note that this pretty-printer plays nicely with `Format` boxes:
 # let b = PrintBox.(frame @@ hlist [text "a\nb"; text "c"]);;
 val b : B.t = <abstr>
 # Format.printf "some text %a around@." PrintBox_text.pp b;;
-some text +---+
-          |a|c|
-          |b| |
-          +---+ around
+some text ┌───┐
+          │a│c│
+          │b│ │
+          └───┘ around
 - : unit = ()
 ```
 
@@ -184,10 +184,10 @@ Also works with basic styling on text now:
   frame @@ hlist [text_with_style style "a\nb"; text "c"]);;
 val b2 : B.t = <abstr>
 # Format.printf "some text %a around@." (PrintBox_text.pp_with ~style:true) b2;;
-some text +---+
-          |a|c|
-          |b| |
-          +---+ around
+some text ┌───┐
+          │a│c│
+          │b│ │
+          └───┘ around
 - : unit = ()
 ```
 
@@ -207,42 +207,7 @@ gives ![the following image](./.screen1.png).
 
 #### Handling unicode
 
-If the text boxes contain unicode (utf8) text, naive size computation for
-boxes will not cut it.
-
-##### The easy way (since 0.3)
-
-The advice below can be replaced by simply using `printbox.unicode` with:
-
-```ocaml non-deterministic=command
-# #require "printbox-unicode";;
-# open Printbox_unicode;;
-# PrintBox_unicode.setup();;
-```
-
-> Notice that in order for printbox.unicode to be available, [uutf](https://opam.ocaml.org/packages/uutf/) and [uucp](https://opam.ocaml.org/packages/uucp/) need to be installed.
-
-##### The manual way
-
-Let's use the libraries `uutf` and `uucp` to compute more accurate size hints.
-
-```ocaml
-# #require "uutf";;
-# #require "uucp";;
-```
-
-```ocaml
-let string_len s i len =
-  Uutf.String.fold_utf_8 ~pos:i ~len
-    (fun n _ c -> match c with
-      | `Malformed _ -> 0
-      | `Uchar c -> n+ max 0 (Uucp.Break.tty_width_hint c))
-    0 s
-
-let () = PrintBox_text.set_string_len string_len
-```
-
-And now:
+Unicode (utf8) text is handled.
 
 ```ocaml
 # let b =
@@ -254,16 +219,16 @@ And now:
 val b : B.t = <abstr>
 
 # print_endline @@ PrintBox_text.to_string b;;
-+------------------------------+
-|oï ωεird nums:|+-------------+|
-|π/2           ||sum=Σ_i a·xᵢ²||
-|τ/4           ||—————        ||
-|--------------||1+1          ||
-|0             ||-------------||
-|`+- 1         ||Ōₒ           ||
-| +- ω         ||À            ||
-|    `+- ω²    |+-------------+|
-+------------------------------+
+┌──────────────────────────────┐
+│oï ωεird nums:│┌─────────────┐│
+│π/2           ││sum=Σ_i a·xᵢ²││
+│τ/4           ││—————        ││
+│──────────────││1+1          ││
+│0             ││─────────────││
+│`+- 1         ││Ōₒ           ││
+│ +- ω         ││À            ││
+│    `+- ω²    │└─────────────┘│
+└──────────────────────────────┘
 - : unit = ()
 ```
 

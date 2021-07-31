@@ -96,10 +96,6 @@ let b =
   ]
 
 module Unicode = struct
-  open Printbox_unicode
-
-  let () = PrintBox_unicode.setup()
-
   let b =
     B.(frame @@ vlist [text "nice unicode! 💪"; frame @@
     hlist [

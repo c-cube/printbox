@@ -71,10 +71,15 @@ module M = Map.Make(Pos)
 
 (* String length *)
 
-let str_len_ = ref (fun _ _ len -> len)
+let str_display_len_ = ref (fun s i len ->
+    Uutf.String.fold_utf_8 ~pos:i ~len:len
+      (fun n _ c -> match c with
+         | `Malformed _ -> 0
+         | `Uchar c -> n + max 0 (Uucp.Break.tty_width_hint c))
+      0 s)
 
-let[@inline] set_string_len f = str_len_ := f
-let[@inline] str_display_width_ s i len : int = !str_len_ s i len
+let[@inline] set_string_len f = str_display_len_ := f
+let[@inline] str_display_width_ s i len : int = !str_display_len_ s i len
 
 (** {2 Output: where to print to} *)
 
@@ -96,7 +101,7 @@ end = struct
   type printable =
     | Char of char
     | String of string
-    | Str_slice of {s: string; i: int; len: int}
+    | Str_slice of {s: string;i: int;len: int}
     | Str_slice_bracket of {
         pre: string; (* prefix *)
         s: string;
@@ -172,7 +177,7 @@ end = struct
         Pos.move_x start_pos 1
       | String s ->
         O.output_string out s;
-        let l = str_display_width_ s 0 (String.length s) in
+        let l = !str_display_len_ s 0 (String.length s) in
         Pos.move_x start_pos l
       | Str_slice {s; i; len} ->
         O.output_substring out s i len;
@@ -184,8 +189,8 @@ end = struct
         (* We could use Bytes.unsafe_of_string as long as !string_len
            does not try to mutate the string (which it should have no
            reason to do), but just to be safe... *)
-        let l = !str_len_ s i len in
         O.output_string out post;
+        let l = str_display_width_ s i len in
         Pos.move_x start_pos l
 
     let render ?(indent=0) (out:O.t) (self:t) : unit =
@@ -195,12 +200,12 @@ end = struct
   end
 
   module Out_buf = Make_out(struct
-    type t = Buffer.t
-    let output_char = Buffer.add_char
-    let output_string = Buffer.add_string
-    let output_substring = Buffer.add_substring
-    let newline b = Buffer.add_char b '\n'
-  end)
+      type t = Buffer.t
+      let output_char = Buffer.add_char
+      let output_string = Buffer.add_string
+      let output_substring = Buffer.add_substring
+      let newline b = Buffer.add_char b '\n'
+    end)
 
   let to_string ?indent self : string =
     let buf = Buffer.create 42 in
@@ -208,25 +213,25 @@ end = struct
     Buffer.contents buf
 
   module Out_chan = Make_out(struct
-    type t = out_channel
-    let output_char = output_char
-    let output_string = output_string
-    let output_substring = output_substring
-    let newline oc = output_char oc '\n'
-  end)
+      type t = out_channel
+      let output_char = output_char
+      let output_string = output_string
+      let output_substring = output_substring
+      let newline oc = output_char oc '\n'
+    end)
 
   let to_chan ?indent oc self : unit =
     Out_chan.render ?indent oc self
 
   module Out_format = Make_out(struct
-    type t = Format.formatter
-    let output_char = Format.pp_print_char
-    let output_string = Format.pp_print_string
-    let output_substring out s i len =
-      let s = if i=0 && len=String.length s then s else String.sub s i len in
-      Format.pp_print_string out s
-    let newline out = Format.pp_print_cut out ()
-  end)
+      type t = Format.formatter
+      let output_char = Format.pp_print_char
+      let output_string = Format.pp_print_string
+      let output_substring out s i len =
+        let s = if i=0 && len=String.length s then s else String.sub s i len in
+        Format.pp_print_string out s
+      let newline out = Format.pp_print_cut out ()
+    end)
 
   let pp out (self:t) : unit =
     Format.fprintf out "@[<v>%a@]" (Out_format.render ~indent:0) self
@@ -349,11 +354,11 @@ end = struct
   let[@unroll 2] rec lines_ s i (k: string -> int -> int -> unit) : unit =
     match String.index_from s i '\n' with
     | j ->
-      k s i (j-i);
+      k s i (j - i);
       lines_ s (j+1) k
     | exception Not_found ->
-      if i<String.length s then (
-        k s i (String.length s-i)
+      if i < String.length s then (
+        k s i (String.length s - i)
       )
 
   let lines_l_ l k =
@@ -392,12 +397,12 @@ end = struct
 
   let write_vline_ ~out pos n =
     for j=0 to n-1 do
-      Output.put_char out (Pos.move_y pos j) '|'
+      Output.put_string out (Pos.move_y pos j) "│"
     done
 
   let write_hline_ ~out pos n =
     for i=0 to n-1 do
-      Output.put_char out (Pos.move_x pos i) '-'
+      Output.put_string out (Pos.move_x pos i) "─"
     done
 
   (* render given box on the output, starting with upper left corner
@@ -422,10 +427,10 @@ end = struct
         l
     | Frame b' ->
       let {x;y} = size b' in
-      Output.put_char out pos '+';
-      Output.put_char out (Pos.move pos (x+1) (y+1)) '+';
-      Output.put_char out (Pos.move pos 0 (y+1)) '+';
-      Output.put_char out (Pos.move pos (x+1) 0) '+';
+      Output.put_string out pos "┌";
+      Output.put_string out (Pos.move pos (x+1) (y+1)) "┘";
+      Output.put_string out (Pos.move pos 0 (y+1)) "└";
+      Output.put_string out (Pos.move pos (x+1) 0) "┐";
       write_hline_ ~out (Pos.move_x pos 1) x;
       write_hline_ ~out (Pos.move pos 1 (y+1)) x;
       write_vline_ ~out (Pos.move_y pos 1) y;
@@ -501,7 +506,7 @@ end = struct
           done;
           for j=1 to dim.y - 1 do
             for i=1 to dim.x - 1 do
-              Output.put_char out (Pos.move pos (columns.(i)-1) (lines.(j)-1)) '+'
+              Output.put_string out (Pos.move pos (columns.(i)-1) (lines.(j)-1)) "┼"
             done
           done
       end

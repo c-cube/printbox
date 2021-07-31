@@ -1,8 +1,6 @@
 
 let b =
   let open PrintBox in
-  let open Printbox_unicode in
-  PrintBox_unicode.setup();
   frame @@ grid_l [
     [text "subject"; text_with_style Style.bold "announce: printbox 0.3"];
     [text "explanation";
@@ -15,9 +13,9 @@ let b =
     [text "dependencies";
     tree empty
       [tree (text "mandatory")
-         [text "dune"; text "bytes"];
+         [text "dune"; text "bytes"; text "uutf"; text "uucp"];
        tree (text "optional")
-         [text "uutf"; text "uucp"; text "tyxml"]]];
+         [text "tyxml"]]];
     [text "expected reaction"; text "🎉"];
   ]
 

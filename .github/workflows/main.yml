@@ -26,7 +26,7 @@ jobs:
       with:
         ocaml-compiler: ${{ matrix.ocaml-compiler }}
     - run: opam pin -n .
-    - run: opam depext -yt printbox printbox-html printbox-unicode
+    - run: opam depext -yt printbox printbox-html
     - run: opam install -t . --deps-only
     - run: opam exec -- dune build
     - run: opam exec -- dune runtest

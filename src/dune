@@ -4,6 +4,6 @@
   (public_name printbox)
   (wrapped false)
   (flags :standard -warn-error -a+8 -safe-string)
-  (libraries bytes))
+  (libraries bytes uutf uucp))
 
 
