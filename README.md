@@ -61,12 +61,12 @@ hello│world
 val box : B.t = <abstr>
 
 # PrintBox_text.output stdout box;;
-┌────────────────────┐
+┌──────┬─┬───────────┐
 │I love│a│bbb        │
-│to    │─┼───────────│
+│to    ├─┼───────────┤
 │press │c│hello world│
 │enter │ │           │
-└────────────────────┘
+└──────┴─┴───────────┘
 - : unit = ()
 ```
 
@@ -104,13 +104,13 @@ Why not put a frame around this? That's easy.
 val sq2 : B.t = <abstr>
 
 # PrintBox_text.output stdout sq2;;
-┌─────────────────┐
+┌─────┬─────┬─────┐
 │(0,0)│(0,1)│(0,2)│
-│─────┼─────┼─────│
+├─────┼─────┼─────┤
 │(1,0)│(1,1)│(1,2)│
-│─────┼─────┼─────│
+├─────┼─────┼─────┤
 │(2,0)│(2,1)│(2,2)│
-└─────────────────┘
+└─────┴─────┴─────┘
 - : unit = ()
 ```
 
@@ -128,17 +128,17 @@ val tree : B.t = <abstr>
 
 # PrintBox_text.output stdout tree;;
 root
-`+- a
- │  `+- a1
- │   │  a1
- │   +- a2
- │      a2
- │      a2
- +- b
-    `+- b1
-     │  b1
-     +- b2
-     +- b3
+├─a
+│ ├─a1
+│ │ a1
+│ └─a2
+│   a2
+│   a2
+└─b
+  ├─b1
+  │ b1
+  ├─b2
+  └─b3
 - : unit = ()
 ```
 
@@ -152,13 +152,13 @@ can be used as a default printer for boxes.
 # PrintBox.(frame @@ frame @@ init_grid ~line:3 ~col:2 (fun ~line:i ~col:j -> sprintf "%d.%d" i j));;
 - : B.t =
 ┌─────────┐
-│┌───────┐│
+│┌───┬───┐│
 ││0.0│0.1││
-││───┼───││
+│├───┼───┤│
 ││1.0│1.1││
-││───┼───││
+│├───┼───┤│
 ││2.0│2.1││
-│└───────┘│
+│└───┴───┘│
 └─────────┘
 # #remove_printer PrintBox_text.pp;;
 ```
@@ -169,10 +169,10 @@ Note that this pretty-printer plays nicely with `Format` boxes:
 # let b = PrintBox.(frame @@ hlist [text "a\nb"; text "c"]);;
 val b : B.t = <abstr>
 # Format.printf "some text %a around@." PrintBox_text.pp b;;
-some text ┌───┐
+some text ┌─┬─┐
           │a│c│
           │b│ │
-          └───┘ around
+          └─┴─┘ around
 - : unit = ()
 ```
 
@@ -184,10 +184,10 @@ Also works with basic styling on text now:
   frame @@ hlist [text_with_style style "a\nb"; text "c"]);;
 val b2 : B.t = <abstr>
 # Format.printf "some text %a around@." (PrintBox_text.pp_with ~style:true) b2;;
-some text ┌───┐
+some text ┌─┬─┐
           │a│c│
           │b│ │
-          └───┘ around
+          └─┴─┘ around
 - : unit = ()
 ```
 
@@ -219,16 +219,16 @@ Unicode (utf8) text is handled.
 val b : B.t = <abstr>
 
 # print_endline @@ PrintBox_text.to_string b;;
-┌──────────────────────────────┐
+┌──────────────┬───────────────┐
 │oï ωεird nums:│┌─────────────┐│
 │π/2           ││sum=Σ_i a·xᵢ²││
 │τ/4           ││—————        ││
-│──────────────││1+1          ││
-│0             ││─────────────││
-│`+- 1         ││Ōₒ           ││
-│ +- ω         ││À            ││
-│    `+- ω²    │└─────────────┘│
-└──────────────────────────────┘
+├──────────────┤│1+1          ││
+│0             │├─────────────┤│
+│├─1           ││Ōₒ           ││
+│└─ω           ││À            ││
+│  └─ω²        │└─────────────┘│
+└──────────────┴───────────────┘
 - : unit = ()
 ```
 

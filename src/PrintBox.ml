@@ -159,8 +159,8 @@ let transpose m =
   Array.init dim.x
     (fun i -> Array.init dim.y (fun j -> m.(j).(i)))
 
-let tree ?(indent=1) node children =
-  if indent <= 0 then invalid_arg "tree: need strictly positive indent";
+let tree ?(indent=0) node children =
+  if indent < 0 then invalid_arg "tree: need non-negative indent";
   let children =
     List.filter
       (function
