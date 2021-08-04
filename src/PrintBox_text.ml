@@ -337,14 +337,16 @@ end = struct
     | false, true, true, true -> "├"
     | true, true, true, true -> "┼"
 
-  type test = {
+  type display_connection_map = {
     mutable m: display_connections M.t
   }
 
   let create_or_update ?(ct=`Nontree) ?left ?right ?top ?bottom pos disp_map =
-    let (new_el, tmp_disp_map) = match M.find_opt pos disp_map with
-      | None -> (init_connection (), disp_map)
-      | Some el -> (el, M.remove pos disp_map)
+    let (new_el, tmp_disp_map) =
+      try
+        let el = M.find pos disp_map in
+        (el, M.remove pos disp_map)
+      with Not_found -> (init_connection (), disp_map)
     in
     (match ct with
      | `Nontree -> update_conn ?left ?right ?top ?bottom new_el.nontree
@@ -502,7 +504,7 @@ end = struct
       available surrounding space. [offset] is the offset of the box
       w.r.t the surrounding box *)
   let pre_render ~ansi ?(offset=Pos.origin) ?expected_size ~out b pos =
-    let conn_m : test = {m=M.empty} in
+    let conn_m : display_connection_map = {m=M.empty} in
     let rec render_rec ~ansi ?(offset=offset) ?expected_size b pos =
       match shape b with
       | Empty -> conn_m.m
