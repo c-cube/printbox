@@ -17,7 +17,7 @@ See https://c-cube.github.io/printbox/
 Ideally, use [opam](http://opam.ocaml.org/):
 
 ```sh non-deterministic=command
-$ opam install printbox
+$ opam install printbox printbox-text
 ```
 
 Manually:
@@ -32,6 +32,7 @@ $ make install
 
 ```ocaml
 # #require "printbox";;
+# #require "printbox-text";;
 
 # module B = PrintBox;;
 module B = PrintBox

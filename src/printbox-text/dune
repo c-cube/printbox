@@ -1,0 +1,7 @@
+
+(library
+  (name printbox_text)
+  (public_name printbox-text)
+  (wrapped false)
+  (flags :standard -w +a-3-4-44-29 -safe-string)
+  (libraries printbox uutf uucp))

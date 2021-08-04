@@ -1,7 +1,7 @@
 
 (executables
   (names test1 test_ann_0_3)
-  (libraries printbox))
+  (libraries printbox printbox-text))
 
 (rule
   (targets test1.output)
