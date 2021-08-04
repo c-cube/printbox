@@ -26,7 +26,7 @@ jobs:
         run: opam pin -n .
 
       - name: Depext
-        run: opam depext -yt printbox printbox-unicode printbox-html
+        run: opam depext -yt printbox printbox-html
 
       - name: Deps
         run: opam install -d . --deps-only

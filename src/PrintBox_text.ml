@@ -71,17 +71,22 @@ module M = Map.Make(Pos)
 
 (* String length *)
 
-let str_len_ = ref (fun _ _ len -> len)
+let str_display_len_ = ref (fun s i len ->
+    Uutf.String.fold_utf_8 ~pos:i ~len:len
+      (fun n _ c -> match c with
+         | `Malformed _ -> 0
+         | `Uchar c -> n + max 0 (Uucp.Break.tty_width_hint c))
+      0 s)
 
-let[@inline] set_string_len f = str_len_ := f
-let[@inline] str_display_width_ s i len : int = !str_len_ s i len
+let[@inline] set_string_len f = str_display_len_ := f
+let[@inline] str_display_width_ s i len : int = !str_display_len_ s i len
 
 (** {2 Output: where to print to} *)
 
 module Output : sig
   type t
   val create : unit -> t
-  val put_char : t -> position -> char -> unit
+  (* val put_char : t -> position -> char -> unit *)
   val put_string : t -> position -> string -> unit
   val put_sub_string : t -> position -> string -> int -> int -> unit
   val put_sub_string_brack :
@@ -94,9 +99,9 @@ end = struct
       It is a map from start position to a printable entity (string or character)
       All printable sequences are supposed to *NOT* introduce new lines *)
   type printable =
-    | Char of char
+    (* | Char of char *)
     | String of string
-    | Str_slice of {s: string; i: int; len: int}
+    | Str_slice of {s: string;i: int;len: int}
     | Str_slice_bracket of {
         pre: string; (* prefix *)
         s: string;
@@ -111,8 +116,8 @@ end = struct
 
   (* Note: we trust the user not to mess things up relating to
      strings overlapping because of bad positions *)
-  let[@inline] put_char (self:t) pos c =
-    self.m <- M.add pos (Char c) self.m
+  (* let[@inline] put_char (self:t) pos c =
+     self.m <- M.add pos (Char c) self.m *)
 
   let[@inline] put_string (self:t) pos s =
     self.m <- M.add pos (String s) self.m
@@ -167,12 +172,12 @@ end = struct
       goto ~indent out curr_pos start_pos;
       (* Print the interesting part *)
       match p with
-      | Char c ->
-        O.output_char out c;
-        Pos.move_x start_pos 1
+      (* | Char c ->
+         O.output_char out c;
+         Pos.move_x start_pos 1 *)
       | String s ->
         O.output_string out s;
-        let l = str_display_width_ s 0 (String.length s) in
+        let l = !str_display_len_ s 0 (String.length s) in
         Pos.move_x start_pos l
       | Str_slice {s; i; len} ->
         O.output_substring out s i len;
@@ -184,8 +189,8 @@ end = struct
         (* We could use Bytes.unsafe_of_string as long as !string_len
            does not try to mutate the string (which it should have no
            reason to do), but just to be safe... *)
-        let l = !str_len_ s i len in
         O.output_string out post;
+        let l = str_display_width_ s i len in
         Pos.move_x start_pos l
 
     let render ?(indent=0) (out:O.t) (self:t) : unit =
@@ -195,12 +200,12 @@ end = struct
   end
 
   module Out_buf = Make_out(struct
-    type t = Buffer.t
-    let output_char = Buffer.add_char
-    let output_string = Buffer.add_string
-    let output_substring = Buffer.add_substring
-    let newline b = Buffer.add_char b '\n'
-  end)
+      type t = Buffer.t
+      let output_char = Buffer.add_char
+      let output_string = Buffer.add_string
+      let output_substring = Buffer.add_substring
+      let newline b = Buffer.add_char b '\n'
+    end)
 
   let to_string ?indent self : string =
     let buf = Buffer.create 42 in
@@ -208,25 +213,25 @@ end = struct
     Buffer.contents buf
 
   module Out_chan = Make_out(struct
-    type t = out_channel
-    let output_char = output_char
-    let output_string = output_string
-    let output_substring = output_substring
-    let newline oc = output_char oc '\n'
-  end)
+      type t = out_channel
+      let output_char = output_char
+      let output_string = output_string
+      let output_substring = output_substring
+      let newline oc = output_char oc '\n'
+    end)
 
   let to_chan ?indent oc self : unit =
     Out_chan.render ?indent oc self
 
   module Out_format = Make_out(struct
-    type t = Format.formatter
-    let output_char = Format.pp_print_char
-    let output_string = Format.pp_print_string
-    let output_substring out s i len =
-      let s = if i=0 && len=String.length s then s else String.sub s i len in
-      Format.pp_print_string out s
-    let newline out = Format.pp_print_cut out ()
-  end)
+      type t = Format.formatter
+      let output_char = Format.pp_print_char
+      let output_string = Format.pp_print_string
+      let output_substring out s i len =
+        let s = if i=0 && len=String.length s then s else String.sub s i len in
+        Format.pp_print_string out s
+      let newline out = Format.pp_print_cut out ()
+    end)
 
   let pp out (self:t) : unit =
     Format.fprintf out "@[<v>%a@]" (Out_format.render ~indent:0) self
@@ -257,6 +262,96 @@ end = struct
     shape : t shape;
     size : position lazy_t;
   }
+
+  type display_conn_basic = {
+    mutable left: bool;
+    mutable right: bool;
+    mutable top: bool;
+    mutable bottom: bool;
+  }
+
+  type display_connections = {
+    mutable nontree: display_conn_basic;
+    mutable tree: display_conn_basic;
+  }
+
+  let init_connection () = {
+    nontree = {
+      left = false;
+      right = false;
+      top = false;
+      bottom = false
+    };
+    tree = {
+      left = false;
+      right = false;
+      top = false;
+      bottom = false
+    }
+  }
+
+  let update_conn ?left ?right ?top ?bottom con_type =
+    (match left with
+     | None -> ()
+     | Some _ -> con_type.left <- true);
+    (match right with
+     | None -> ();
+     | Some _ -> con_type.right <- true);
+    (match top with
+     | None -> ();
+     | Some _ -> con_type.top <- true);
+    (match bottom with
+     | None -> ();
+     | Some _ -> con_type.bottom <- true)
+
+  let disp_conn ct conn =
+    let conn_basic =
+      match ct with
+      | `Nontree -> conn.nontree
+      | `Tree -> conn.tree
+    in
+    match conn_basic.left, conn_basic.right, conn_basic.top, conn_basic.bottom with
+    | false, false, false, false -> false
+    | true, false, false, false -> false
+    | false, true, false, false -> false
+    | false, false, true, false -> false
+    | false, false, false, true -> false
+    | _, _, _, _ -> true
+
+  let disp_conn_char conn =
+    match conn.left, conn.right, conn.top, conn.bottom with
+    | false, false, false, false -> ""
+    | true, false, false, false -> ""
+    | false, true, false, false -> ""
+    | false, false, true, false -> ""
+    | false, false, false, true -> ""
+    | true, true, false, false -> "─"
+    | true, false, true, false -> "┘"
+    | true, false, false, true -> "┐"
+    | false, true, true, false -> "└"
+    | false, true, false, true -> "┌"
+    | false, false, true, true -> "│"
+    | true, true, true, false -> "┴"
+    | true, true, false, true -> "┬"
+    | true, false, true, true -> "┤"
+    | false, true, true, true -> "├"
+    | true, true, true, true -> "┼"
+
+  type display_connection_map = {
+    mutable m: display_connections M.t
+  }
+
+  let create_or_update ?(ct=`Nontree) ?left ?right ?top ?bottom pos disp_map =
+    let (new_el, tmp_disp_map) =
+      try
+        let el = M.find pos disp_map in
+        (el, M.remove pos disp_map)
+      with Not_found -> (init_connection (), disp_map)
+    in
+    (match ct with
+     | `Nontree -> update_conn ?left ?right ?top ?bottom new_el.nontree
+     | `Tree -> update_conn ?left ?right ?top ?bottom new_el.tree);
+    M.add pos new_el tmp_disp_map
 
   let size box = Lazy.force box.size
 
@@ -349,11 +444,11 @@ end = struct
   let[@unroll 2] rec lines_ s i (k: string -> int -> int -> unit) : unit =
     match String.index_from s i '\n' with
     | j ->
-      k s i (j-i);
+      k s i (j - i);
       lines_ s (j+1) k
     | exception Not_found ->
-      if i<String.length s then (
-        k s i (String.length s-i)
+      if i < String.length s then (
+        k s i (String.length s - i)
       )
 
   let lines_l_ l k =
@@ -390,141 +485,163 @@ end = struct
 
   (** {3 Rendering} *)
 
-  let write_vline_ ~out pos n =
+  let write_vline_ ?ct conn_map pos n =
+    conn_map.m <- create_or_update ?ct ~bottom:true (Pos.move_y pos ~-1) conn_map.m;
     for j=0 to n-1 do
-      Output.put_char out (Pos.move_y pos j) '|'
-    done
+      conn_map.m <- create_or_update ?ct ~top:true ~bottom:true (Pos.move_y pos j) conn_map.m;
+    done;
+    conn_map.m <- create_or_update ?ct ~top:true (Pos.move_y pos n) conn_map.m
 
-  let write_hline_ ~out pos n =
+  let write_hline_ ?ct conn_map pos n =
+    conn_map.m <-  create_or_update ?ct ~right:true (Pos.move_x pos ~-1) conn_map.m;
     for i=0 to n-1 do
-      Output.put_char out (Pos.move_x pos i) '-'
-    done
+      conn_map.m <- create_or_update ?ct ~left:true ~right:true (Pos.move_x pos i) conn_map.m;
+    done;
+    conn_map.m <- create_or_update ?ct ~left:true (Pos.move_x pos n) conn_map.m
 
   (* render given box on the output, starting with upper left corner
       at the given position. [expected_size] is the size of the
       available surrounding space. [offset] is the offset of the box
       w.r.t the surrounding box *)
-  let rec render_rec ~ansi ?(offset=Pos.origin) ?expected_size ~out b pos =
-    match shape b with
-    | Empty -> ()
-    | Text {l;style} ->
-      let ansi_prelude, ansi_suffix =
-        if ansi then Style_ansi.brackets style else "", "" in
-      let has_style = ansi_prelude <> "" || ansi_suffix <> "" in
-      List.iteri
-        (fun line_idx (s,s_i,len)->
-           if has_style then (
-             Output.put_sub_string_brack out (Pos.move_y pos line_idx)
-               ~pre:ansi_prelude s s_i len ~post:ansi_suffix
-           ) else (
-             Output.put_sub_string out (Pos.move_y pos line_idx) s s_i len
-           ))
-        l
-    | Frame b' ->
-      let {x;y} = size b' in
-      Output.put_char out pos '+';
-      Output.put_char out (Pos.move pos (x+1) (y+1)) '+';
-      Output.put_char out (Pos.move pos 0 (y+1)) '+';
-      Output.put_char out (Pos.move pos (x+1) 0) '+';
-      write_hline_ ~out (Pos.move_x pos 1) x;
-      write_hline_ ~out (Pos.move pos 1 (y+1)) x;
-      write_vline_ ~out (Pos.move_y pos 1) y;
-      write_vline_ ~out (Pos.move pos (x+1) 1) y;
-      let expected_size = match expected_size with
-        | Some p -> Some (Pos.move p (-2) (-2)) (* remove space for bars *)
-        | None -> None
-      in
-      render_rec ~out ~ansi ?expected_size b' (Pos.move pos 1 1)
-    | Pad (dim, b') ->
-      let expected_size = match expected_size with
-        | None -> None
-        | Some p -> Some Pos.(p - (2*dim))
-      in
-      render_rec ~offset:Pos.(offset+dim) ~ansi ?expected_size ~out b' Pos.(pos + dim)
-    | Align {h;v;inner=b'} ->
-      begin match expected_size with
-        | Some expected_size ->
-          (* add padding on the left *)
-          let hpad = match h with
-            | `Left -> 0
-            | `Center -> max 0 ((expected_size.x - (size b').x) / 2)
-            | `Right -> max 0 (expected_size.x - (size b').x)
-          and vpad = match v with
-            | `Top -> 0
-            | `Center -> max 0 ((expected_size.y - (size b').y) / 2)
-            | `Bottom -> max 0 (expected_size.y - (size b').y)
-          in
-          let pos' = Pos.move pos hpad vpad in
-          (* just render [b'] with new offset *)
-          render_rec ~offset ~ansi ~out b' pos';
-        | None ->
-          render_rec ~ansi ~offset ~out b' pos
-      end
-    | Grid (style,m) ->
-      let dim = B.dim_matrix m in
-      let bars = match style with
-        | `None -> false
-        | `Bars -> true
-      in
-      let lines, columns, space_for_bars = _size_matrix ~bars m in
+  let pre_render ~ansi ?(offset=Pos.origin) ?expected_size ~out b pos =
+    let conn_m : display_connection_map = {m=M.empty} in
+    let rec render_rec ~ansi ?(offset=offset) ?expected_size b pos =
+      match shape b with
+      | Empty -> conn_m.m
+      | Text {l;style} ->
+        let ansi_prelude, ansi_suffix =
+          if ansi then Style_ansi.brackets style else "", "" in
+        let has_style = ansi_prelude <> "" || ansi_suffix <> "" in
+        List.iteri
+          (fun line_idx (s,s_i,len)->
+             if has_style then (
+               Output.put_sub_string_brack out (Pos.move_y pos line_idx)
+                 ~pre:ansi_prelude s s_i len ~post:ansi_suffix
+             ) else (
+               Output.put_sub_string out (Pos.move_y pos line_idx) s s_i len
+             ))
+          l;
+        conn_m.m
+      | Frame b' ->
+        let {x;y} = size b' in
+        conn_m.m <- create_or_update ~right:true ~bottom:true pos conn_m.m;
+        conn_m.m <- create_or_update ~left:true ~top:true (Pos.move pos (x+1) (y+1)) conn_m.m;
+        conn_m.m <- create_or_update ~top:true ~right:true (Pos.move pos 0 (y+1)) conn_m.m;
+        conn_m.m <- create_or_update ~left:true ~bottom:true (Pos.move pos (x+1) 0) conn_m.m;
+        write_hline_ conn_m (Pos.move_x pos 1) x;
+        write_hline_ conn_m (Pos.move pos 1 (y+1)) x;
+        write_vline_ conn_m (Pos.move_y pos 1) y;
+        write_vline_ conn_m (Pos.move pos (x+1) 1) y;
+        let expected_size = match expected_size with
+          | Some p -> Some (Pos.move p (-2) (-2)) (* remove space for bars *)
+          | None -> None
+        in
+        render_rec ~ansi ?expected_size b' (Pos.move pos 1 1)
+      | Pad (dim, b') ->
+        let expected_size = match expected_size with
+          | None -> None
+          | Some p -> Some Pos.(p - (2*dim))
+        in
+        render_rec ~offset:Pos.(offset+dim) ~ansi ?expected_size b' Pos.(pos + dim)
+      | Align {h;v;inner=b'} ->
+        begin match expected_size with
+          | Some expected_size ->
+            (* add padding on the left *)
+            let hpad = match h with
+              | `Left -> 0
+              | `Center -> max 0 ((expected_size.x - (size b').x) / 2)
+              | `Right -> max 0 (expected_size.x - (size b').x)
+            and vpad = match v with
+              | `Top -> 0
+              | `Center -> max 0 ((expected_size.y - (size b').y) / 2)
+              | `Bottom -> max 0 (expected_size.y - (size b').y)
+            in
+            let pos' = Pos.move pos hpad vpad in
+            (* just render [b'] with new offset *)
+            render_rec ~offset ~ansi b' pos';
+          | None ->
+            render_rec ~ansi ~offset b' pos
+        end
+      | Grid (style,m) ->
+        let dim = B.dim_matrix m in
+        let bars = match style with
+          | `None -> false
+          | `Bars -> true
+        in
+        let lines, columns, space_for_bars = _size_matrix ~bars m in
 
-      (* write boxes *)
-      for j = 0 to dim.y - 1 do
-        for i = 0 to dim.x - 1 do
-          let expected_x = match expected_size with
-            | Some es when i=dim.x-1 -> es.x - columns.(i)
-            | _ -> columns.(i+1) - columns.(i) - (if i=dim.x-1 then 0 else space_for_bars)
-          and expected_y = match expected_size with
-            | Some es when j=dim.y-1 -> es.y - lines.(j)
-            | _ -> lines.(j+1) - lines.(j)- (if j=dim.y-1 then 0 else space_for_bars)
-          in
-          let expected_size = {x=expected_x; y=expected_y} in
-          let pos' = Pos.move pos (columns.(i)) (lines.(j)) in
-          render_rec ~ansi ~expected_size ~out m.(j).(i) pos'
+        (* write boxes *)
+        for j = 0 to dim.y - 1 do
+          for i = 0 to dim.x - 1 do
+            let expected_x = match expected_size with
+              | Some es when i=dim.x-1 -> es.x - columns.(i)
+              | _ -> columns.(i+1) - columns.(i) - (if i=dim.x-1 then 0 else space_for_bars)
+            and expected_y = match expected_size with
+              | Some es when j=dim.y-1 -> es.y - lines.(j)
+              | _ -> lines.(j+1) - lines.(j)- (if j=dim.y-1 then 0 else space_for_bars)
+            in
+            let expected_size = {x=expected_x; y=expected_y} in
+            let pos' = Pos.move pos (columns.(i)) (lines.(j)) in
+            conn_m.m <- render_rec ~ansi ~expected_size m.(j).(i) pos'
+          done;
         done;
-      done;
 
-      let len_hlines, len_vlines = match expected_size with
-        | None -> columns.(dim.x), lines.(dim.y)
-        | Some {x;y} -> x,y
-      in
+        let len_hlines, len_vlines = match expected_size with
+          | None -> columns.(dim.x), lines.(dim.y)
+          | Some {x;y} -> x,y
+        in
 
-      (* write frame if needed *)
-      begin match style with
-        | `None -> ()
-        | `Bars ->
-          for j=1 to dim.y - 1 do
-            write_hline_ ~out (Pos.move pos (-offset.x) (lines.(j)-1)) len_hlines
-          done;
-          for i=1 to dim.x - 1 do
-            write_vline_ ~out (Pos.move pos (columns.(i)-1) (-offset.y)) len_vlines
-          done;
-          for j=1 to dim.y - 1 do
+        (* write frame if needed *)
+        begin match style with
+          | `None -> ()
+          | `Bars ->
+            for j=1 to dim.y - 1 do
+              write_hline_ conn_m (Pos.move pos (-offset.x) (lines.(j)-1)) len_hlines
+            done;
             for i=1 to dim.x - 1 do
-              Output.put_char out (Pos.move pos (columns.(i)-1) (lines.(j)-1)) '+'
+              write_vline_ conn_m (Pos.move pos (columns.(i)-1) (-offset.y)) len_vlines
+            done;
+            for j=1 to dim.y - 1 do
+              for i=1 to dim.x - 1 do
+                conn_m.m <- create_or_update ~left:true ~right:true ~top:true ~bottom:true (Pos.move pos (columns.(i)-1) (lines.(j)-1)) conn_m.m
+              done
             done
-          done
-      end
-    | Tree (indent, n, a) ->
-      render_rec ~ansi ~out n pos;
-      (* start position for the children *)
-      let pos' = Pos.move pos indent (size n).y in
-      Output.put_char out (Pos.move_x pos' ~-1) '`';
-      assert (Array.length a > 0);
-      let _ = _array_foldi
-          (fun pos' i b ->
-             let s = "+- " in
-             Output.put_string out pos' s;
-             if i<Array.length a-1 then (
-               write_vline_ ~out (Pos.move_y pos' 1) ((size b).y-1)
-             );
-             render_rec ~out ~ansi b (Pos.move_x pos' (str_display_width_ s 0 (String.length s)));
-             Pos.move_y pos' (size b).y
-          ) pos' a
-      in
-      ()
+        end;
+        conn_m.m
+      | Tree (indent, n, a) ->
+        conn_m.m <- render_rec ~ansi n pos;
+        (* start position for the children *)
+        let pos' = Pos.move pos indent (size n).y in
+        assert (Array.length a > 0);
+        let _ = _array_foldi
+            (fun pos' i b ->
+               let s = "└─" in
+               conn_m.m <- create_or_update ~ct:`Tree ~top:true ~right:true pos' conn_m.m;
+               conn_m.m <- create_or_update ~ct:`Tree ~left:true ~right:true (Pos.move_x pos' 1) conn_m.m;
+               conn_m.m <- create_or_update ~ct:`Tree ~top:true (Pos.move_y pos' 1) conn_m.m;
+               if i<Array.length a-1 then (
+                 write_vline_ ~ct:`Tree conn_m (Pos.move_y pos' 1) ((size b).y-1)
+               );
+               conn_m.m <- render_rec ~ansi b (Pos.move_x pos' (str_display_width_ s 0 (String.length s)));
+               Pos.move_y pos' (size b).y
+            ) pos' a
+        in
+        conn_m.m
+    in
+    render_rec ~ansi:ansi ~offset:offset ?expected_size:expected_size b pos
 
-  let render ~ansi out b = render_rec ~ansi ~out b Pos.origin
+  let post_render ~out conn_map =
+    let render_conn_pos pos conn =
+      if (pos.x >= 0) && (pos.y >=0) then
+        if disp_conn `Nontree conn then
+          Output.put_string out pos (disp_conn_char conn.nontree)
+        else if disp_conn `Tree conn then
+          Output.put_string out pos (disp_conn_char conn.tree)
+    in
+    M.iter render_conn_pos conn_map
+
+  let render ~ansi out b =
+    post_render ~out (pre_render ~ansi ~out b Pos.origin)
 end
 
 let to_string_with ~style b =
