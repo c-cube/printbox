@@ -1,0 +1,24 @@
+opam-version: "2.0"
+authors: ["Simon Cruanes" "Guillaume Bury"]
+maintainer: "simon.cruanes.2007@m4x.org"
+version: "0.5"
+synopsis: "Text renderer for printbox, using unicode edges"
+build: [
+  ["dune" "build" "@install" "-p" name "-j" jobs]
+  ["dune" "runtest" "-p" name "-j" jobs] {with-test}
+  ["dune" "build" "@doc" "-p" name "-j" jobs] {with-doc}
+]
+depends: [
+  "dune" { >= "1.1" }
+  "base-bytes"
+  "odoc" {with-doc}
+  "ocaml" { >= "4.03" }
+  "printbox" { = version }
+  "uutf"
+  "uucp"
+  "mdx" {with-test & >= "1.4" }
+]
+tags: [ "print" "box" "table" "tree" ]
+homepage: "https://github.com/c-cube/printbox/"
+dev-repo: "git+https://github.com/c-cube/printbox.git"
+bug-reports: "https://github.com/c-cube/printbox/issues/"
