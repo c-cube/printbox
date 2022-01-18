@@ -28,7 +28,8 @@ let () =
 let grid =
   B.frame @@ B.grid_l
     [ [B.text "the center of the triangle is"; B.empty];
-      [B.center_hv @@ B.text "lil' ol' me";
+      [B.center_hv @@
+       B.(rich_text B.Rich_text.(cat [s "lil' "; with_style B.Style.(fg_color Red) (s "ol'"); s " me"]));
        B.pad' ~col:0 ~lines:6 @@ B.text "t\na\nl\nl"];
       [B.align_right (B.text "i'm aligned right"); B.empty];
        [ B.text "loooooooooooooooooooooooooooooooooong"; B.empty; ];
