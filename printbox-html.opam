@@ -1,7 +1,7 @@
 opam-version: "2.0"
 authors: ["Simon Cruanes" "Guillaume Bury"]
 maintainer: "simon.cruanes.2007@m4x.org"
-version: "0.5"
+version: "0.6"
 synopsis: "Printbox unicode handling"
 description: """
 Adds html output handling to the printbox package.
@@ -13,9 +13,12 @@ build: [
   ["dune" "build" "@doc" "-p" name "-j" jobs] {with-doc}
 ]
 depends: [
+  "dune" { >= "2.0" }
+  "odoc" {with-doc}
   "printbox" {= version}
   "tyxml"
 ]
+license: "BSD-2-Clause"
 tags: [ "print" "box" "table" "tree" ]
 homepage: "https://github.com/c-cube/printbox/"
 dev-repo: "git+https://github.com/c-cube/printbox.git"

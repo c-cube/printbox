@@ -28,6 +28,6 @@ jobs:
     - run: opam pin -n .
     - run: opam depext -yt printbox printbox-html printbox-text
     - run: opam install -t . --deps-only
-    - run: opam exec -- dune build
+    - run: opam exec -- dune build @all
     - run: opam exec -- dune runtest
       if: ${{ matrix.os == 'ubuntu-latest'}}

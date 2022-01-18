@@ -1,7 +1,8 @@
 
-(alias
- (name runtest)
+(rule
+ (alias runtest)
  (deps README.md)
+ (package printbox-text)
  (action (progn
           (run ocaml-mdx test %{deps})
           (diff? %{deps} %{deps}.corrected))))

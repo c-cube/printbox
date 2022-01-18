@@ -1,5 +1,11 @@
 # Changes
 
+## 0.6
+
+- move text rendering into a new printbox-text library
+- Changing visuals for hlines and vlines connections, and tree structure
+  using unicode characters for box borders
+
 ## 0.5
 
 - reenable mdx for tests
