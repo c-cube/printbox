@@ -33,10 +33,7 @@ end
 
 type view =
   | Empty
-  | Text of {
-      l: string list;
-      style: Style.t;
-    }
+  | Text of rich_text
   | Frame of t
   | Pad of position * t (* vertical and horizontal padding *)
   | Align of {
@@ -51,21 +48,71 @@ type view =
       inner: t;
     }
 
+and rich_text =
+  | RT_str of string
+  | RT_style of Style.t * rich_text
+  | RT_cat of rich_text list
+
 and t = view
+
+module Rich_text = struct
+  type t = rich_text
+
+  type view = rich_text =
+    | RT_str of string
+    | RT_style of Style.t * rich_text
+    | RT_cat of rich_text list
+
+  let[@inline] view (self:t) : view = self
+
+  let line_ s : t = RT_str s
+  let line s : t =
+    if String.contains s '\n' then invalid_arg "PrintBox.Rich_text.line";
+    line_ s
+
+  let with_style style s : t = RT_style (style, s)
+  let bold s = with_style Style.bold s
+  let newline : t = RT_str "\n"
+  let space : t = RT_str " "
+
+  let cat l : t = match l with
+    | [] -> RT_str ""
+    | [x] -> x
+    | _ -> RT_cat l
+
+  let cat_with ~sep l =
+    let rec loop acc = function
+      | [] -> assert (acc=[]); RT_str ""
+      | [x] -> cat (List.rev (x::acc))
+      | x :: tl -> loop (sep :: x :: acc) tl
+    in
+    loop [] l
+
+  let lines l = cat_with ~sep:newline l
+  let lines_text l = lines @@ List.rev @@ List.rev_map line l
+
+  let text s : t = RT_str s
+
+  let sprintf fmt =
+    let buffer = Buffer.create 64 in
+    Printf.kbprintf (fun _ -> text (Buffer.contents buffer)) buffer fmt
+  let asprintf fmt = Format.kasprintf text fmt
+
+  let s = text
+end
 
 let empty = Empty
 let[@inline] view (t:t) : view = t
 
-let[@inline] line_ s = Text {l=[s]; style=Style.default}
+(* no check for \n *)
+let[@inline] line_ s = Text (Rich_text.line_ s)
 
-let line_with_style style s =
-  if String.contains s '\n' then invalid_arg "PrintBox.line";
-  Text {l=[s]; style}
+let[@inline] line s = Text (Rich_text.line s)
+let[@inline] line_with_style style str = Text (Rich_text.(with_style style @@ line str))
 
-let line s = line_with_style Style.default s
-
-let text s = Text {l=[s]; style=Style.default}
-let text_with_style style s = Text {l=[s]; style}
+let rich_text t : t = Text t
+let text s = Text (Rich_text.text s)
+let text_with_style style str = Text Rich_text.(with_style style @@ text str)
 
 let sprintf_with_style style format =
   let buffer = Buffer.create 64 in
@@ -78,8 +125,9 @@ let sprintf format = sprintf_with_style Style.default format
 let asprintf format = Format.kasprintf text format
 let asprintf_with_style style format = Format.kasprintf (text_with_style style) format
 
-let[@inline] lines l = Text {l; style=Style.default}
-let[@inline] lines_with_style style l = Text {l; style}
+let[@inline] lines l = Text (Rich_text.lines_text l)
+let[@inline] lines_with_style style l =
+  Text Rich_text.(with_style style @@ lines_text l)
 
 let int x = line_ (string_of_int x)
 let float x = line_ (string_of_float x)
