@@ -1,5 +1,5 @@
 (executable
   (name lambda)
-  (libraries printbox)
+  (libraries printbox printbox-text)
   (modules lambda)
   )
