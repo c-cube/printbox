@@ -78,7 +78,7 @@ end
 
 let b =
   let open PrintBox in
-  frame @@ record [
+  frame @@ v_record [
     ("subject", text_with_style Style.bold "announce: printbox 0.3");
     ("explanation",
     frame @@ text {|PrintBox is a library for rendering nested tables,
@@ -96,6 +96,9 @@ let b =
     ("expected reaction", text "🎉");
   ]
 
+(* announcefor 0.3  *)
+let () = print_endline @@ PrintBox_text.to_string b
+
 module Unicode = struct
   let b =
     B.(frame @@ vlist [text "nice unicode! 💪"; frame @@
@@ -106,4 +109,16 @@ module Unicode = struct
       @@ vlist [text "sum=Σ_i a·xᵢ²\n—————\n1+1"; align_right @@ text "Ōₒ\nÀ"]]]);;
 
   let () = print_endline @@ PrintBox_text.to_string b
+end
+
+module Rich_text_  = struct
+  let b =
+    B.(frame @@ rich_text @@ Rich_text.(lines [
+        cat [with_style Style.(bg_color Cyan) (s "ab\ncd"); s " no color here"];
+        cat [s "hello"; space; s "world";
+             with_style Style.(fg_color Green) (s " color me"); s " (but not me)"];
+      ]));;
+
+  let () = print_endline @@ PrintBox_text.to_string b
+
 end
