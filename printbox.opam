@@ -13,8 +13,6 @@ depends: [
   "base-bytes"
   "odoc" {with-doc}
   "ocaml" { >= "4.03" }
-  "uutf"
-  "uucp"
 ]
 license: "BSD-2-Clause"
 tags: [ "print" "box" "table" "tree" ]
