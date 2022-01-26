@@ -81,7 +81,7 @@ let b =
   frame @@ v_record [
     ("subject", text_with_style Style.bold "announce: printbox 0.3");
     ("explanation",
-    frame @@ text {|PrintBox is a library for rendering nested tables,
+    frame @@ center_hv @@ text {|PrintBox is a library for rendering nested tables,
     trees, and similar structures in monospace text or HTML.|});
     ("github",
     text_with_style Style.(bg_color Blue) "https://github.com/c-cube/printbox/releases/tag/0.3");
