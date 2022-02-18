@@ -1,8 +1,8 @@
 
 (rule
  (alias runtest)
- (deps README.md)
- (package (:readme printbox-text))
+ (deps (:readme README.md))
+ (package printbox-text)
  (action (progn
           (run ocaml-mdx test %{readme})
           (diff? %{readme} %{readme}.corrected))))
