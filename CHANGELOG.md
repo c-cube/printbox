@@ -1,5 +1,9 @@
 # Changes
 
+## 0.6.1
+
+- compat with dune 3
+
 ## 0.6
 
 - move text rendering into a new printbox-text library
