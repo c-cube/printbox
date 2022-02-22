@@ -1,7 +1,7 @@
 opam-version: "2.0"
 authors: ["Simon Cruanes" "Guillaume Bury"]
 maintainer: "simon.cruanes.2007@m4x.org"
-version: "0.6"
+version: "0.6.1"
 synopsis: "Text renderer for printbox, using unicode edges"
 build: [
   ["dune" "build" "@install" "-p" name "-j" jobs]
