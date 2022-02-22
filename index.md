@@ -3,8 +3,9 @@
 Documentation:
 
 - [dev](dev)
-- [most recent release](0.5)
+- [most recent release](0.6)
 
+- [0.6](0.6)
 - [0.5](0.5)
 - [0.4](0.4)
 - [0.3](0.3)
