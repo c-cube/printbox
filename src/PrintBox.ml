@@ -258,19 +258,13 @@ module Simple = struct
     let reused = reused b in
     let visited = ref S.empty in
     let rec cleanup: dag -> t = function
-      | `Subtree_with_ID (id, _) when S.mem id !visited -> `Text ("["^id^"]")
-      (* | `Subtree_with_ID (id, `Text n) when S.mem id reused ->
-        visited := S.add id !visited;
-        `Text ("["^id^"] "^n) *)
-      (* | `Subtree_with_ID (id, `Tree (`Text n, bs)) when S.mem id reused ->
-        visited := S.add id !visited;
-        `Tree (`Text ("["^id^"] "^n), List.map cleanup bs) *)
+      | `Subtree_with_ID (id, _) when S.mem id !visited -> `Text id
       | `Subtree_with_ID (id, `Tree (n, bs)) when S.mem id reused ->
         visited := S.add id !visited;
-        `Tree (`Vlist [`Text ("["^id^"]"); cleanup n], List.map cleanup bs)
+        `Tree (`Vlist [`Text id; cleanup n], List.map cleanup bs)
       | `Subtree_with_ID (id, b) when S.mem id reused ->
         visited := S.add id !visited;
-        `Vlist [`Text ("["^id^"]"); cleanup b]
+        `Vlist [`Text id; cleanup b]
       | `Subtree_with_ID (_, b) -> cleanup b
       | `Tree (n, bs) -> `Tree (cleanup n, List.map cleanup bs)
       | `Hlist bs -> `Hlist (List.map cleanup bs)
@@ -295,7 +289,7 @@ module Simple = struct
     | `Vlist l -> vlist (List.map to_box_centered l)
     | `Hlist l -> hlist (List.map to_box_centered l)
     | `Table a -> grid (map_matrix to_box_centered a)
-    | `Tree (b,l) ->
+    | `Tree (b, l) ->
       tree (to_box_centered b) (List.map to_box_centered l)
 
 end

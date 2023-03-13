@@ -1,7 +1,7 @@
 
 let b =
   let uid = ref 0 in
-  let id() = incr uid; Int.to_string !uid in
+  let id() = incr uid; "["^Int.to_string !uid^"]" in
   let (!) v = `Subtree_with_ID (id(), `Text v) in
   let (+) x y = `Subtree_with_ID (id(), `Tree (`Text "+", [x; y])) in
   let ( * ) x y = `Subtree_with_ID (id(), `Tree (`Text "*", [x; y])) in
