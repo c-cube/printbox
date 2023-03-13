@@ -239,25 +239,23 @@ module Simple = struct
 
   let reformat_dag boxify_depth (b: dag): t =
     let module S = Set.Make(struct type t = string let compare = String.compare end) in
-    let union_list = List.fold_left S.union S.empty in
     let visited = ref S.empty in
-    let rec reused = function
-      | `Subtree_with_ID (id, b) when S.mem id !visited ->
-        S.add id @@ reused b
+    let reused = ref S.empty in
+    let rec collect = function
+      | `Subtree_with_ID (id, _) when S.mem id !visited ->
+        reused := S.add id !reused
       | `Subtree_with_ID (id, b) ->
-        visited := S.add id !visited;
-        reused b
-      | `Pad b -> reused b
-      | `Text _ | `Empty -> S.empty
-      | `Tree (n, bs) -> union_list (reused n::List.map reused bs)
-      | `Hlist bs -> union_list @@ List.map reused bs
-      | `Vlist bs -> union_list @@ List.map reused bs
-      | `Table bss ->
-        let ids = map_matrix reused bss in
-        union_list @@ Array.to_list @@ Array.concat @@ Array.to_list ids in
-    let reused = reused b in
+        visited := S.add id !visited; collect b
+      | `Pad b -> collect b
+      | `Text _ | `Empty -> ()
+      | `Tree (n, bs) -> collect n; List.iter collect bs
+      | `Hlist bs -> List.iter collect bs
+      | `Vlist bs -> List.iter collect bs
+      | `Table bss -> Array.iter (Array.iter collect) bss in
+    collect b;
+    let reused = !reused in
     let visited = ref S.empty in
-    let rec cleanup: dag -> t = function
+    let rec cleanup = function
       | `Subtree_with_ID (id, _) when S.mem id !visited -> `Text id
       | `Subtree_with_ID (id, `Tree (n, bs)) when S.mem id reused ->
         visited := S.add id !visited;
