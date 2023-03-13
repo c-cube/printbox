@@ -340,6 +340,14 @@ end = struct
   type display_connection_map = {
     mutable m: display_connections M.t
   }
+  let has_border ?(ct=`Nontree) pos disp_map =
+    let c b = if b then 1 else 0 in
+    try
+      let conn = match ct with
+        | `Nontree -> (M.find pos disp_map).nontree
+        | `Tree -> (M.find pos disp_map).tree in
+      c conn.left + c conn.right + c conn.top + c conn.bottom > 1
+    with Not_found -> false
 
   let create_or_update ?(ct=`Nontree) ?left ?right ?top ?bottom pos disp_map =
     let (new_el, tmp_disp_map) =
@@ -613,6 +621,8 @@ end = struct
         (* start position for the children *)
         let pos' = Pos.move pos indent (size n).y in
         assert (Array.length a > 0);
+        if (size n).y > 0 && has_border (Pos.move_y pos' ~-1) conn_m.m then
+           conn_m.m <- create_or_update ~ct:`Nontree ~bottom:true (Pos.move_y pos' ~-1) conn_m.m;
         let _ = _array_foldi
             (fun pos' i b ->
                let s = "└─" in
@@ -622,7 +632,10 @@ end = struct
                if i<Array.length a-1 then (
                  write_vline_ ~ct:`Tree conn_m (Pos.move_y pos' 1) ((size b).y-1)
                );
-               conn_m.m <- render_rec ~ansi b (Pos.move_x pos' (str_display_width_ s 0 (String.length s)));
+               let child_pos = Pos.move_x pos' (str_display_width_ s 0 (String.length s)) in
+               conn_m.m <- render_rec ~ansi b child_pos;
+               if (size b).x > 0 && has_border child_pos conn_m.m then
+                  conn_m.m <- create_or_update ~ct:`Nontree ~left:true child_pos conn_m.m;
                Pos.move_y pos' (size b).y
             ) pos' a
         in
