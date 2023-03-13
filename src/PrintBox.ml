@@ -203,6 +203,7 @@ module Simple = struct
     | `Empty -> empty
     | `Pad b -> pad (to_box b)
     | `Text t -> text t
+    | `Vlist [h; b] -> vlist [align ~h:`Center ~v:`Bottom @@ to_box h; to_box b]
     | `Vlist l -> vlist (List.map to_box l)
     | `Hlist l -> hlist (List.map to_box l)
     | `Table a -> grid (map_matrix to_box a)
@@ -225,4 +226,49 @@ module Simple = struct
 
   let asprintf format =
     Format.kasprintf (fun s -> `Text s) format
+
+  type dag = [
+    | `Empty
+    | `Pad of dag
+    | `Text of string
+    | `Vlist of dag list
+    | `Hlist of dag list
+    | `Table of dag array array
+    | `Tree of dag * dag list
+    | `Embed_subtree_ID of string
+    | `Subtree_with_ID of string * dag
+  ]
+
+  let reformat_dag boxify_depth (b: dag): t =
+    let module S = Set.Make(struct type t = string let compare = String.compare end) in
+    let union_list = List.fold_left S.union S.empty in
+    let rec reused = function
+      | `Embed_subtree_ID id -> S.singleton id
+      | `Subtree_with_ID (_, b) -> reused b
+      | `Pad b -> reused b
+      | `Text _ | `Empty -> S.empty
+      | `Tree (n, bs) -> union_list (reused n::List.map reused bs)
+      | `Hlist bs -> union_list @@ List.map reused bs
+      | `Vlist bs -> union_list @@ List.map reused bs
+      | `Table bss ->
+        let ids = map_matrix reused bss in
+        union_list @@ Array.to_list @@ Array.concat @@ Array.to_list ids in
+    let reused = reused b in
+    let rec cleanup: dag -> t = function
+      | `Embed_subtree_ID id -> `Text ("["^id^"]")
+      | `Tree (n, bs) -> `Tree (cleanup n, List.map cleanup bs)
+      | `Subtree_with_ID (id, b) when S.mem id reused -> `Hlist [`Text ("["^id^"]"); cleanup b]
+      | `Subtree_with_ID (_, b) -> cleanup b
+      | `Hlist bs -> `Hlist (List.map cleanup bs)
+      | `Vlist bs -> `Vlist (List.map cleanup bs)
+      | `Pad b -> `Pad (cleanup b)
+      | `Table a -> `Table (map_matrix cleanup a)
+      | `Empty | `Text _ as b -> b in
+    let rec boxify depth = function
+      | `Tree (n, bs) when depth > 0 -> `Vlist [n; `Hlist (List.map (boxify @@ depth - 1) bs)]
+      | `Hlist bs -> `Hlist (List.map (boxify @@ depth - 1) bs)
+      | `Vlist bs -> `Vlist (List.map (boxify @@ depth - 1) bs)
+      | b -> b in
+    boxify boxify_depth @@ cleanup b
+
 end
