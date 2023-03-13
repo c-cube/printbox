@@ -368,6 +368,21 @@ module Simple : sig
   val asprintf : ('a, Format.formatter, unit, t) format4 -> 'a
   (** Formatting for [`Text].
       @since 0.2 *)
+
+  type dag = [
+    | `Empty
+    | `Pad of dag
+    | `Text of string
+    | `Vlist of dag list
+    | `Hlist of dag list
+    | `Table of dag array array
+    | `Tree of dag * dag list
+    | `Subtree_with_ID of string * dag
+  ]
+
+  val reformat_dag: int -> dag -> t
+  
+  val to_box_centered : t -> box
 end
 
 (**/**)
