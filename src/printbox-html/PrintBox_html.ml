@@ -86,13 +86,20 @@ let rec to_html_rec ~config (b: B.t) : [< Html_types.flow5 > `Div `Ul `Table `P]
   let to_html_rec = to_html_rec ~config in
   match B.view b with
   | B.Empty -> H.div []
-  | B.Text {l; style} ->
-    let a, bold = attrs_of_style style in
-    let l = List.map H.txt l in
-    let l = if bold then List.map (fun x->H.b [x]) l else l in
-    H.div
-      ~a:(H.a_class config.cls_text :: (a @ config.a_text))
-      l
+  | B.Text rt ->
+    let module RT = B.Rich_text in
+    let rec conv_rt style rt =
+      match RT.view rt with
+      | RT.RT_str s ->
+        let a, bold = attrs_of_style style in
+        let s = H.txt s in
+        let s = if bold then H.b [s] else s in
+        H.div [s]
+          ~a:(H.a_class config.cls_text :: (a @ config.a_text))
+      | RT.RT_cat l -> H.div (List.map (conv_rt style) l)
+      | RT.RT_style (style, sub) -> conv_rt style sub
+    in
+    conv_rt B.Style.default rt
   | B.Pad (_, b)
   | B.Frame b -> to_html_rec b
   | B.Align {h=`Right;inner=b;v=_} ->

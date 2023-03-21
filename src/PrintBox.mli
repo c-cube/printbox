@@ -102,6 +102,10 @@ type t
 (** Main type for a document composed of nested boxes.
     @since 0.2 the type [t] is opaque *)
 
+type rich_text
+(** Text with formatting and new lines.
+    @since NEXT_RELEASE *)
+
 (** The type [view] can be used to observe the inside of the box,
     now that [t] is opaque.
 
@@ -110,10 +114,7 @@ type t
 *)
 type view = private
   | Empty
-  | Text of {
-      l: string list;
-      style: Style.t;
-    }
+  | Text of rich_text
   | Frame of t
   | Pad of position * t (* vertical and horizontal padding *)
   | Align of {
@@ -157,10 +158,16 @@ val lines : string list -> t
     [lines l] is the same as [text (String.concat "\n" l)]. *)
 
 val int_ : int -> t
+(** @deprecated use {!int} *)
+[@@deprecated "use int"]
 
 val bool_ : bool -> t
+(** @deprecated use {!bool} *)
+[@@deprecated "use bool"]
 
 val float_ : float -> t
+(** @deprecated use {!float} *)
+[@@deprecated "use float"]
 
 val int : int -> t
 (** @since 0.2 *)
@@ -170,6 +177,10 @@ val bool : bool -> t
 
 val float : float -> t
 (** @since 0.2 *)
+
+val rich_text : rich_text -> t
+(** A box containing rich text. See {!Rich_text} for more.
+    @since NEXT_RELEASE *)
 
 val frame : t -> t
 (** Put a single frame around the box *)
@@ -240,14 +251,14 @@ val init_grid : ?bars:bool ->
   line:int -> col:int -> (line:int -> col:int -> t) -> t
 (** Same as {!grid} but takes the matrix as a function *)
 
-val grid_l : 
+val grid_l :
   ?pad:(t -> t) ->
   ?bars:bool ->
   t list list -> t
 (** Same as {!grid} but from lists.
     @since 0.3 *)
 
-val grid_text_l : 
+val grid_text_l :
   ?pad:(t -> t) ->
   ?bars:bool ->
   string list list -> t
@@ -338,11 +349,66 @@ val asprintf_with_style : Style.t -> ('a, Format.formatter, unit, t) format4 -> 
 (** Formatting for {!text}, with style.
     @since 0.3 *)
 
+(** Rich text *)
+module Rich_text : sig
+  type t = rich_text
+
+  (** View on the internals of the rich text.
+      {b NOTE} this is unstable for now, no promise of stability is made. *)
+  type view = private
+    | RT_str of string
+    | RT_style of Style.t * t
+    | RT_cat of t list
+
+  val view : t -> view
+
+  val s : string -> t
+  (** Short for {!text} *)
+
+  val line : string -> t
+  (** Make a single-line text object.
+      @raise Invalid_argument if the string contains ['\n'] *)
+
+  val text : string -> t
+  (** Any text, possibly with several lines *)
+
+  val space : t
+
+  val newline : t
+
+  val cat : t list -> t
+  (** [cat txts] is the concatenation of items in [txts]. *)
+
+  val cat_with : sep:t -> t list -> t
+  (** [concat_with ~sep l] concatenates items of [l],
+      inserting [sep] in between each. It doesn't add [sep] after
+      the last element. *)
+
+  val lines : t list -> t
+  (** Concatenate with interspersed new lines *)
+
+  val lines_text : string list -> t
+  (** same as [lines @@ List.map line l] *)
+
+  val sprintf : ('a, Buffer.t, unit, t) format4 -> 'a
+  (** Formatting. *)
+
+  val asprintf : ('a, Format.formatter, unit, t) format4 -> 'a
+  (** Formatting. *)
+
+  val with_style : Style.t -> t -> t
+  (** Add style to the text. *)
+
+  val bold : t -> t
+  (** Short for [with_style Style.bold] *)
+end
+
 (** {2 Simple Structural Interface} *)
 
 type 'a ktree = unit -> [`Nil | `Node of 'a * 'a ktree list]
 type box = t
 
+(** A simple interface. *)
 module Simple : sig
   type t =
     [ `Empty

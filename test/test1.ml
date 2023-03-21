@@ -28,7 +28,8 @@ let () =
 let grid =
   B.frame @@ B.grid_l
     [ [B.text "the center of the triangle is"; B.empty];
-      [B.center_hv @@ B.text "lil' ol' me";
+      [B.center_hv @@
+       B.(rich_text B.Rich_text.(cat [s "lil' "; with_style B.Style.(fg_color Red) (s "ol'"); s " me"]));
        B.pad' ~col:0 ~lines:6 @@ B.text "t\na\nl\nl"];
       [B.align_right (B.text "i'm aligned right"); B.empty];
        [ B.text "loooooooooooooooooooooooooooooooooong"; B.empty; ];
@@ -77,10 +78,10 @@ end
 
 let b =
   let open PrintBox in
-  frame @@ record [
+  frame @@ v_record [
     ("subject", text_with_style Style.bold "announce: printbox 0.3");
     ("explanation",
-    frame @@ text {|PrintBox is a library for rendering nested tables,
+    frame @@ center_hv @@ text {|PrintBox is a library for rendering nested tables,
     trees, and similar structures in monospace text or HTML.|});
     ("github",
     text_with_style Style.(bg_color Blue) "https://github.com/c-cube/printbox/releases/tag/0.3");
@@ -95,6 +96,9 @@ let b =
     ("expected reaction", text "🎉");
   ]
 
+(* announcefor 0.3  *)
+let () = print_endline @@ PrintBox_text.to_string b
+
 module Unicode = struct
   let b =
     B.(frame @@ vlist [text "nice unicode! 💪"; frame @@
@@ -105,4 +109,16 @@ module Unicode = struct
       @@ vlist [text "sum=Σ_i a·xᵢ²\n—————\n1+1"; align_right @@ text "Ōₒ\nÀ"]]]);;
 
   let () = print_endline @@ PrintBox_text.to_string b
+end
+
+module Rich_text_  = struct
+  let b =
+    B.(frame @@ rich_text @@ Rich_text.(lines [
+        cat [with_style Style.(bg_color Cyan) (s "ab\ncd"); s " no color here"];
+        cat [s "hello"; space; s "world";
+             with_style Style.(fg_color Green) (s " color me"); s " (but not me)"];
+      ]));;
+
+  let () = print_endline @@ PrintBox_text.to_string b
+
 end

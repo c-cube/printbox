@@ -242,11 +242,19 @@ module Box_inner : sig
   val of_box : B.box -> t
   val render : ansi:bool -> Output.t -> t -> unit
 end = struct
+  type line_chunk = {
+    s: string;
+    pos: int;
+    len: int;
+    style: B.Style.t;
+    width: int;
+  }
+  type line = line_chunk list
+
   type 'a shape =
     | Empty
     | Text of {
-        l: (string * int * int) list; (* list of lines *)
-        style: B.Style.t;
+        l: line list;
       }
     | Frame of 'a
     | Pad of position * 'a (* vertical and horizontal padding *)
@@ -270,6 +278,7 @@ end = struct
     mutable bottom: bool;
   }
 
+  (* TODO: replace with a simple integer with 8 bit fields *)
   type display_connections = {
     mutable nontree: display_conn_basic;
     mutable tree: display_conn_basic;
@@ -421,12 +430,15 @@ end = struct
     lines.(dim.y) <- lines.(dim.y) - additional_space;
     lines, columns, additional_space
 
+  let line_width (l:line) : int =
+    List.fold_left (fun acc {width; _} -> acc + width) 0 l
+
   let size_of_shape = function
     | Empty -> Pos.origin
-    | Text {l;style=_} ->
+    | Text {l} ->
       let width =
         List.fold_left
-          (fun acc (s,i,len) -> max acc (str_display_width_ s i len))
+          (fun acc line -> max acc (line_width line))
           0 l
       in
       { x=width; y=List.length l; }
@@ -449,34 +461,51 @@ end = struct
       ; y=s.y + dim_children.y
       }
 
-  let[@unroll 2] rec lines_ s i (k: string -> int -> int -> unit) : unit =
+  let[@unroll 2] rec lines_ s i (k: full:bool -> string -> int -> int -> unit) : unit =
     match String.index_from s i '\n' with
     | j ->
-      k s i (j - i);
+      k ~full:true s i (j - i);
       lines_ s (j+1) k
     | exception Not_found ->
       if i < String.length s then (
-        k s i (String.length s - i)
+        k ~full:false s i (String.length s - i)
       )
-
-  let lines_l_ l k =
-    match l with
-    | [] -> ()
-    | [s] -> lines_ s 0 k
-    | s1::s2::tl ->
-      lines_ s1 0 k;
-      lines_ s2 0 k;
-      List.iter (fun s -> lines_ s 0 k) tl
 
   let rec of_box (b:B.t) : t =
     let shape =
       match B.view b with
       | B.Empty -> Empty
-      | B.Text {l;style} ->
+      | B.Text rt ->
+        let module RT = B.Rich_text in
+
         (* split into lines *)
-        let acc = ref [] in
-        lines_l_ l (fun s i len -> acc := (s,i,len) :: !acc);
-        Text {l=List.rev !acc; style}
+        let lines = ref [] in
+        let cur_line = ref [] in
+
+        let rec conv_text style t =
+          match RT.view t with
+          | RT.RT_str s ->
+            lines_ s 0
+              (fun ~full s pos len ->
+                 let width = str_display_width_ s pos len in
+                 let chunk = {s;pos;len;style;width} in
+                 if full then (
+                   let line = List.rev @@ chunk :: !cur_line in
+                   cur_line := [];
+                   lines := line :: !lines;
+                 ) else (
+                   cur_line := chunk :: !cur_line
+                 )
+              );
+          | RT.RT_cat l -> List.iter (conv_text style) l
+          | RT.RT_style (style,sub) -> conv_text style sub
+        in
+        conv_text B.Style.default rt;
+        if !cur_line <> [] then (
+          lines := List.rev !cur_line :: !lines
+        );
+
+        Text {l=List.rev !lines}
       | B.Frame t -> Frame (of_box t)
       | B.Pad (dim, t) -> Pad (dim, of_box t)
       | B.Align {h;v;inner} -> Align {h;v;inner=of_box inner}
@@ -516,19 +545,33 @@ end = struct
     let rec render_rec ~ansi ?(offset=offset) ?expected_size b pos =
       match shape b with
       | Empty -> conn_m.m
-      | Text {l;style} ->
-        let ansi_prelude, ansi_suffix =
-          if ansi then Style_ansi.brackets style else "", "" in
-        let has_style = ansi_prelude <> "" || ansi_suffix <> "" in
-        List.iteri
-          (fun line_idx (s,s_i,len)->
-             if has_style then (
-               Output.put_sub_string_brack out (Pos.move_y pos line_idx)
-                 ~pre:ansi_prelude s s_i len ~post:ansi_suffix
-             ) else (
-               Output.put_sub_string out (Pos.move_y pos line_idx) s s_i len
-             ))
-          l;
+      | Text {l} ->
+
+        let render_chunk line_idx col_idx {s; pos=s_pos; len; style; width=_} =
+          let ansi_prelude, ansi_suffix =
+            if ansi then Style_ansi.brackets style else "", "" in
+          let has_style = ansi_prelude <> "" || ansi_suffix <> "" in
+          let pos = Pos.move pos col_idx line_idx in
+          if has_style then (
+            Output.put_sub_string_brack out pos
+              ~pre:ansi_prelude s s_pos len ~post:ansi_suffix
+          ) else (
+            Output.put_sub_string out pos s s_pos len
+          )
+        in
+
+        let render_line line_idx (l:line) =
+          let col_idx= ref 0 in
+          List.iter
+            (fun c ->
+               render_chunk line_idx !col_idx c;
+               col_idx := !col_idx + c.width;
+            )
+            l
+        in
+
+        List.iteri render_line l;
+
         conn_m.m
       | Frame b' ->
         let {x;y} = size b' in
