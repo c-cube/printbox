@@ -32,6 +32,9 @@ module Config : sig
   val tree_summary : bool -> t -> t
   (** When set to true, the trees are rendered collapsed
       using the [<detalis>] HTML5 element. *)
+
+  val preformatted : bool -> t -> t
+  (** When set to true, text is rendered using the [<pre>] HTML element. *)
 end
 
 val to_html : ?config:Config.t -> PrintBox.t -> [`Div] html
