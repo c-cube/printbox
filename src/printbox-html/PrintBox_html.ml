@@ -85,7 +85,7 @@ module Config = struct
 end
 
 type html_fix = {
-  loop : 'tags. (B.t -> ([< Html_types.flow5 > `Div `Ul `Table `P] as 'tags) html) -> B.t -> 'tags html
+  loop : 'tags. (B.t -> ([< Html_types.flow5 > `Span `Div `Ul `Table `P] as 'tags) html) -> B.t -> 'tags html
 }
 
 let to_html_rec ~config (b: B.t) =
@@ -100,13 +100,7 @@ let to_html_rec ~config (b: B.t) =
   let loop = { loop = fun fix b ->
     match B.view b with
     | B.Empty -> (H.div [] :> [< Html_types.flow5 > `Div `P `Table `Ul ] html)
-    | B.Text {l; style} ->
-      let a, bold = attrs_of_style style in
-      let l = List.map H.txt l in
-      let l = if bold then List.map (fun x->H.b [x]) l else l in
-      H.div
-        ~a:(H.a_class config.cls_text :: (a @ config.a_text))
-        l
+    | B.Text {l; style} -> text_to_html ~l ~style
     | B.Pad (_, b)
     | B.Frame b -> fix b
     | B.Align {h=`Right;inner=b;v=_} ->
@@ -137,7 +131,7 @@ let to_html_rec ~config (b: B.t) =
         ]
     | B.Link _ -> assert false }
   in
-  let rec to_html_rec b : [< Html_types.flow5 > `Details `Div `Ul `Table `P] html =
+  let rec to_html_rec b : [< Html_types.flow5 > `Details `Span `Div `Ul `Table `P] html =
     match B.view b with
     | B.Tree (_, b, l) when config.tree_summary ->
       let l = Array.to_list l in
@@ -145,7 +139,7 @@ let to_html_rec ~config (b: B.t) =
       | B.Text {l=tl; style} ->
         H.details (H.summary [text_to_html ~l:tl ~style])
         [ H.ul (List.map (fun x -> H.li [to_html_rec x]) l) ]
-        | _ ->
+      | _ ->
           H.div
         [ to_html_rec b
         ; H.ul (List.map (fun x -> H.li [to_html_rec x]) l)
@@ -153,7 +147,7 @@ let to_html_rec ~config (b: B.t) =
     | B.Link {uri; inner} ->
       H.div [H.a ~a:[H.a_href uri] [to_html_nondet_rec inner]]
     | _ -> loop.loop to_html_rec b
-  and to_html_nondet_rec b : [< Html_types.flow5_without_interactive > `Div `Ul `Table `P] html =
+  and to_html_nondet_rec b : [< Html_types.flow5_without_interactive > `Span `Div `Ul `Table `P] html =
     match B.view b with
     | B.Link {uri; inner} ->
       H.div [H.a ~a:[H.a_href uri] [to_html_nondet_rec inner]]
