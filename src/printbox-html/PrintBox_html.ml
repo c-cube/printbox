@@ -53,12 +53,13 @@ module Config = struct
     cls_table: string list;
     a_table: Html_types.table_attrib Html.attrib list;
     cls_text: string list;
-    a_text: Html_types.div_attrib Html.attrib list;
+    a_text: Html_types.span_attrib Html.attrib list;
     cls_row: string list;
     a_row: Html_types.div_attrib Html.attrib list;
     cls_col: string list;
     a_col: Html_types.div_attrib Html.attrib list;
     tree_summary: bool;
+    preformatted: bool;
   }
 
   let default : t = {
@@ -71,6 +72,7 @@ module Config = struct
     cls_col=[];
     a_col=[];
     tree_summary=false;
+    preformatted=false;
   }
 
   let cls_table x c = {c with cls_table=x}
@@ -82,10 +84,11 @@ module Config = struct
   let cls_col x c = {c with cls_col=x}
   let a_col x c = {c with a_col=x}
   let tree_summary x c = {c with tree_summary=x}
+  let preformatted x c = {c with preformatted=x}
 end
 
 type html_fix = {
-  loop : 'tags. (B.t -> ([< Html_types.flow5 > `Span `Div `Ul `Table `P] as 'tags) html) -> B.t -> 'tags html
+  loop : 'tags. (B.t -> ([< Html_types.flow5 > `Pre `Span `Div `Ul `Table `P] as 'tags) html) -> B.t -> 'tags html
 }
 
 let to_html_rec ~config (b: B.t) =
@@ -94,12 +97,11 @@ let to_html_rec ~config (b: B.t) =
     let a, bold = attrs_of_style style in
     let l = List.map H.txt l in
     let l = if bold then List.map (fun x->H.b [x]) l else l in
-    H.span
-      ~a:(H.a_class config.cls_text :: (a @ config.a_text))
-      l in
+    H.span ~a:(H.a_class config.cls_text :: (a @ config.a_text)) l in
   let loop = { loop = fun fix b ->
     match B.view b with
-    | B.Empty -> (H.div [] :> [< Html_types.flow5 > `Div `P `Table `Ul ] html)
+    | B.Empty -> (H.div [] :> [< Html_types.flow5 > `Pre `Span `Div `P `Table `Ul ] html)
+    | B.Text {l; style} when config.preformatted -> H.pre [text_to_html ~l ~style]
     | B.Text {l; style} -> text_to_html ~l ~style
     | B.Pad (_, b)
     | B.Frame b -> fix b
@@ -131,7 +133,7 @@ let to_html_rec ~config (b: B.t) =
         ]
     | B.Link _ -> assert false }
   in
-  let rec to_html_rec b : [< Html_types.flow5 > `Details `Span `Div `Ul `Table `P] html =
+  let rec to_html_rec b : [< Html_types.flow5 > `Details `Pre `Span `Div `Ul `Table `P] html =
     match B.view b with
     | B.Tree (_, b, l) when config.tree_summary ->
       let l = Array.to_list l in
@@ -147,7 +149,7 @@ let to_html_rec ~config (b: B.t) =
     | B.Link {uri; inner} ->
       H.div [H.a ~a:[H.a_href uri] [to_html_nondet_rec inner]]
     | _ -> loop.loop to_html_rec b
-  and to_html_nondet_rec b : [< Html_types.flow5_without_interactive > `Span `Div `Ul `Table `P] html =
+  and to_html_nondet_rec b : [< Html_types.flow5_without_interactive > `Pre `Span `Div `Ul `Table `P] html =
     match B.view b with
     | B.Link {uri; inner} ->
       H.div [H.a ~a:[H.a_href uri] [to_html_nondet_rec inner]]
