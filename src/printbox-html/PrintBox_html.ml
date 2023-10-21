@@ -133,7 +133,7 @@ let to_html_rec ~config (b: B.t) =
         ]
     | B.Link _ -> assert false }
   in
-  let rec to_html_rec b : [< Html_types.flow5 > `Details `Pre `Span `Div `Ul `Table `P] html =
+  let rec to_html_rec b =
     match B.view b with
     | B.Tree (_, b, l) when config.tree_summary ->
       let l = Array.to_list l in
@@ -149,7 +149,7 @@ let to_html_rec ~config (b: B.t) =
     | B.Link {uri; inner} ->
       H.div [H.a ~a:[H.a_href uri] [to_html_nondet_rec inner]]
     | _ -> loop.loop to_html_rec b
-  and to_html_nondet_rec b : [< Html_types.flow5_without_interactive > `Pre `Span `Div `Ul `Table `P] html =
+  and to_html_nondet_rec b =
     match B.view b with
     | B.Link {uri; inner} ->
       H.div [H.a ~a:[H.a_href uri] [to_html_nondet_rec inner]]
