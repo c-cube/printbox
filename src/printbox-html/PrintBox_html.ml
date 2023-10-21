@@ -58,6 +58,7 @@ module Config = struct
     a_row: Html_types.div_attrib Html.attrib list;
     cls_col: string list;
     a_col: Html_types.div_attrib Html.attrib list;
+    tree_summary: bool;
   }
 
   let default : t = {
@@ -69,6 +70,7 @@ module Config = struct
     a_row=[];
     cls_col=[];
     a_col=[];
+    tree_summary=false;
   }
 
   let cls_table x c = {c with cls_table=x}
@@ -79,50 +81,85 @@ module Config = struct
   let a_row x c = {c with a_row=x}
   let cls_col x c = {c with cls_col=x}
   let a_col x c = {c with a_col=x}
+  let tree_summary x c = {c with tree_summary=x}
 end
 
-let rec to_html_rec ~config (b: B.t) : [< Html_types.flow5 > `Div `Ul `Table `P] html =
+type html_fix = {
+  loop : 'tags. (B.t -> ([< Html_types.flow5 > `Div `Ul `Table `P] as 'tags) html) -> B.t -> 'tags html
+}
+
+let to_html_rec ~config (b: B.t) =
   let open Config in
-  let to_html_rec = to_html_rec ~config in
-  match B.view b with
-  | B.Empty -> H.div []
-  | B.Text {l; style} ->
+  let text_to_html ~l ~style =
     let a, bold = attrs_of_style style in
     let l = List.map H.txt l in
     let l = if bold then List.map (fun x->H.b [x]) l else l in
-    H.div
+    H.span
       ~a:(H.a_class config.cls_text :: (a @ config.a_text))
-      l
-  | B.Pad (_, b)
-  | B.Frame b -> to_html_rec b
-  | B.Align {h=`Right;inner=b;v=_} ->
-    H.div ~a:[H.a_class ["align-right"]] [ to_html_rec b ]
-  | B.Align {h=`Center;inner=b;v=_} ->
-    H.div ~a:[H.a_class ["center"]] [ to_html_rec b ]
-  | B.Align {inner=b;_} -> to_html_rec b
-  | B.Grid (bars, a) ->
-    let class_ = match bars with
-      | `Bars -> "framed"
-      | `None -> "non-framed"
-    in
-    let to_row a =
-      Array.to_list a
-      |> List.map
-        (fun b -> H.td ~a:(H.a_class config.cls_col :: config.a_col) [to_html_rec b])
-      |> (fun x -> H.tr ~a:(H.a_class config.cls_row :: config.a_row) x)
-    in
-    let rows =
-      Array.to_list a |> List.map to_row
-    in
-    H.table ~a:(H.a_class (class_ :: config.cls_table)::config.a_table) rows
-  | B.Tree (_, b, l) ->
-    let l = Array.to_list l in
-    H.div
-      [ to_html_rec b
-      ; H.ul (List.map (fun x -> H.li [to_html_rec x]) l)
-      ]
-  | B.Link {uri; inner} ->
-    H.div [H.a ~a:[H.a_href uri] [to_html_rec inner]]
+      l in
+  let loop = { loop = fun fix b ->
+    match B.view b with
+    | B.Empty -> (H.div [] :> [< Html_types.flow5 > `Div `P `Table `Ul ] html)
+    | B.Text {l; style} ->
+      let a, bold = attrs_of_style style in
+      let l = List.map H.txt l in
+      let l = if bold then List.map (fun x->H.b [x]) l else l in
+      H.div
+        ~a:(H.a_class config.cls_text :: (a @ config.a_text))
+        l
+    | B.Pad (_, b)
+    | B.Frame b -> fix b
+    | B.Align {h=`Right;inner=b;v=_} ->
+      H.div ~a:[H.a_class ["align-right"]] [ fix b ]
+    | B.Align {h=`Center;inner=b;v=_} ->
+      H.div ~a:[H.a_class ["center"]] [ fix b ]
+    | B.Align {inner=b;_} -> fix b
+    | B.Grid (bars, a) ->
+      let class_ = match bars with
+        | `Bars -> "framed"
+        | `None -> "non-framed"
+      in
+      let to_row a =
+        Array.to_list a
+        |> List.map
+          (fun b -> H.td ~a:(H.a_class config.cls_col :: config.a_col) [fix b])
+        |> (fun x -> H.tr ~a:(H.a_class config.cls_row :: config.a_row) x)
+      in
+      let rows =
+        Array.to_list a |> List.map to_row
+      in
+      H.table ~a:(H.a_class (class_ :: config.cls_table)::config.a_table) rows
+    | B.Tree (_, b, l) ->
+      let l = Array.to_list l in
+      H.div
+        [ fix b
+        ; H.ul (List.map (fun x -> H.li [fix x]) l)
+        ]
+    | B.Link _ -> assert false }
+  in
+  let rec to_html_rec b : [< Html_types.flow5 > `Details `Div `Ul `Table `P] html =
+    match B.view b with
+    | B.Tree (_, b, l) when config.tree_summary ->
+      let l = Array.to_list l in
+      (match B.view b with
+      | B.Text {l=tl; style} ->
+        H.details (H.summary [text_to_html ~l:tl ~style])
+        [ H.ul (List.map (fun x -> H.li [to_html_rec x]) l) ]
+        | _ ->
+          H.div
+        [ to_html_rec b
+        ; H.ul (List.map (fun x -> H.li [to_html_rec x]) l)
+        ])
+    | B.Link {uri; inner} ->
+      H.div [H.a ~a:[H.a_href uri] [to_html_nondet_rec inner]]
+    | _ -> loop.loop to_html_rec b
+  and to_html_nondet_rec b : [< Html_types.flow5_without_interactive > `Div `Ul `Table `P] html =
+    match B.view b with
+    | B.Link {uri; inner} ->
+      H.div [H.a ~a:[H.a_href uri] [to_html_nondet_rec inner]]
+    | _ -> loop.loop to_html_nondet_rec b
+  in
+  to_html_rec b
 
 let to_html ?(config=Config.default) b = H.div [to_html_rec ~config b]
 
