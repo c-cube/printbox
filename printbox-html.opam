@@ -17,6 +17,7 @@ depends: [
   "odoc" {with-doc}
   "printbox" {= version}
   "tyxml" {>="4.3"}
+  "mdx" {with-test & >= "1.4" }
 ]
 license: "BSD-2-Clause"
 tags: [ "print" "box" "table" "tree" ]
