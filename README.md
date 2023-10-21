@@ -246,4 +246,16 @@ which prints some HTML in the file [foo.html](docs/foo.html).
 Note that trees are printed in HTML using nested lists, and
 that `PrintBox_html.to_string_doc` will insert some javascript to
 make sub-lists fold/unfold on click (this is useful to display very large
-trees compactly and exploring them incrementally).
+trees compactly and exploring them incrementally). But there is also
+an alternative solution where trees are printed in HTML using the
+`<details>` element. To activate it, use the `tree_summary` config:
+
+```ocaml
+# #require "printbox-html";;
+# print_endline PrintBox_html.(to_string
+  ~config:Config.(tree_summary true default)
+    B.(tree (text "0")[text "1"; tree (text "ω") [text "ω²"]]));;
+<div><details><summary><span class="">0</span></summary><ul><li><span class="">1</span></li><li><details><summary><span class="">ω</span></summary><ul><li><span class="">ω²</span></li></ul></details></li></ul></details></div>
+
+- : unit = ()
+```
