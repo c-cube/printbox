@@ -29,6 +29,9 @@ module Config : sig
   val a_row : Html_types.div_attrib Html.attrib list -> t -> t
   val cls_col : string list -> t -> t
   val a_col : Html_types.div_attrib Html.attrib list -> t -> t
+  val tree_summary : bool -> t -> t
+  (** When set to true, the trees are rendered collapsed
+      using the [<detalis>] HTML5 element. *)
 end
 
 val to_html : ?config:Config.t -> PrintBox.t -> [`Div] html
