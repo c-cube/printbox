@@ -19,14 +19,17 @@ module Style = struct
     bold: bool;
     bg_color: color option;
     fg_color: color option;
+    preformatted: bool;
   }
 
-  let default = {bold=false; bg_color=None; fg_color=None}
+  let default = {bold=false; bg_color=None; fg_color=None; preformatted=false}
   let set_bg_color c self = {self with bg_color=Some c}
   let set_fg_color c self = {self with fg_color=Some c}
   let set_bold b self = {self with bold=b}
+  let set_preformatted b self = {self with preformatted=b}
 
   let bold : t = set_bold true default
+  let preformatted : t = set_preformatted true default
   let bg_color c : t = set_bg_color c default
   let fg_color c : t = set_fg_color c default
 end
