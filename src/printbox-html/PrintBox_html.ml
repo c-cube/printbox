@@ -87,10 +87,6 @@ module Config = struct
   let preformatted x c = {c with preformatted=x}
 end
 
-type html_fix = {
-  loop : 'tags. (B.t -> ([< Html_types.flow5 > `Pre `Span `Div `Ul `Table `P] as 'tags) html) -> B.t -> 'tags html
-}
-
 let to_html_rec ~config (b: B.t) =
   let open Config in
   let text_to_html ~l ~style =
@@ -98,40 +94,42 @@ let to_html_rec ~config (b: B.t) =
     let l = List.map H.txt l in
     let l = if bold then List.map (fun x->H.b [x]) l else l in
     H.span ~a:(H.a_class config.cls_text :: (a @ config.a_text)) l in
-  let loop = { loop = fun fix b ->
-    match B.view b with
-    | B.Empty -> (H.div [] :> [< Html_types.flow5 > `Pre `Span `Div `P `Table `Ul ] html)
-    | B.Text {l; style} when config.preformatted -> H.pre [text_to_html ~l ~style]
-    | B.Text {l; style} -> text_to_html ~l ~style
-    | B.Pad (_, b)
-    | B.Frame b -> fix b
-    | B.Align {h=`Right;inner=b;v=_} ->
-      H.div ~a:[H.a_class ["align-right"]] [ fix b ]
-    | B.Align {h=`Center;inner=b;v=_} ->
-      H.div ~a:[H.a_class ["center"]] [ fix b ]
-    | B.Align {inner=b;_} -> fix b
-    | B.Grid (bars, a) ->
-      let class_ = match bars with
-        | `Bars -> "framed"
-        | `None -> "non-framed"
-      in
-      let to_row a =
-        Array.to_list a
-        |> List.map
-          (fun b -> H.td ~a:(H.a_class config.cls_col :: config.a_col) [fix b])
-        |> (fun x -> H.tr ~a:(H.a_class config.cls_row :: config.a_row) x)
-      in
-      let rows =
-        Array.to_list a |> List.map to_row
-      in
-      H.table ~a:(H.a_class (class_ :: config.cls_table)::config.a_table) rows
-    | B.Tree (_, b, l) ->
-      let l = Array.to_list l in
-      H.div
-        [ fix b
-        ; H.ul (List.map (fun x -> H.li [fix x]) l)
-        ]
-    | B.Link _ -> assert false }
+  let loop :
+    'tags. (B.t -> ([< Html_types.flow5 > `Pre `Span `Div `Ul `Table `P] as 'tags) html) -> B.t -> 'tags html =
+    fun fix b ->
+      match B.view b with
+      | B.Empty -> (H.div [] :> [< Html_types.flow5 > `Pre `Span `Div `P `Table `Ul ] html)
+      | B.Text {l; style} when config.preformatted -> H.pre [text_to_html ~l ~style]
+      | B.Text {l; style} -> text_to_html ~l ~style
+      | B.Pad (_, b)
+      | B.Frame b -> fix b
+      | B.Align {h=`Right;inner=b;v=_} ->
+        H.div ~a:[H.a_class ["align-right"]] [ fix b ]
+      | B.Align {h=`Center;inner=b;v=_} ->
+        H.div ~a:[H.a_class ["center"]] [ fix b ]
+      | B.Align {inner=b;_} -> fix b
+      | B.Grid (bars, a) ->
+        let class_ = match bars with
+          | `Bars -> "framed"
+          | `None -> "non-framed"
+        in
+        let to_row a =
+          Array.to_list a
+          |> List.map
+            (fun b -> H.td ~a:(H.a_class config.cls_col :: config.a_col) [fix b])
+          |> (fun x -> H.tr ~a:(H.a_class config.cls_row :: config.a_row) x)
+        in
+        let rows =
+          Array.to_list a |> List.map to_row
+        in
+        H.table ~a:(H.a_class (class_ :: config.cls_table)::config.a_table) rows
+      | B.Tree (_, b, l) ->
+        let l = Array.to_list l in
+        H.div
+          [ fix b
+          ; H.ul (List.map (fun x -> H.li [fix x]) l)
+          ]
+      | B.Link _ -> assert false
   in
   let rec to_html_rec b =
     match B.view b with
@@ -148,12 +146,12 @@ let to_html_rec ~config (b: B.t) =
         ])
     | B.Link {uri; inner} ->
       H.div [H.a ~a:[H.a_href uri] [to_html_nondet_rec inner]]
-    | _ -> loop.loop to_html_rec b
+    | _ -> loop to_html_rec b
   and to_html_nondet_rec b =
     match B.view b with
     | B.Link {uri; inner} ->
       H.div [H.a ~a:[H.a_href uri] [to_html_nondet_rec inner]]
-    | _ -> loop.loop to_html_nondet_rec b
+    | _ -> loop to_html_nondet_rec b
   in
   to_html_rec b
 
