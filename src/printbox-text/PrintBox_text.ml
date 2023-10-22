@@ -25,7 +25,7 @@ end = struct
     | White -> 7
 
   let codes_of_style (self:t) : int list =
-    let {bold;fg_color;bg_color} = self in
+    let {bold;fg_color;bg_color;preformatted=_} = self in
     (if bold then [1] else []) @
     (match bg_color with None -> [] | Some c -> [40 + int_of_color_ c]) @
     (match fg_color with None -> [] | Some c -> [30 + int_of_color_ c])

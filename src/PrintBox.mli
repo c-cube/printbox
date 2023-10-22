@@ -77,6 +77,8 @@ module Style : sig
     bold: bool;
     bg_color: color option; (** backgroud color *)
     fg_color: color option; (** foreground color *)
+    preformatted: bool;
+    (** where supported, the text rendering should be monospaced and respect whitespace *)
   }
   (** Basic styling (color, bold).
       @since 0.3 *)
@@ -89,11 +91,15 @@ module Style : sig
 
   val set_bold : bool -> t -> t
 
+  val set_preformatted : bool -> t -> t
+
   val bg_color : color -> t
 
   val fg_color : color -> t
 
   val bold : t
+
+  val preformatted : t
 end
 
 (** {2 Box Combinators} *)

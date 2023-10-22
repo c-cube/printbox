@@ -28,7 +28,7 @@ let prelude_str =
 
 let attrs_of_style (s:B.Style.t) : _ list * _ =
   let open B.Style in
-  let {bold;bg_color;fg_color} = s in
+  let {bold;bg_color;fg_color;preformatted} = s in
   let encode_color = function
     | Red -> "red"
     | Blue -> "blue"
@@ -41,7 +41,8 @@ let attrs_of_style (s:B.Style.t) : _ list * _ =
   in
   let s =
     (match bg_color with None -> [] | Some c -> ["background-color", encode_color c]) @
-    (match fg_color with None -> [] | Some c -> ["color", encode_color c])
+    (match fg_color with None -> [] | Some c -> ["color", encode_color c]) @
+    (if preformatted then ["font-family", "monospace"] else [])
   in
   let a = match s with
     | [] -> []
@@ -59,7 +60,6 @@ module Config = struct
     cls_col: string list;
     a_col: Html_types.div_attrib Html.attrib list;
     tree_summary: bool;
-    preformatted: bool;
   }
 
   let default : t = {
@@ -72,7 +72,6 @@ module Config = struct
     cls_col=[];
     a_col=[];
     tree_summary=false;
-    preformatted=false;
   }
 
   let cls_table x c = {c with cls_table=x}
@@ -84,7 +83,6 @@ module Config = struct
   let cls_col x c = {c with cls_col=x}
   let a_col x c = {c with a_col=x}
   let tree_summary x c = {c with tree_summary=x}
-  let preformatted x c = {c with preformatted=x}
 end
 
 let to_html_rec ~config (b: B.t) =
@@ -99,7 +97,7 @@ let to_html_rec ~config (b: B.t) =
     fun fix b ->
       match B.view b with
       | B.Empty -> (H.div [] :> [< Html_types.flow5 > `Pre `Span `Div `P `Table `Ul ] html)
-      | B.Text {l; style} when config.preformatted -> H.pre [text_to_html ~l ~style]
+      | B.Text {l; style} when style.B.Style.preformatted -> H.pre [text_to_html ~l ~style]
       | B.Text {l; style} -> text_to_html ~l ~style
       | B.Pad (_, b)
       | B.Frame b -> fix b
