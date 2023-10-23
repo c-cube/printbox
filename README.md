@@ -12,9 +12,13 @@ including:
 
 See https://c-cube.github.io/printbox/
 
+## License
+
+BSD-2-clauses
+
 ## Build
 
-Ideally, use [opam](http://opam.ocaml.org/):
+Ideally, use [opam](http://opam.ocaml.org/) with OCaml >= 4.08:
 
 ```sh non-deterministic=command
 $ opam install printbox printbox-text
