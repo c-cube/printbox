@@ -1,5 +1,16 @@
 # Changes
 
+## 0.7
+
+- move to 4.08 as lower bound
+- `preformatted` text style instead of global setting
+- PrintBox_html:
+  * Optionally wrap text with the `<pre>` HTML element
+  * Output text consistently as `<span>`, not `<div>`
+  * Use `<details><summary>` for collapsible trees
+
+- fix: Tree connectors touching frames (#26)
+
 ## 0.6.1
 
 - compat with dune 3
