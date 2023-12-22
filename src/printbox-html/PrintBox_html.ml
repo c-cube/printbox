@@ -99,8 +99,8 @@ let to_html_rec ~config (b: B.t) =
       | B.Empty -> (H.div [] :> [< Html_types.flow5 > `Pre `Span `Div `P `Table `Ul ] html)
       | B.Text {l; style} when style.B.Style.preformatted -> H.pre [text_to_html ~l ~style]
       | B.Text {l; style} -> text_to_html ~l ~style
-      | B.Pad (_, b)
-      | B.Frame b -> fix b
+      | B.Pad (_, b) -> fix b
+      | B.Frame b -> H.div ~a:[H.a_style "border:thin solid"] [ fix b ]
       | B.Align {h=`Right;inner=b;v=_} ->
         H.div ~a:[H.a_class ["align-right"]] [ fix b ]
       | B.Align {h=`Center;inner=b;v=_} ->
