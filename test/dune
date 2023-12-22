@@ -1,7 +1,7 @@
 
 (executables
-  (names test1 test_ann_0_3 test_blending)
-  (libraries printbox printbox-text))
+  (names test1 test_ann_0_3 test_blending test_html)
+  (libraries printbox printbox-text printbox-html))
 
 (rule
   (targets test1.output)
@@ -32,3 +32,14 @@
   (alias runtest)
   (package printbox-text)
   (action (diff test_blending.expected test_blending.output)))
+
+
+(rule
+  (targets test_html.output)
+  (package printbox-html)
+  (action (with-stdout-to %{targets} (run ./test_html.exe))))
+
+(rule
+  (alias runtest)
+  (package printbox-html)
+  (action (diff test_html.expected test_html.output)))

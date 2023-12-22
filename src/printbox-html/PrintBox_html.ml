@@ -87,20 +87,22 @@ end
 
 let to_html_rec ~config (b: B.t) =
   let open Config in
-  let text_to_html ~l ~style =
+  let text_to_html ?(border=false) ~l ~style () =
     let a, bold = attrs_of_style style in
     let l = List.map H.txt l in
     let l = if bold then List.map (fun x->H.b [x]) l else l in
-    H.span ~a:(H.a_class config.cls_text :: (a @ config.a_text)) l in
+    let a_border = if border then [H.a_style  "border:thin solid"] else [] in
+    H.span ~a:(H.a_class config.cls_text :: a_border @ (a @ config.a_text)) l in
   let loop :
     'tags. (B.t -> ([< Html_types.flow5 > `Pre `Span `Div `Ul `Table `P] as 'tags) html) -> B.t -> 'tags html =
     fun fix b ->
       match B.view b with
       | B.Empty -> (H.div [] :> [< Html_types.flow5 > `Pre `Span `Div `P `Table `Ul ] html)
-      | B.Text {l; style} when style.B.Style.preformatted -> H.pre [text_to_html ~l ~style]
-      | B.Text {l; style} -> text_to_html ~l ~style
-      | B.Pad (_, b)
-      | B.Frame b -> fix b
+      | B.Text {l; style} when style.B.Style.preformatted -> H.pre [text_to_html ~l ~style ()]
+      | B.Text {l; style} -> text_to_html ~l ~style ()
+      | B.Pad (_, b) -> fix b
+      | B.Frame b ->
+         H.div ~a:[H.a_style "border:thin solid"] [ fix b ]
       | B.Align {h=`Right;inner=b;v=_} ->
         H.div ~a:[H.a_class ["align-right"]] [ fix b ]
       | B.Align {h=`Center;inner=b;v=_} ->
@@ -135,13 +137,23 @@ let to_html_rec ~config (b: B.t) =
       let l = Array.to_list l in
       (match B.view b with
       | B.Text {l=tl; style} ->
-        H.details (H.summary [text_to_html ~l:tl ~style])
+        H.details (H.summary [text_to_html ~l:tl ~style ()])
         [ H.ul (List.map (fun x -> H.li [to_html_rec x]) l) ]
-      | _ ->
+      | B.Frame b ->
+        (match B.view b with
+        | (B.Text {l=tl; style}) ->
+          H.details (H.summary [text_to_html ~border:true ~l:tl ~style ()])
+            [ H.ul (List.map (fun x -> H.li [to_html_rec x]) l) ]
+        | _ ->
           H.div
-        [ to_html_rec b
-        ; H.ul (List.map (fun x -> H.li [to_html_rec x]) l)
-        ])
+            [ to_html_rec b
+            ; H.ul (List.map (fun x -> H.li [to_html_rec x]) l)
+            ])
+      | _ ->
+        H.div
+          [ to_html_rec b
+          ; H.ul (List.map (fun x -> H.li [to_html_rec x]) l)
+          ])
     | B.Link {uri; inner} ->
       H.div [H.a ~a:[H.a_href uri] [to_html_nondet_rec inner]]
     | _ -> loop to_html_rec b
