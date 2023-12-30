@@ -623,10 +623,16 @@ end = struct
         assert (Array.length a > 0);
         if (size n).y > 0 && has_border (Pos.move_y pos' ~-1) conn_m.m then
            conn_m.m <- create_or_update ~ct:`Nontree ~bottom:true (Pos.move_y pos' ~-1) conn_m.m;
+        (* To blend-in an empty tree root with a "wall" to the left: *)
+        (* if (size n).y = 0 then
+          conn_m.m <- create_or_update ~ct:`Nontree ~right:true (Pos.move_x pos' ~-1) conn_m.m; *)
         let _ = _array_foldi
             (fun pos' i b ->
-               let s = "└─" in
-               conn_m.m <- create_or_update ~ct:`Tree ~top:true ~right:true pos' conn_m.m;
+               let s = if pos'.y = pos.y then "──" else "└─" in
+               if pos'.y <> pos.y then
+                 conn_m.m <- create_or_update ~ct:`Tree ~top:true ~right:true pos' conn_m.m
+               else
+                 conn_m.m <- create_or_update ~ct:`Tree ~left:true ~right:true pos' conn_m.m;
                conn_m.m <- create_or_update ~ct:`Tree ~left:true ~right:true (Pos.move_x pos' 1) conn_m.m;
                conn_m.m <- create_or_update ~ct:`Tree ~top:true (Pos.move_y pos' 1) conn_m.m;
                if i<Array.length a-1 then (
