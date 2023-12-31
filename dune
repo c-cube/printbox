@@ -2,7 +2,7 @@
  (alias runtest)
  (deps
   (:readme README.md))
- (package printbox-text)
+ (package printbox-html)
  (action
   (progn
    (run ocaml-mdx test %{readme})

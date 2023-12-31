@@ -1,59 +1,25 @@
-(executables
- (names test1 test_ann_0_3 test_blending test_html)
- (libraries printbox printbox-text printbox-html))
 
-(rule
- (targets test1.output)
+(test
+ (name test_ann_0_3)
+ (modules test_ann_0_3)
  (package printbox-text)
- (action
-  (with-stdout-to
-   %{targets}
-   (run ./test1.exe))))
+ (libraries printbox printbox-text))
 
-(rule
- (alias runtest)
+(test
+ (name test1)
+ (modules test1)
  (package printbox-text)
- (action
-  (diff test1.expected test1.output)))
+ (libraries printbox printbox-text))
 
-(rule
- (targets test_ann_0_3.output)
+
+(test
+ (name test_blending)
+ (modules test_blending)
  (package printbox-text)
- (action
-  (with-stdout-to
-   %{targets}
-   (run ./test_ann_0_3.exe))))
+ (libraries printbox printbox-text))
 
-(rule
- (alias runtest)
- (package printbox-text)
- (action
-  (diff test_ann_0_3.expected test_ann_0_3.output)))
-
-(rule
- (targets test_blending.output)
- (package printbox-text)
- (action
-  (with-stdout-to
-   %{targets}
-   (run ./test_blending.exe))))
-
-(rule
- (alias runtest)
- (package printbox-text)
- (action
-  (diff test_blending.expected test_blending.output)))
-
-(rule
- (targets test_html.output)
+(test
+ (name test_html)
+ (modules test_html)
  (package printbox-html)
- (action
-  (with-stdout-to
-   %{targets}
-   (run ./test_html.exe))))
-
-(rule
- (alias runtest)
- (package printbox-html)
- (action
-  (diff test_html.expected test_html.output)))
+ (libraries printbox printbox-html))

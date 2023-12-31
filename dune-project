@@ -30,6 +30,7 @@
 Adds html output handling to the printbox package.
 Printbox allows to print nested boxes, lists, arrays, tables in several formats")
   (depends (printbox (= :version))
+           (printbox-text (and (= :version) :with-test))
            (odoc :with-test)
            (tyxml (>= 4.3))
            (mdx (and (>= 1.4) :with-test))))
