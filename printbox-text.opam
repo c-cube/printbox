@@ -8,15 +8,16 @@ license: "BSD-2-Clause"
 homepage: "https://github.com/c-cube/printbox"
 bug-reports: "https://github.com/c-cube/printbox/issues"
 depends: [
-  "dune" {>= "2.0"}
+  "dune" {>= "3.0"}
   "printbox" {= version}
   "uutf" {>= "1.0"}
   "uucp" {>= "2.0"}
   "odoc" {with-test}
   "mdx" {>= "1.4" & with-test}
+  "odoc" {with-doc}
 ]
 build: [
-  ["dune" "subst"] {pinned}
+  ["dune" "subst"] {dev}
   [
     "dune"
     "build"

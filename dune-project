@@ -1,5 +1,6 @@
-(lang dune 2.0)
+(lang dune 3.0)
 (name printbox)
+(using mdx 0.2)
 (generate_opam_files true)
 (version 0.7)
 (license "BSD-2-Clause")

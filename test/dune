@@ -1,4 +1,7 @@
 
+(env
+  (_ (flags :standard -warn-error -a)))
+
 (test
  (name test_ann_0_3)
  (modules test_ann_0_3)

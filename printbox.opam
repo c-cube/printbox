@@ -10,12 +10,12 @@ tags: ["print" "box" "table" "tree"]
 homepage: "https://github.com/c-cube/printbox"
 bug-reports: "https://github.com/c-cube/printbox/issues"
 depends: [
-  "dune" {>= "2.0"}
+  "dune" {>= "3.0"}
   "ocaml" {>= "4.08"}
   "odoc" {with-doc}
 ]
 build: [
-  ["dune" "subst"] {pinned}
+  ["dune" "subst"] {dev}
   [
     "dune"
     "build"

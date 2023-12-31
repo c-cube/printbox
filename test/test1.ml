@@ -75,7 +75,7 @@ module Box_in = struct
   let () = print_endline @@ PrintBox_text.to_string b
 end
 
-let b =
+let _b =
   let open PrintBox in
   frame @@ record [
     ("subject", text_with_style Style.bold "announce: printbox 0.3");
