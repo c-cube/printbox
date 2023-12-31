@@ -21,9 +21,11 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v2
-    - uses: ocaml/setup-ocaml@v2
+    - uses: ocaml/setup-ocaml@master
       with:
         ocaml-compiler: ${{ matrix.ocaml-compiler }}
+        dune-cache: true
+        allow-prerelease-opam: true
     - run: opam pin -n .
     - run: opam depext -yt printbox printbox-html printbox-text
     - run: opam install -t . --deps-only
