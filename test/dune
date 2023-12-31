@@ -1,45 +1,59 @@
-
 (executables
-  (names test1 test_ann_0_3 test_blending test_html)
-  (libraries printbox printbox-text printbox-html))
+ (names test1 test_ann_0_3 test_blending test_html)
+ (libraries printbox printbox-text printbox-html))
 
 (rule
-  (targets test1.output)
-  (package printbox-text)
-  (action (with-stdout-to %{targets} (run ./test1.exe))))
+ (targets test1.output)
+ (package printbox-text)
+ (action
+  (with-stdout-to
+   %{targets}
+   (run ./test1.exe))))
 
 (rule
-  (alias runtest)
-  (package printbox-text)
-  (action (diff test1.expected test1.output)))
+ (alias runtest)
+ (package printbox-text)
+ (action
+  (diff test1.expected test1.output)))
 
 (rule
-  (targets test_ann_0_3.output)
-  (package printbox-text)
-  (action (with-stdout-to %{targets} (run ./test_ann_0_3.exe))))
+ (targets test_ann_0_3.output)
+ (package printbox-text)
+ (action
+  (with-stdout-to
+   %{targets}
+   (run ./test_ann_0_3.exe))))
 
 (rule
-  (alias runtest)
-  (package printbox-text)
-  (action (diff test_ann_0_3.expected test_ann_0_3.output)))
+ (alias runtest)
+ (package printbox-text)
+ (action
+  (diff test_ann_0_3.expected test_ann_0_3.output)))
 
 (rule
-  (targets test_blending.output)
-  (package printbox-text)
-  (action (with-stdout-to %{targets} (run ./test_blending.exe))))
+ (targets test_blending.output)
+ (package printbox-text)
+ (action
+  (with-stdout-to
+   %{targets}
+   (run ./test_blending.exe))))
 
 (rule
-  (alias runtest)
-  (package printbox-text)
-  (action (diff test_blending.expected test_blending.output)))
-
-
-(rule
-  (targets test_html.output)
-  (package printbox-html)
-  (action (with-stdout-to %{targets} (run ./test_html.exe))))
+ (alias runtest)
+ (package printbox-text)
+ (action
+  (diff test_blending.expected test_blending.output)))
 
 (rule
-  (alias runtest)
-  (package printbox-html)
-  (action (diff test_html.expected test_html.output)))
+ (targets test_html.output)
+ (package printbox-html)
+ (action
+  (with-stdout-to
+   %{targets}
+   (run ./test_html.exe))))
+
+(rule
+ (alias runtest)
+ (package printbox-html)
+ (action
+  (diff test_html.expected test_html.output)))
