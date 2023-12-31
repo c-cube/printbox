@@ -1,5 +1,12 @@
 # Changes
 
+## 0.8
+
+- require dune 3.0
+- Fixes #28: no misleading uptick for empty tree nodes
+- HTML: Allow frames in the summary / tree header
+- Output frames as div borders in HTML
+
 ## 0.7
 
 - move to 4.08 as lower bound
