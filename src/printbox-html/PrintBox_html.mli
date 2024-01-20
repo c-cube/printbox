@@ -37,7 +37,11 @@ end
 val to_html : ?config:Config.t -> PrintBox.t -> [`Div] html
 (** HTML for one box *)
 
+val pp : ?config:Config.t -> ?indent:bool -> unit -> Format.formatter -> PrintBox.t -> unit
+
 val to_string : ?config:Config.t -> PrintBox.t -> string
+
+val to_string_indent : ?config:Config.t -> PrintBox.t -> string
 
 val to_string_doc : ?config:Config.t -> PrintBox.t -> string
 (** Same as {!to_string}, but adds the prelude and some footer *)

@@ -170,6 +170,12 @@ let to_html ?(config=Config.default) b = H.div [to_html_rec ~config b]
 let to_string ?config b =
   Format.asprintf "@[%a@]@." (H.pp_elt ()) (to_html ?config b)
 
+let to_string_indent ?config b =
+  Format.asprintf "@[%a@]@." (H.pp_elt ~indent:true ()) (to_html ?config b)
+
+let pp ?config ?indent () pp b =
+    Format.fprintf pp "@[%a@]@." (H.pp_elt ?indent ()) (to_html ?config b)
+  
 let to_string_doc ?config b =
   let meta_str = "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">" in
   let footer_str =
