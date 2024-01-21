@@ -39,7 +39,7 @@ module Config = struct
   let tab_width x c = {c with tab_width=x}
 end
 
- let style_format c ~in_html ~multiline (s:B.Style.t) =
+ let style_format c ~in_span ~multiline (s:B.Style.t) =
   let open B.Style in
   let {bold; bg_color; fg_color; preformatted} = s in
   let encode_color = function
@@ -54,20 +54,24 @@ end
   in
   let preformatted_conf =
     if multiline then c.Config.multiline_preformatted else c.Config.one_line_preformatted in
-  let stylized = in_html || preformatted_conf = Config.Stylized in
+  let stylized = in_span || preformatted_conf = Config.Stylized in
   let s =
     (match bg_color with None -> [] | Some c -> ["background-color", encode_color c]) @
     (match fg_color with None -> [] | Some c -> ["color", encode_color c]) @
     (if stylized && preformatted then ["font-family", "monospace"] else [])
   in
+  let inline = in_span || not multiline in
+  let spec_pre, spec_post =
+    if inline then {|<span style="|}, "</span>"
+    else {|<div style="|}, "</div>" in
   let sty_pre, sty_post =
     match s with
       | [] -> "", ""
       | s ->
-        {|<span style="|} ^ String.concat ";" (List.map (fun (k,v) -> k ^ ": " ^ v) s) ^ {|">|},
-        "</span>" in
+        spec_pre ^ String.concat ";" (List.map (fun (k,v) -> k ^ ": " ^ v) s) ^ {|">|},
+        spec_post in
   let bold_pre, bold_post =
-    match bold, in_html with
+    match bold, in_span with
     | false, _ -> "", ""
     | true, false -> "**", "**"
     | true, true -> "<b>", "</b>" in
@@ -75,7 +79,7 @@ end
     preformatted && not stylized && preformatted_conf = Config.Code_block in
   let code_quote =
     preformatted && not stylized && preformatted_conf = Config.Code_quote in
-  bold_pre ^ sty_pre, sty_post ^ bold_post, code_block, code_quote
+  bold_pre ^ sty_pre, sty_post ^ bold_post, code_block, code_quote, inline
 
 let break_lines l =
   let lines = List.concat_map (String.split_on_char '\n') l in
@@ -86,35 +90,63 @@ let break_lines l =
       else Some s)
     lines
 
-let pp_indented ~tab_width ~code_block ~code_quote ~infix out s =
+let pp_string_nbsp ~tab_width ~code_block ~code_quote ~infix out s =
   let open Format in
   if code_block then pp_print_string out s
   else
-    let print_sp () =
-      if code_quote then pp_print_string out "&nbsp; "
-      else pp_print_string out "&nbsp;" in
+    let print_sp nbsp =
+      pp_print_string out (if nbsp then "&nbsp;" else " ") in
+    let len = String.length s in
+    let check i = i < len && (s.[i] = ' ' || s.[i] = '\t') in
     let i = ref 0 in
-    while !i < String.length s && (s.[!i] = ' ' || s.[!i] = '\t') do
-      print_sp ();
-      if s.[!i] = '\t' then for _ = 1 to tab_width - 1 do print_sp () done;
-      incr i
-    done;
-    fprintf out "%s%s" infix @@ String.sub s !i (String.length s - !i)
+    let k = ref 0 in
+    while !i < len do
+      k := !i;
+      while check !i do
+        print_sp (!i > !k || check (!i + 1));
+        if s.[!i] = '\t' then for _ = 1 to tab_width - 1 do print_sp true done;
+        incr i
+      done;
+      if !k = 0 then pp_print_string out infix;
+      k := !i;
+      if code_quote then (
+        i := len;
+        pp_print_string out @@ String.sub s !k (len - !k);)
+      else (
+        while !i < len && (not @@ check !i) do incr i done;
+        if !k < len then pp_print_string out @@ String.sub s !k (!i - !k);
+      )
+    done
+
+let rec multiline_heuristic b =
+  match B.view b with
+  | B.Empty -> false
+  | B.Text {l=[]; _} -> false
+  | B.Text {l=[s]; _} -> String.contains s '\n'
+  | B.Text _ -> true
+  | B.Frame b -> multiline_heuristic b
+  | B.Pad (_, _) -> true
+  | B.Align _ -> false
+  | B.Grid (_, arr) -> Array.length arr > 1
+  | B.Tree (_, header, children) ->
+    Array.length children > 0 || multiline_heuristic header
+  | B.Link {inner; _} -> multiline_heuristic inner
+  
 
 let pp c out b =
   let open Format in
   (* We cannot use Format for indentation, because we need to insert ">" at the right places. *)
-  let rec loop ~in_html ~prefix b =
+  let rec loop ~in_span ~prefix b =
     match B.view b with
-    | B.Empty ->
-      if not in_html && c.Config.frames = `Stylized then fprintf out "@,%s" prefix
+    | B.Empty -> ()
     | B.Text {l; style} ->
       let l = break_lines l in
       let multiline = List.length l > 1 in
-      let sty_pre, sty_post, code_block, code_quote =
-        style_format c ~in_html ~multiline style in
-      let indent = pp_indented ~tab_width:c.Config.tab_width ~code_block ~code_quote in
+      let sty_pre, sty_post, code_block, code_quote, inline =
+        style_format c ~in_span ~multiline style in
+      let preformat = pp_string_nbsp ~tab_width:c.Config.tab_width ~code_block ~code_quote in
       pp_print_string out sty_pre;
+      if not inline && String.length sty_pre > 0 then fprintf out "@,%s" prefix;
       if code_block then fprintf out "```@,%s" prefix;
       (* use html for gb_color, fg_color and md for bold, preformatted. *)
       pp_print_list
@@ -122,55 +154,66 @@ let pp c out b =
            if not code_block then pp_print_string out "<br>";
            fprintf out "@,%s" prefix)
         (fun out s ->
-           if code_quote then fprintf out "%a`" (indent ~infix:"`") s
-           else indent ~infix:"" out s)
+           if code_quote then fprintf out "%a`" (preformat ~infix:"`") s
+           else preformat ~infix:"" out s)
         out l;
+      if not inline && String.length sty_pre > 0 then fprintf out "@,%s" prefix;
       if code_block then fprintf out "@,%s```@,%s" prefix prefix;
       pp_print_string out sty_post
     | B.Frame b ->
-      if in_html || c.Config.frames = `Stylized then
-        fprintf out {|<span style="border:thin solid">%a</span>|}
-          (fun _out -> loop ~in_html ~prefix) b
-      else fprintf out "> %a" (fun _out -> loop ~in_html ~prefix:(prefix ^ "> ")) b
+      if in_span || c.Config.frames = `Stylized then
+        let inline = in_span || not (multiline_heuristic b) in
+        let spec_pre, spec_post =
+          if inline
+          then {|<span style="|}, "</span>"
+          else {|<div style="|}, "</div>" in
+        fprintf out {|%sborder:thin solid">|} spec_pre;
+        if not inline then fprintf out "@,%s@,%s" prefix prefix;
+        loop ~in_span ~prefix b;
+        if not inline then fprintf out "@,%s" prefix;
+        pp_print_string out spec_post
+      else fprintf out "> %a" (fun _out -> loop ~in_span ~prefix:(prefix ^ "> ")) b
     | B.Pad (_, b) -> 
       (* NOT IMPLEMENTED YET *)
-      loop ~in_html ~prefix b
+      loop ~in_span ~prefix b
     | B.Align {h = _; v=_; inner} ->
       (* NOT IMPLEMENTED YET *)
-      loop ~in_html ~prefix inner
+      loop ~in_span ~prefix inner
     | B.Grid (_, _) when c.Config.tables = `Html && String.length prefix = 0 ->
-      PrintBox_html.pp ~indent:(not in_html) () out b
-    | B.Grid (_, _) ->
-      let table =
-        if c.Config.tables = `Text then PrintBox_text.to_string b
-        else PrintBox_html.(if in_html then to_string else to_string_indent) b in
-      let lines = break_lines [table] in
-      pp_print_list
-        ~pp_sep:(fun out () ->
-           pp_print_string out "<br>"; 
-           if not in_html then fprintf out "@,%s" prefix)
-        pp_print_string out lines
+      PrintBox_html.pp ~indent:(not in_span) () out b
+    | B.Grid (_, _) -> (
+      match c.Config.tables with
+      | `Text ->
+          let style = B.Style.preformatted in
+          let l = break_lines [PrintBox_text.to_string b] in
+          loop ~in_span ~prefix (B.lines_with_style style l)
+      | `Html ->
+        let table = PrintBox_html.(if in_span then to_string else to_string_indent) b in
+        let lines = break_lines [table] in
+        pp_print_list
+          ~pp_sep:(fun out () -> if not in_span then fprintf out "@,%s" prefix)
+          pp_print_string out lines)
     | B.Tree (_extra_indent, header, [||]) ->
-      loop ~in_html ~prefix header
+      loop ~in_span ~prefix header
     | B.Tree (extra_indent, header, body) ->
       if c.Config.foldable_trees
       then
         fprintf out "<details><summary>%a</summary>@,%s@,%s- "
-          (fun _out -> loop ~in_html:true ~prefix) header prefix prefix
-      else (loop ~in_html ~prefix header; fprintf out "@,%s- " prefix);
+          (fun _out -> loop ~in_span:true ~prefix) header prefix prefix
+      else (loop ~in_span ~prefix header; fprintf out "@,%s- " prefix);
       let pp_sep out () = fprintf out "@,%s- " prefix in
       let subprefix = prefix ^ String.make (2 + extra_indent) ' ' in
       pp_print_list
         ~pp_sep
-        (fun _out sub -> loop ~in_html ~prefix:subprefix sub)
+        (fun _out sub -> loop ~in_span ~prefix:subprefix sub)
         out @@ Array.to_list body;
       if c.Config.foldable_trees then fprintf out "@,%s</details>" prefix
     | B.Link {uri; inner} ->
       pp_print_string out "[";
-      loop ~in_html ~prefix:(prefix ^ " ") inner;
+      loop ~in_span ~prefix:(prefix ^ " ") inner;
       fprintf out "](%s)" uri in
   pp_open_vbox out 0;
-  loop ~in_html:false ~prefix:"" b;
+  loop ~in_span:false ~prefix:"" b;
   pp_close_box out ()
 
 let to_string c b =

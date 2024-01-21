@@ -20,20 +20,23 @@ Test default:
   >   end of 5
   >   ```
   >   
-- > > a    │looooooooooooooooooooooooo<br>
-  > >      │oonng<br>
-  > > ─────┼──────────────────────────<br>
-  > > bx   │          ┌─┬─┐<br>
-  > >      │          │x│y│<br>
-  > >      │          ├─┼─┤<br>
-  > >      │          │1│2│<br>
-  > >      │          └─┴─┘<br>
-  > > ─────┼──────────────────────────<br>
-  > >      │<br>
-  > >      │          x │y<br>
-  > >   ?  │          ──┼──<br>
-  > >      │          10│20<br>
+- > > ```
+  > > a    │looooooooooooooooooooooooo
+  > >      │oonng
+  > > ─────┼──────────────────────────
+  > > bx   │          ┌─┬─┐
+  > >      │          │x│y│
+  > >      │          ├─┼─┤
+  > >      │          │1│2│
+  > >      │          └─┴─┘
+  > > ─────┼──────────────────────────
   > >      │
+  > >      │          x │y
+  > >   ?  │          ──┼──
+  > >      │          10│20
+  > >      │
+  > > ```
+  > > 
 
 Test uniform unfolded:
 
@@ -43,58 +46,70 @@ Test uniform unfolded:
 - line 1<br>
   line 2<br>
   line 3
-- <span style="border:thin solid">
+- <div style="border:thin solid">
+  
   
   - <span style="border:thin solid">header 3</span>
-    - <span style="border:thin solid">subchild 3</span></span>
+    - <span style="border:thin solid">subchild 3</span>
+  </div>
 - 
-  
   - <span style="border:thin solid">header 4</span>
     - subchild 4
-- <span style="border:thin solid"><span style="font-family: monospace">header 5</span>
-  - <span style="font-family: monospace">subchild 5<br>
+- <div style="border:thin solid">
+  
+  <span style="font-family: monospace">header 5</span>
+  - <div style="font-family: monospace">
+    subchild 5<br>
     &nbsp;&nbsp;body 5<br>
     &nbsp;&nbsp;&nbsp;&nbsp;subbody 5<br>
-    &nbsp;&nbsp;&nbsp;&nbsp;one tab end of sub 5<br>
-    end of 5</span></span>
-- <span style="border:thin solid"><span style="border:thin solid"><div><br>
-   <table class="framed"><br>
-    <tr class=""><td class=""><span class="">a</span></td><br>
-     <td class=""><span class="">looooooooooooooooooooooooo<br>
-                                 oonng</span></td><br>
-    </tr><br>
-    <tr class=""><td class=""><span class="">bx</span></td><br>
-     <td class=""><br>
-      <div class="center"><br>
-       <div style="border:thin solid"><br>
-        <table class="framed"><br>
-         <tr class=""><td class=""><span class="">x</span></td><br>
-          <td class=""><span class="">y</span></td><br>
-         </tr><br>
-         <tr class=""><td class=""><span class="">1</span></td><br>
-          <td class=""><span class="">2</span></td><br>
-         </tr><br>
-        </table><br>
-       </div><br>
-      </div><br>
-     </td><br>
-    </tr><br>
-    <tr class=""><td class=""><span class="">?</span></td><br>
-     <td class=""><br>
-      <div class="center"><br>
-       <table class="framed"><br>
-        <tr class=""><td class=""><span class="">x</span></td><br>
-         <td class=""><span class="">y</span></td><br>
-        </tr><br>
-        <tr class=""><td class=""><span class="">10</span></td><br>
-         <td class=""><span class="">20</span></td><br>
-        </tr><br>
-       </table><br>
-      </div><br>
-     </td><br>
-    </tr><br>
-   </table><br>
-  </div></span></span>
+     &nbsp;&nbsp;&nbsp;one tab end of sub 5<br>
+    end of 5
+    </div>
+  </div>
+- <div style="border:thin solid">
+  
+  <div style="border:thin solid">
+  
+  <div>
+   <table class="framed">
+    <tr class=""><td class=""><span class="">a</span></td>
+     <td class=""><span class="">looooooooooooooooooooooooo
+                                 oonng</span></td>
+    </tr>
+    <tr class=""><td class=""><span class="">bx</span></td>
+     <td class="">
+      <div class="center">
+       <div style="border:thin solid">
+        <table class="framed">
+         <tr class=""><td class=""><span class="">x</span></td>
+          <td class=""><span class="">y</span></td>
+         </tr>
+         <tr class=""><td class=""><span class="">1</span></td>
+          <td class=""><span class="">2</span></td>
+         </tr>
+        </table>
+       </div>
+      </div>
+     </td>
+    </tr>
+    <tr class=""><td class=""><span class="">?</span></td>
+     <td class="">
+      <div class="center">
+       <table class="framed">
+        <tr class=""><td class=""><span class="">x</span></td>
+         <td class=""><span class="">y</span></td>
+        </tr>
+        <tr class=""><td class=""><span class="">10</span></td>
+         <td class=""><span class="">20</span></td>
+        </tr>
+       </table>
+      </div>
+     </td>
+    </tr>
+   </table>
+  </div>
+  </div>
+  </div>
 
 Test foldable:
 <details><summary><span style="border:thin solid">root</span></summary>
@@ -129,23 +144,26 @@ Test foldable:
   >   ```
   >   
   > </details>
-- > > a    │looooooooooooooooooooooooo<br>
-  > >      │oonng<br>
-  > > ─────┼──────────────────────────<br>
-  > > bx   │          ┌─┬─┐<br>
-  > >      │          │x│y│<br>
-  > >      │          ├─┼─┤<br>
-  > >      │          │1│2│<br>
-  > >      │          └─┴─┘<br>
-  > > ─────┼──────────────────────────<br>
-  > >      │<br>
-  > >      │          x │y<br>
-  > >   ?  │          ──┼──<br>
-  > >      │          10│20<br>
+- > > ```
+  > > a    │looooooooooooooooooooooooo
+  > >      │oonng
+  > > ─────┼──────────────────────────
+  > > bx   │          ┌─┬─┐
+  > >      │          │x│y│
+  > >      │          ├─┼─┤
+  > >      │          │1│2│
+  > >      │          └─┴─┘
+  > > ─────┼──────────────────────────
   > >      │
+  > >      │          x │y
+  > >   ?  │          ──┼──
+  > >      │          10│20
+  > >      │
+  > > ```
+  > > 
 </details>
 
-Test uniform tab=2:
+Test uniform tab=2, text tables:
 <details><summary><span style="border:thin solid">root</span></summary>
 
 - <span style="border:thin solid">child 1</span>
@@ -153,13 +171,16 @@ Test uniform tab=2:
 - line 1<br>
   line 2<br>
   line 3
-- <span style="border:thin solid"><details><summary></summary>
+- <div style="border:thin solid">
+  
+  <details><summary></summary>
   
   - <details><summary><span style="border:thin solid">header 3</span></summary>
     
     - <span style="border:thin solid">subchild 3</span>
     </details>
-  </details></span>
+  </details>
+  </div>
 - <details><summary></summary>
   
   - <details><summary><span style="border:thin solid">header 4</span></summary>
@@ -167,55 +188,44 @@ Test uniform tab=2:
     - subchild 4
     </details>
   </details>
-- <span style="border:thin solid"><details><summary><span style="font-family: monospace">header 5</span></summary>
+- <div style="border:thin solid">
   
-  - <span style="font-family: monospace">subchild 5<br>
+  <details><summary><span style="font-family: monospace">header 5</span></summary>
+  
+  - <div style="font-family: monospace">
+    subchild 5<br>
     &nbsp;&nbsp;body 5<br>
     &nbsp;&nbsp;&nbsp;&nbsp;subbody 5<br>
-    &nbsp;&nbsp;one tab end of sub 5<br>
-    end of 5</span>
-  </details></span>
-- <span style="border:thin solid"><span style="border:thin solid"><div><br>
-   <table class="framed"><br>
-    <tr class=""><td class=""><span class="">a</span></td><br>
-     <td class=""><span class="">looooooooooooooooooooooooo<br>
-                                 oonng</span></td><br>
-    </tr><br>
-    <tr class=""><td class=""><span class="">bx</span></td><br>
-     <td class=""><br>
-      <div class="center"><br>
-       <div style="border:thin solid"><br>
-        <table class="framed"><br>
-         <tr class=""><td class=""><span class="">x</span></td><br>
-          <td class=""><span class="">y</span></td><br>
-         </tr><br>
-         <tr class=""><td class=""><span class="">1</span></td><br>
-          <td class=""><span class="">2</span></td><br>
-         </tr><br>
-        </table><br>
-       </div><br>
-      </div><br>
-     </td><br>
-    </tr><br>
-    <tr class=""><td class=""><span class="">?</span></td><br>
-     <td class=""><br>
-      <div class="center"><br>
-       <table class="framed"><br>
-        <tr class=""><td class=""><span class="">x</span></td><br>
-         <td class=""><span class="">y</span></td><br>
-        </tr><br>
-        <tr class=""><td class=""><span class="">10</span></td><br>
-         <td class=""><span class="">20</span></td><br>
-        </tr><br>
-       </table><br>
-      </div><br>
-     </td><br>
-    </tr><br>
-   </table><br>
-  </div></span></span>
+     &nbsp;one tab end of sub 5<br>
+    end of 5
+    </div>
+  </details>
+  </div>
+- <div style="border:thin solid">
+  
+  <div style="border:thin solid">
+  
+  <div style="font-family: monospace">
+  a&nbsp;&nbsp;&nbsp;&nbsp;│looooooooooooooooooooooooo<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│oonng<br>
+  ─────┼──────────────────────────<br>
+  bx&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;┌─┬─┐<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│x│y│<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├─┼─┤<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│1│2│<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─┴─┘<br>
+  ─────┼──────────────────────────<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;x │y<br>
+  &nbsp;&nbsp;?&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;──┼──<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;10│20<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│
+  </div>
+  </div>
+  </div>
 </details>
 
-Test single quote tab=2:
+Test single quote tab=2, text tables:
 <details><summary><span style="border:thin solid">root</span></summary>
 
 - <span style="border:thin solid">child 1</span>
@@ -223,13 +233,16 @@ Test single quote tab=2:
 - line 1<br>
   line 2<br>
   line 3
-- <span style="border:thin solid"><details><summary></summary>
+- <div style="border:thin solid">
+  
+  <details><summary></summary>
   
   - <details><summary><span style="border:thin solid">header 3</span></summary>
     
     - <span style="border:thin solid">subchild 3</span>
     </details>
-  </details></span>
+  </details>
+  </div>
 - <details><summary></summary>
   
   - <details><summary><span style="border:thin solid">header 4</span></summary>
@@ -237,52 +250,37 @@ Test single quote tab=2:
     - subchild 4
     </details>
   </details>
-- <span style="border:thin solid"><details><summary><span style="font-family: monospace">header 5</span></summary>
+- <div style="border:thin solid">
+  
+  <details><summary><span style="font-family: monospace">header 5</span></summary>
   
   - `subchild 5`<br>
-    &nbsp; &nbsp; `body 5`<br>
-    &nbsp; &nbsp; &nbsp; &nbsp; `subbody 5`<br>
-    &nbsp; &nbsp; `one tab end of sub 5`<br>
+    &nbsp;&nbsp;`body 5`<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;`subbody 5`<br>
+     &nbsp;`one tab end of sub 5`<br>
     `end of 5`
-  </details></span>
-- <span style="border:thin solid"><span style="border:thin solid"><div><br>
-   <table class="framed"><br>
-    <tr class=""><td class=""><span class="">a</span></td><br>
-     <td class=""><span class="">looooooooooooooooooooooooo<br>
-                                 oonng</span></td><br>
-    </tr><br>
-    <tr class=""><td class=""><span class="">bx</span></td><br>
-     <td class=""><br>
-      <div class="center"><br>
-       <div style="border:thin solid"><br>
-        <table class="framed"><br>
-         <tr class=""><td class=""><span class="">x</span></td><br>
-          <td class=""><span class="">y</span></td><br>
-         </tr><br>
-         <tr class=""><td class=""><span class="">1</span></td><br>
-          <td class=""><span class="">2</span></td><br>
-         </tr><br>
-        </table><br>
-       </div><br>
-      </div><br>
-     </td><br>
-    </tr><br>
-    <tr class=""><td class=""><span class="">?</span></td><br>
-     <td class=""><br>
-      <div class="center"><br>
-       <table class="framed"><br>
-        <tr class=""><td class=""><span class="">x</span></td><br>
-         <td class=""><span class="">y</span></td><br>
-        </tr><br>
-        <tr class=""><td class=""><span class="">10</span></td><br>
-         <td class=""><span class="">20</span></td><br>
-        </tr><br>
-       </table><br>
-      </div><br>
-     </td><br>
-    </tr><br>
-   </table><br>
-  </div></span></span>
+  </details>
+  </div>
+- <div style="border:thin solid">
+  
+  <div style="border:thin solid">
+  
+  `a    │looooooooooooooooooooooooo`<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`│oonng`<br>
+  `─────┼──────────────────────────`<br>
+  `bx   │          ┌─┬─┐`<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`│          │x│y│`<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`│          ├─┼─┤`<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`│          │1│2│`<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`│          └─┴─┘`<br>
+  `─────┼──────────────────────────`<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`│`<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`│          x │y`<br>
+  &nbsp;&nbsp;`?  │          ──┼──`<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`│          10│20`<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`│`
+  </div>
+  </div>
 </details>
 
 The end.
