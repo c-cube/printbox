@@ -1,5 +1,12 @@
 let b =
   let open PrintBox in
+  let table =
+    frame @@ grid_l [
+      [ text "a"; text "looooooooooooooooooooooooo\noonng"];
+      [ text "bx"; center_hv @@ frame @@ record ["x", int 1; "y", int 2]];
+      [ pad' ~col:2 ~lines:2 @@ text "?";
+        center_hv @@ record ["x", int 10; "y", int 20]];
+    ] in
   tree (frame @@ text "root") [
     frame @@ text "child 1";
     text_with_style Style.preformatted "child 2";
@@ -14,7 +21,7 @@ let b =
       [lines_with_style Style.preformatted
         ["subchild 5"; "  body 5"; "    subbody 5";
          "\tone tab end of sub 5"; "end of 5"]];
-    frame @@ text "child 6"
+    frame table
   ]
 
 let () = print_endline "Test default:"

@@ -14,7 +14,7 @@ module Config = struct
   }
 
   let default = {
-    tables=`Html;
+    tables=`Text;
     foldable_trees=false;
     multiline_preformatted=Code_block;
     one_line_preformatted=Code_quote;
@@ -79,9 +79,12 @@ end
 
 let break_lines l =
   let lines = List.concat_map (String.split_on_char '\n') l in
-  List.map (fun s ->
-    if s.[String.length s - 1] = '\r'
-    then String.sub s 0 (String.length s - 1) else s) lines
+  List.filter_map (fun s ->
+      let len = String.length s in
+      if len = 0 then None
+      else if s.[len - 1] = '\r' then Some (String.sub s 0 (len - 1))
+      else Some s)
+    lines
 
 let pp_indented ~tab_width ~code_block ~code_quote ~infix out s =
   let open Format in
