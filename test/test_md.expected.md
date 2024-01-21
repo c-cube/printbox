@@ -31,9 +31,11 @@ Test uniform unfolded:
   line 2<br>
   line 3
 - <span style="border:thin solid">
+  
   - <span style="border:thin solid">header 3</span>
     - <span style="border:thin solid">subchild 3</span></span>
 - 
+  
   - <span style="border:thin solid">header 4</span>
     - subchild 4
 - <span style="border:thin solid"><span style="font-family: monospace">header 5</span>

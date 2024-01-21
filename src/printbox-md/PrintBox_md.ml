@@ -103,7 +103,8 @@ let pp c out b =
   (* We cannot use Format for indentation, because we need to insert ">" at the right places. *)
   let rec loop ~in_html ~prefix b =
     match B.view b with
-    | B.Empty -> ()
+    | B.Empty ->
+      if not in_html && c.Config.frames = `Stylized then fprintf out "@,%s" prefix
     | B.Text {l; style} ->
       let l = break_lines l in
       let multiline = List.length l > 1 in
