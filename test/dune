@@ -32,3 +32,10 @@
  (modules test_md)
  (package printbox-md)
  (libraries printbox printbox-md))
+
+(rule
+ (alias runtest)
+ (deps test_md.expected)
+ (targets test_md.expected.md)
+ (mode promote)
+ (action (copy %{deps} %{targets})))
