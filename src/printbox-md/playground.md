@@ -87,53 +87,93 @@ bold text**
 
 `this is
 multiline<br>
-code`
+  code`
 
 ```
 this is
 multiline<br>
-code
+  code
 ```
 
 <span style="font-family: monospace">this is
 multiline<br>
-code</span>
+  broken code</span>
 
 > `this is
 > multiline<br>
-> code`
+>   code`
 
 > ```
 > this is
-> multiline<br>
-> code
+> multiline
+>   code
 > ```
 
 > <span style="font-family: monospace">this is
 > multiline<br>
-> code</span>
+>   code</span>
 
 
-> <span style="color: red">
->
-> ```
-> this is
-> multiline<br>
-> colored code
-> ```
->
-> </span>
+
+<span style="color: red">
+```
+this is
+multiline<br>
+  colored code
+```
+</span>
 
 
 <span style="color: red">
 
 ```
 this is
-multiline<br>
-colored code
+multiline
+  colored code
 ```
 
 </span>
 
 <span style="color: red">`one line red? code`</span>
 **`bold code`**
+
+> <pre>
+> this is
+> multiline
+>   code
+> </pre>
+
+<pre><span style="color: red">this is
+multiline
+  colored code
+</span></pre>
+
+> <code>
+> this is<br>
+> multiline<br>
+>   broken code
+> </code>
+
+<code><pre>
+this is
+multiline
+  broken code
+</pre></code>
+
+<pre><code>
+this is too much space
+multiline
+  code
+</code></pre>
+
+<pre><code>this is
+multiline
+  code
+</code></pre>
+
+Trying this <pre>one-line code</pre> is not inline.
+
+<span style="font-family: monospace">this is
+multiline<br>
+&nbsp;&nbsp;code line 1<br>
+&nbsp; code line 2</span>

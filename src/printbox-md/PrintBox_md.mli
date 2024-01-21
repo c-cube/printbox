@@ -12,6 +12,7 @@ module Config : sig
   val unfolded_trees : t -> t
   val multiline_preformatted : preformatted -> t -> t
   val one_line_preformatted : preformatted -> t -> t
+  val tab_width : int -> t -> t
 end
 
 val pp : Config.t -> Format.formatter -> PrintBox.t -> unit

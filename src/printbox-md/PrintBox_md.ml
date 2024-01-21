@@ -9,7 +9,8 @@ module Config = struct
     foldable_trees: bool;
     multiline_preformatted: preformatted;
     one_line_preformatted: preformatted;
-    frames: [`Quotation | `Stylized]
+    frames: [`Quotation | `Stylized];
+    tab_width: int;
   }
 
   let default = {
@@ -18,6 +19,7 @@ module Config = struct
     multiline_preformatted=Code_block;
     one_line_preformatted=Code_quote;
     frames=`Quotation;
+    tab_width=4;
   }
   let uniform = {
     tables=`Html;
@@ -25,6 +27,7 @@ module Config = struct
     multiline_preformatted=Stylized;
     one_line_preformatted=Stylized;
     frames=`Stylized;
+    tab_width=4;
   }
 
   let html_tables c = {c with tables=`Html}
@@ -33,6 +36,7 @@ module Config = struct
   let unfolded_trees c = {c with foldable_trees=false}
   let multiline_preformatted x c = {c with multiline_preformatted=x}
   let one_line_preformatted x c = {c with one_line_preformatted=x}
+  let tab_width x c = {c with tab_width=x}
 end
 
  let style_format c ~in_html ~multiline (s:B.Style.t) =
@@ -73,6 +77,21 @@ end
     preformatted && not stylized && preformatted_conf = Config.Code_quote in
   bold_pre ^ sty_pre, sty_post ^ bold_post, code_block, code_quote
 
+let pp_indented ~code_block ~code_quote ~infix out s =
+  let open Format in
+  if code_block then pp_print_string out s
+  else
+    let print_sp () =
+      if code_quote then pp_print_string out "&nbsp; "
+      else pp_print_string out "&nbsp;" in
+    let i = ref 0 in
+    while !i < String.length s && (s.[!i] = ' ' || s.[!i] = '\t') do
+      print_sp ();
+      if s.[!i] = '\t' then print_sp ();
+      incr i
+    done;
+    fprintf out "%s%s" infix @@ String.sub s !i (String.length s - !i)
+
 let pp c out b =
   let open Format in
   (* We cannot use Format for indentation, because we need to insert ">" at the right places. *)
@@ -91,7 +110,10 @@ let pp c out b =
            if not code_block then pp_print_string out "<br>";
            fprintf out "@,%s" prefix)
         (fun out s ->
-           if code_quote then fprintf out"`%s`" s else pp_print_string out s) out l;
+           if code_quote then
+             fprintf out "%a`" (pp_indented ~code_block ~code_quote ~infix:"`") s
+           else pp_indented ~code_block ~code_quote ~infix:"" out s)
+        out l;
       if code_block then fprintf out "@,%s```@,%s" prefix prefix;
       pp_print_string out sty_post
     | B.Frame b ->
