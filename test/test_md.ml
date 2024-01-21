@@ -2,7 +2,7 @@ let b =
   let open PrintBox in
   tree (frame @@ text "root") [
     frame @@ text "child 1";
-    text "child 2";
+    text_with_style Style.preformatted "child 2";
     lines ["line 1"; "line 2"; "line 3"];
     frame @@ tree empty [
       tree (frame @@ text "header 3") [frame @@ text "subchild 3"]
@@ -10,8 +10,8 @@ let b =
     tree empty [
       tree (frame @@ text "header 4") [text "subchild 4"]
     ];
-    frame @@ tree (text "header 5") [text "subchild 5"];
-    frame @@ text "child 5"
+    frame @@ tree (text_with_style Style.preformatted "header 5") [text "subchild 5"];
+    frame @@ text "child 6"
   ]
 
 let () = print_endline "Test unfolded:"

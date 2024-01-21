@@ -32,7 +32,7 @@
 
 Framed fold:
 
-> <details><summary>List 2:</summary>
+> <details><summary> List 2: </summary>
 >
 > - Element 1<br>
 >   second line of element 1
@@ -49,7 +49,7 @@ Framed fold:
 > </details>
 
 
-> <details><summary>List 3:</summary>
+> <details><summary> `List 3:` </summary>
 >
 > - Element 1
 >   second line of element 1
@@ -69,6 +69,46 @@ Framed fold:
 
 
 <details>
-> <summary> List 4: </summary>
+<summary> [Hyperlink header](./playground.md) </summary>
 
+- [Hyperlink 1](../../test/test_md.ml#L19)
+- [Hyperlink 2](../../test/test_md.ml#L23)
+- [Hyperlink 3](../../test/test_md.ml#L8)
+- [Hyperlink 4](../../test/test_md.expected#L23)
 </details>
+
+[This is
+**multiline**<br>
+hyperlink](../../test/test_md.expected#L23)
+
+**This is
+multiline<br>
+bold text**
+
+`this is
+multiline<br>
+code`
+
+```
+this is
+multiline<br>
+code
+```
+
+<span style="font-family: monospace">this is
+multiline<br>
+code</span>
+
+> `this is
+> multiline<br>
+> code`
+
+> ```
+> this is
+> multiline<br>
+> code
+> ```
+
+> <span style="font-family: monospace">this is
+> multiline<br>
+> code</span>
