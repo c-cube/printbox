@@ -21,6 +21,10 @@ let () = print_endline "Test default:"
 
 let () = print_endline @@ PrintBox_md.(to_string Config.default) b
 
+let () = print_endline "Test uniform unfolded:\n"
+
+let () = print_endline @@ PrintBox_md.(to_string Config.(unfolded_trees uniform)) b
+
 let () = print_endline "Test foldable:"
 
 let () = print_endline @@ PrintBox_md.(to_string Config.(foldable_trees default)) b

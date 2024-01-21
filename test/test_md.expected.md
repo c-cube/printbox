@@ -22,6 +22,28 @@ Test default:
   >   
 - > child 6
 
+Test uniform unfolded:
+
+<span style="border:thin solid">root</span>
+- <span style="border:thin solid">child 1</span>
+- <span style="font-family: monospace">child 2</span>
+- line 1<br>
+  line 2<br>
+  line 3
+- <span style="border:thin solid">
+  - <span style="border:thin solid">header 3</span>
+    - <span style="border:thin solid">subchild 3</span></span>
+- 
+  - <span style="border:thin solid">header 4</span>
+    - subchild 4
+- <span style="border:thin solid"><span style="font-family: monospace">header 5</span>
+  - <span style="font-family: monospace">subchild 5<br>
+    &nbsp;&nbsp;body 5<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;subbody 5<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;one tab end of sub 5<br>
+    end of 5</span></span>
+- <span style="border:thin solid">child 6</span>
+
 Test foldable:
 <details><summary><span style="border:thin solid">root</span></summary>
 

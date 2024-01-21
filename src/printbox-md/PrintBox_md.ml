@@ -77,7 +77,13 @@ end
     preformatted && not stylized && preformatted_conf = Config.Code_quote in
   bold_pre ^ sty_pre, sty_post ^ bold_post, code_block, code_quote
 
-let pp_indented ~code_block ~code_quote ~infix out s =
+let break_lines l =
+  let lines = List.concat_map (String.split_on_char '\n') l in
+  List.map (fun s ->
+    if s.[String.length s - 1] = '\r'
+    then String.sub s 0 (String.length s - 1) else s) lines
+
+let pp_indented ~tab_width ~code_block ~code_quote ~infix out s =
   let open Format in
   if code_block then pp_print_string out s
   else
@@ -87,7 +93,7 @@ let pp_indented ~code_block ~code_quote ~infix out s =
     let i = ref 0 in
     while !i < String.length s && (s.[!i] = ' ' || s.[!i] = '\t') do
       print_sp ();
-      if s.[!i] = '\t' then print_sp ();
+      if s.[!i] = '\t' then for _ = 1 to tab_width - 1 do print_sp () done;
       incr i
     done;
     fprintf out "%s%s" infix @@ String.sub s !i (String.length s - !i)
@@ -99,9 +105,11 @@ let pp c out b =
     match B.view b with
     | B.Empty -> ()
     | B.Text {l; style} ->
+      let l = break_lines l in
       let multiline = List.length l > 1 in
       let sty_pre, sty_post, code_block, code_quote =
         style_format c ~in_html ~multiline style in
+      let indent = pp_indented ~tab_width:c.Config.tab_width ~code_block ~code_quote in
       pp_print_string out sty_pre;
       if code_block then fprintf out "```@,%s" prefix;
       (* use html for gb_color, fg_color and md for bold, preformatted. *)
@@ -110,9 +118,8 @@ let pp c out b =
            if not code_block then pp_print_string out "<br>";
            fprintf out "@,%s" prefix)
         (fun out s ->
-           if code_quote then
-             fprintf out "%a`" (pp_indented ~code_block ~code_quote ~infix:"`") s
-           else pp_indented ~code_block ~code_quote ~infix:"" out s)
+           if code_quote then fprintf out "%a`" (indent ~infix:"`") s
+           else indent ~infix:"" out s)
         out l;
       if code_block then fprintf out "@,%s```@,%s" prefix prefix;
       pp_print_string out sty_post
@@ -133,11 +140,7 @@ let pp c out b =
       let table =
         if c.Config.tables = `Text then PrintBox_text.to_string b
         else PrintBox_html.(if in_html then to_string else to_string_indent) b in
-      let lines = String.split_on_char '\n' table in
-      let lines =
-         List.map (fun s ->
-           if s.[String.length s - 1] = '\r'
-           then String.sub s 0 (String.length s - 1) else s) lines in
+      let lines = break_lines [table] in
       pp_print_list
         ~pp_sep:(fun out () ->
            pp_print_string out "<br>"; 
