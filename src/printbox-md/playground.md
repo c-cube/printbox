@@ -112,3 +112,28 @@ code</span>
 > <span style="font-family: monospace">this is
 > multiline<br>
 > code</span>
+
+
+> <span style="color: red">
+>
+> ```
+> this is
+> multiline<br>
+> colored code
+> ```
+>
+> </span>
+
+
+<span style="color: red">
+
+```
+this is
+multiline<br>
+colored code
+```
+
+</span>
+
+<span style="color: red">`one line red? code`</span>
+**`bold code`**

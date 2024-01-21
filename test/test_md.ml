@@ -10,16 +10,22 @@ let b =
     tree empty [
       tree (frame @@ text "header 4") [text "subchild 4"]
     ];
-    frame @@ tree (text_with_style Style.preformatted "header 5") [text "subchild 5"];
+    frame @@ tree (text_with_style Style.preformatted "header 5")
+      [lines_with_style Style.preformatted
+        ["subchild 5"; "  body 5"; "end of 5"]];
     frame @@ text "child 6"
   ]
 
-let () = print_endline "Test unfolded:"
+let () = print_endline "Test default:"
 
-let () = print_endline @@ PrintBox_md.(to_string ~tables:`Text ~foldable_trees:false) b
+let () = print_endline @@ PrintBox_md.(to_string Config.default) b
 
 let () = print_endline "Test foldable:"
 
-let () = print_endline @@ PrintBox_md.(to_string ~tables:`Text ~foldable_trees:true) b
+let () = print_endline @@ PrintBox_md.(to_string Config.(foldable_trees default)) b
+
+let () = print_endline "Test uniform:"
+
+let () = print_endline @@ PrintBox_md.(to_string Config.(multiline_preformatted Code_quote uniform)) b
 
 let () = print_endline "The end."

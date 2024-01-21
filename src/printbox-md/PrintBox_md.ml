@@ -2,7 +2,40 @@
 
 module B = PrintBox
 
- let style_format ~in_html (s:B.Style.t) =
+module Config = struct
+  type preformatted = Code_quote | Code_block | Stylized
+  type t = {
+    tables: [`Text | `Html];
+    foldable_trees: bool;
+    multiline_preformatted: preformatted;
+    one_line_preformatted: preformatted;
+    frames: [`Quotation | `Stylized]
+  }
+
+  let default = {
+    tables=`Html;
+    foldable_trees=false;
+    multiline_preformatted=Code_block;
+    one_line_preformatted=Code_quote;
+    frames=`Quotation;
+  }
+  let uniform = {
+    tables=`Html;
+    foldable_trees=true;
+    multiline_preformatted=Stylized;
+    one_line_preformatted=Stylized;
+    frames=`Stylized;
+  }
+
+  let html_tables c = {c with tables=`Html}
+  let text_tables c = {c with tables=`Text}
+  let foldable_trees c = {c with foldable_trees=true}
+  let unfolded_trees c = {c with foldable_trees=false}
+  let multiline_preformatted x c = {c with multiline_preformatted=x}
+  let one_line_preformatted x c = {c with one_line_preformatted=x}
+end
+
+ let style_format c ~in_html ~multiline (s:B.Style.t) =
   let open B.Style in
   let {bold; bg_color; fg_color; preformatted} = s in
   let encode_color = function
@@ -15,10 +48,13 @@ module B = PrintBox
     | Magenta -> "magenta"
     | White -> "white"
   in
+  let preformatted_conf =
+    if multiline then c.Config.multiline_preformatted else c.Config.one_line_preformatted in
+  let stylized = in_html || preformatted_conf = Config.Stylized in
   let s =
     (match bg_color with None -> [] | Some c -> ["background-color", encode_color c]) @
     (match fg_color with None -> [] | Some c -> ["color", encode_color c]) @
-    (if in_html && preformatted then ["font-family", "monospace"] else [])
+    (if stylized && preformatted then ["font-family", "monospace"] else [])
   in
   let sty_pre, sty_post =
     match s with
@@ -31,29 +67,35 @@ module B = PrintBox
     | false, _ -> "", ""
     | true, false -> "**", "**"
     | true, true -> "<b>", "</b>" in
-  bold_pre ^ sty_pre, sty_post ^ bold_post
+  let code_block =
+    preformatted && not stylized && preformatted_conf = Config.Code_block in
+  let code_quote =
+    preformatted && not stylized && preformatted_conf = Config.Code_quote in
+  bold_pre ^ sty_pre, sty_post ^ bold_post, code_block, code_quote
 
-let pp ~tables ~foldable_trees out b =
+let pp c out b =
   let open Format in
   (* We cannot use Format for indentation, because we need to insert ">" at the right places. *)
   let rec loop ~in_html ~prefix b =
     match B.view b with
     | B.Empty -> ()
     | B.Text {l; style} ->
-      let sty_pre, sty_post = style_format ~in_html style in
+      let multiline = List.length l > 1 in
+      let sty_pre, sty_post, code_block, code_quote =
+        style_format c ~in_html ~multiline style in
       pp_print_string out sty_pre;
+      if code_block then fprintf out "```@,%s" prefix;
       (* use html for gb_color, fg_color and md for bold, preformatted. *)
       pp_print_list
         ~pp_sep:(fun out () ->
-           pp_print_string out "<br>"; pp_print_cut out (); pp_print_string out prefix)
+           if not code_block then pp_print_string out "<br>";
+           fprintf out "@,%s" prefix)
         (fun out s ->
-          if not in_html && style.B.Style.preformatted
-          then fprintf out"`%s`" s
-          else pp_print_string out s
-        ) out l;
-        pp_print_string out sty_post
+           if code_quote then fprintf out"`%s`" s else pp_print_string out s) out l;
+      if code_block then fprintf out "@,%s```@,%s" prefix prefix;
+      pp_print_string out sty_post
     | B.Frame b ->
-      if in_html then
+      if in_html || c.Config.frames = `Stylized then
         fprintf out {|<span style="border:thin solid">%a</span>|}
           (fun _out -> loop ~in_html ~prefix) b
       else fprintf out "> %a" (fun _out -> loop ~in_html ~prefix:(prefix ^ "> ")) b
@@ -63,11 +105,11 @@ let pp ~tables ~foldable_trees out b =
     | B.Align {h = _; v=_; inner} ->
       (* NOT IMPLEMENTED YET *)
       loop ~in_html ~prefix inner
-    | B.Grid (_, _) when tables = `Html && String.length prefix = 0 ->
+    | B.Grid (_, _) when c.Config.tables = `Html && String.length prefix = 0 ->
       PrintBox_html.pp ~indent:(not in_html) () out b
     | B.Grid (_, _) ->
       let table =
-        if tables = `Text then PrintBox_text.to_string b
+        if c.Config.tables = `Text then PrintBox_text.to_string b
         else PrintBox_html.(if in_html then to_string else to_string_indent) b in
       let lines = String.split_on_char '\n' table in
       let lines =
@@ -82,7 +124,7 @@ let pp ~tables ~foldable_trees out b =
     | B.Tree (_extra_indent, header, [||]) ->
       loop ~in_html ~prefix header
     | B.Tree (extra_indent, header, body) ->
-      if foldable_trees
+      if c.Config.foldable_trees
       then
         fprintf out "<details><summary>%a</summary>@,%s@,%s- "
           (fun _out -> loop ~in_html:true ~prefix) header prefix prefix
@@ -93,7 +135,7 @@ let pp ~tables ~foldable_trees out b =
         ~pp_sep
         (fun _out sub -> loop ~in_html ~prefix:subprefix sub)
         out @@ Array.to_list body;
-      if foldable_trees then fprintf out "@,%s</details>" prefix
+      if c.Config.foldable_trees then fprintf out "@,%s</details>" prefix
     | B.Link {uri; inner} ->
       pp_print_string out "[";
       loop ~in_html ~prefix:(prefix ^ " ") inner;
@@ -102,5 +144,5 @@ let pp ~tables ~foldable_trees out b =
   loop ~in_html:false ~prefix:"" b;
   pp_close_box out ()
 
-let to_string ~tables ~foldable_trees b =
-  Format.asprintf "%a@." (pp ~tables ~foldable_trees) b
+let to_string c b =
+  Format.asprintf "%a@." (pp c) b
