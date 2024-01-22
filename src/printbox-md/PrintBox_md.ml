@@ -3,7 +3,7 @@
 module B = PrintBox
 
 module Config = struct
-  type preformatted = Code_quote | Code_block | Stylized
+  type preformatted = Code_block | Code_quote | Stylized
   type t = {
     tables: [`Text | `Html];
     foldable_trees: bool;
@@ -37,6 +37,8 @@ module Config = struct
   let multiline_preformatted x c = {c with multiline_preformatted=x}
   let one_line_preformatted x c = {c with one_line_preformatted=x}
   let tab_width x c = {c with tab_width=x}
+  let quotation_frames c = {c with frames=`Quotation}
+  let stylized_frames c = {c with frames=`Stylized}
 end
 
  let style_format c ~in_span ~multiline (s:B.Style.t) =
