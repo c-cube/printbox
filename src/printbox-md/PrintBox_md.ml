@@ -84,7 +84,7 @@ end
   bold_pre ^ sty_pre, sty_post ^ bold_post, code_block, code_quote, inline
 
 let break_lines l =
-  let lines = List.concat_map (String.split_on_char '\n') l in
+  let lines = List.concat @@ List.map (String.split_on_char '\n') l in
   List.filter_map (fun s ->
       let len = String.length s in
       if len = 0 then None
