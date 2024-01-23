@@ -10,7 +10,9 @@ Test default:
   >   - > subchild 3
 - 
   - > header 4
-    - subchild 4
+    - \<returns\>
+      - `<nothing>`
+    - & \*subchild\* 4
 - > `header 5`
   > - ```
   >   subchild 5
@@ -54,7 +56,9 @@ Test uniform unfolded:
   </div>
 - 
   - <span style="border:thin solid">header 4</span>
-    - subchild 4
+    - \<returns\>
+      - <span style="font-family: monospace">\<nothing\></span>
+    - & \*subchild\* 4
 - <div style="border:thin solid">
   
   <span style="font-family: monospace">header 5</span>
@@ -130,7 +134,11 @@ Test foldable:
   
   - <details><summary><span style="border:thin solid">header 4</span></summary>
     
-    - subchild 4
+    - <details><summary>&lt;returns&gt;</summary>
+      
+      - `<nothing>`
+      </details>
+    - & \*subchild\* 4
     </details>
   </details>
 - > <details><summary><span style="font-family: monospace">header 5</span></summary>
@@ -185,7 +193,11 @@ Test uniform tab=2, text tables:
   
   - <details><summary><span style="border:thin solid">header 4</span></summary>
     
-    - subchild 4
+    - <details><summary>&lt;returns&gt;</summary>
+      
+      - <span style="font-family: monospace">\<nothing\></span>
+      </details>
+    - & \*subchild\* 4
     </details>
   </details>
 - <div style="border:thin solid">
@@ -247,7 +259,11 @@ Test single quote tab=2, text tables:
   
   - <details><summary><span style="border:thin solid">header 4</span></summary>
     
-    - subchild 4
+    - <details><summary>&lt;returns&gt;</summary>
+      
+      - <span style="font-family: monospace">\<nothing\></span>
+      </details>
+    - & \*subchild\* 4
     </details>
   </details>
 - <div style="border:thin solid">

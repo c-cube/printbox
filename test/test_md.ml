@@ -15,7 +15,9 @@ let b =
       tree (frame @@ text "header 3") [frame @@ text "subchild 3"]
     ];
     tree empty [
-      tree (frame @@ text "header 4") [text "subchild 4"]
+      tree (frame @@ text "header 4") [
+        tree (text "<returns>") [text_with_style Style.preformatted "<nothing>"];
+        text "& *subchild* 4"]
     ];
     frame @@ tree (text_with_style Style.preformatted "header 5")
       [lines_with_style Style.preformatted

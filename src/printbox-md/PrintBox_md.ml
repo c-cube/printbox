@@ -92,12 +92,23 @@ let break_lines l =
       else Some s)
     lines
 
-let pp_string_nbsp ~tab_width ~code_block ~code_quote ~infix out s =
+let pp_string_nbsp ~tab_width ~code_block ~code_quote ~html ~infix out s =
+  (* TODO: benchmark if writing to a buffer first would be more efficient. *)
   let open Format in
   if code_block then pp_print_string out s
   else
     let print_sp nbsp =
       pp_print_string out (if nbsp then "&nbsp;" else " ") in
+    let print_char =
+      if html then
+        fun c ->
+          pp_print_string out @@
+          match c with '<' -> "&lt;" | '>' -> "&gt;" | '&' -> "&amp;" | c -> String.make 1 c
+      else
+        fun c ->
+          pp_print_string out @@
+          (* TODO: consider extending this list, but maybe we shouldn't be too eager? *)
+          match c with '<' -> "\\<" | '>' -> "\\>" | '*' -> "\\*" | c -> String.make 1 c in
     let len = String.length s in
     let check i = i < len && (s.[i] = ' ' || s.[i] = '\t') in
     let i = ref 0 in
@@ -113,10 +124,11 @@ let pp_string_nbsp ~tab_width ~code_block ~code_quote ~infix out s =
       k := !i;
       if code_quote then (
         i := len;
+        (* TODO: escape the backtick `. *)
         pp_print_string out @@ String.sub s !k (len - !k);)
       else (
-        while !i < len && (not @@ check !i) do incr i done;
-        if !k < len then pp_print_string out @@ String.sub s !k (!i - !k);
+        while !i < len && (not @@ check !i) do print_char s.[!i]; incr i done;
+        (* if !k < len then pp_print_string out @@ String.sub s !k (!i - !k); *)
       )
     done
 
@@ -134,7 +146,6 @@ let rec multiline_heuristic b =
     Array.length children > 0 || multiline_heuristic header
   | B.Link {inner; _} -> multiline_heuristic inner
   
-
 let pp c out b =
   let open Format in
   (* We cannot use Format for indentation, because we need to insert ">" at the right places. *)
@@ -146,7 +157,8 @@ let pp c out b =
       let multiline = List.length l > 1 in
       let sty_pre, sty_post, code_block, code_quote, inline =
         style_format c ~in_span ~multiline style in
-      let preformat = pp_string_nbsp ~tab_width:c.Config.tab_width ~code_block ~code_quote in
+      let preformat =
+        pp_string_nbsp ~tab_width:c.Config.tab_width ~code_block ~code_quote ~html:in_span in
       pp_print_string out sty_pre;
       if not inline && String.length sty_pre > 0 then fprintf out "@,%s" prefix;
       if code_block then fprintf out "```@,%s" prefix;

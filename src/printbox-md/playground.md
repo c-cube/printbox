@@ -177,3 +177,5 @@ Trying this <pre>one-line code</pre> is not inline.
 multiline<br>
 &nbsp;&nbsp;code line 1<br>
 &nbsp; code line 2</span>
+
+What happens with <returns> say & also `<returns>` html-ish syntax? &lt; and &gt; -- hmm &amp; only if it's &something; recognized?
