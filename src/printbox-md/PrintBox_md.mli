@@ -27,6 +27,13 @@ module Config : sig
   val text_tables : t -> t
   (** Output tables via {!PrintBox_text}. Already the case for the {!default} config. *)
   
+  val vlists : [`Line_break | `List | `As_table] -> t -> t
+  (** How to output {!PrintBox.vlist} boxes, i.e. single-column grids.
+      [`Line_break] is used in the {!uniform} config; when the {!PrintBox.vlist} has bars,
+      it puts a bottom border div around a row.
+      [`List] is used in the {!default} config; when the {!PrintBox.vlist} has bars,
+      it puts a quoted horizontal rule ["> ---"] at the bottom of a row. *)
+  
   val foldable_trees : t -> t
   (** Output trees so every node with children is foldable.
       Already the case for the {!uniform} config. *)

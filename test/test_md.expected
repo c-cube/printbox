@@ -5,6 +5,22 @@ Test default:
 - line 1<br>
   line 2<br>
   line 3
+- - a row 1
+  - a row 2.1<br>
+    a row 2.2
+  - a row 3
+- - b row 1
+    > ---
+  - b row 2.1<br>
+    b row 2.2
+    > ---
+  - b row 3
+- > - c row 1
+  >   > ---
+  > - c row 2.1<br>
+  >   c row 2.2
+  >   > ---
+  > - c row 3
 - > 
   > - > header 3
   >   - > subchild 3
@@ -12,7 +28,7 @@ Test default:
   - > header 4
     - \<returns\>
       - `<nothing>`
-    - & \*subchild\* 4
+    - & \*\*subchild\*\* 4
 - > `header 5`
   > - ```
   >   subchild 5
@@ -48,6 +64,25 @@ Test uniform unfolded:
 - line 1<br>
   line 2<br>
   line 3
+- a row 1<br>
+  a row 2.1<br>
+  a row 2.2<br>
+  a row 3
+- <div style="border-bottom:thin solid">
+  b row 1</div>
+  <div style="border-bottom:thin solid">
+  b row 2.1<br>
+  b row 2.2</div>
+  b row 3
+- <div style="border:thin solid">
+  
+  <div style="border-bottom:thin solid">
+  c row 1</div>
+  <div style="border-bottom:thin solid">
+  c row 2.1<br>
+  c row 2.2</div>
+  c row 3
+  </div>
 - <div style="border:thin solid">
   
   
@@ -58,7 +93,7 @@ Test uniform unfolded:
   - <span style="border:thin solid">header 4</span>
     - \<returns\>
       - <span style="font-family: monospace">\<nothing\></span>
-    - & \*subchild\* 4
+    - & \*\*subchild\*\* 4
 - <div style="border:thin solid">
   
   <span style="font-family: monospace">header 5</span>
@@ -66,7 +101,7 @@ Test uniform unfolded:
     subchild 5<br>
     &nbsp;&nbsp;body 5<br>
     &nbsp;&nbsp;&nbsp;&nbsp;subbody 5<br>
-     &nbsp;&nbsp;&nbsp;one tab end of sub 5<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;one tab end of sub 5<br>
     end of 5
     </div>
   </div>
@@ -123,6 +158,22 @@ Test foldable:
 - line 1<br>
   line 2<br>
   line 3
+- - a row 1
+  - a row 2.1<br>
+    a row 2.2
+  - a row 3
+- - b row 1
+    > ---
+  - b row 2.1<br>
+    b row 2.2
+    > ---
+  - b row 3
+- > - c row 1
+  >   > ---
+  > - c row 2.1<br>
+  >   c row 2.2
+  >   > ---
+  > - c row 3
 - > <details><summary></summary>
   > 
   > - <details><summary><span style="border:thin solid">header 3</span></summary>
@@ -138,7 +189,7 @@ Test foldable:
       
       - `<nothing>`
       </details>
-    - & \*subchild\* 4
+    - & \*\*subchild\*\* 4
     </details>
   </details>
 - > <details><summary><span style="font-family: monospace">header 5</span></summary>
@@ -179,6 +230,25 @@ Test uniform tab=2, text tables:
 - line 1<br>
   line 2<br>
   line 3
+- a row 1<br>
+  a row 2.1<br>
+  a row 2.2<br>
+  a row 3
+- <div style="border-bottom:thin solid">
+  b row 1</div>
+  <div style="border-bottom:thin solid">
+  b row 2.1<br>
+  b row 2.2</div>
+  b row 3
+- <div style="border:thin solid">
+  
+  <div style="border-bottom:thin solid">
+  c row 1</div>
+  <div style="border-bottom:thin solid">
+  c row 2.1<br>
+  c row 2.2</div>
+  c row 3
+  </div>
 - <div style="border:thin solid">
   
   <details><summary></summary>
@@ -197,7 +267,7 @@ Test uniform tab=2, text tables:
       
       - <span style="font-family: monospace">\<nothing\></span>
       </details>
-    - & \*subchild\* 4
+    - & \*\*subchild\*\* 4
     </details>
   </details>
 - <div style="border:thin solid">
@@ -208,7 +278,7 @@ Test uniform tab=2, text tables:
     subchild 5<br>
     &nbsp;&nbsp;body 5<br>
     &nbsp;&nbsp;&nbsp;&nbsp;subbody 5<br>
-     &nbsp;one tab end of sub 5<br>
+    &nbsp;&nbsp;one tab end of sub 5<br>
     end of 5
     </div>
   </details>
@@ -245,6 +315,25 @@ Test single quote tab=2, text tables:
 - line 1<br>
   line 2<br>
   line 3
+- a row 1<br>
+  a row 2.1<br>
+  a row 2.2<br>
+  a row 3
+- <div style="border-bottom:thin solid">
+  b row 1</div>
+  <div style="border-bottom:thin solid">
+  b row 2.1<br>
+  b row 2.2</div>
+  b row 3
+- <div style="border:thin solid">
+  
+  <div style="border-bottom:thin solid">
+  c row 1</div>
+  <div style="border-bottom:thin solid">
+  c row 2.1<br>
+  c row 2.2</div>
+  c row 3
+  </div>
 - <div style="border:thin solid">
   
   <details><summary></summary>
@@ -263,7 +352,7 @@ Test single quote tab=2, text tables:
       
       - <span style="font-family: monospace">\<nothing\></span>
       </details>
-    - & \*subchild\* 4
+    - & \*\*subchild\*\* 4
     </details>
   </details>
 - <div style="border:thin solid">
@@ -273,7 +362,7 @@ Test single quote tab=2, text tables:
   - `subchild 5`<br>
     &nbsp;&nbsp;`body 5`<br>
     &nbsp;&nbsp;&nbsp;&nbsp;`subbody 5`<br>
-     &nbsp;`one tab end of sub 5`<br>
+    &nbsp;&nbsp;`one tab end of sub 5`<br>
     `end of 5`
   </details>
   </div>

@@ -11,13 +11,18 @@ let b =
     frame @@ text "child 1";
     text_with_style Style.preformatted "child 2";
     lines ["line 1"; "line 2"; "line 3"];
+    vlist ~bars:false [line "a row 1"; lines ["a row 2.1"; "a row 2.2"]; line "a row 3"];
+    vlist ~bars:true [line "b row 1"; lines ["b row 2.1"; "b row 2.2"]; line "b row 3"];
+    frame @@ vlist ~bars:true [
+      line "c row 1"; lines ["c row 2.1"; "c row 2.2"]; line "c row 3"
+    ];
     frame @@ tree empty [
       tree (frame @@ text "header 3") [frame @@ text "subchild 3"]
     ];
     tree empty [
       tree (frame @@ text "header 4") [
         tree (text "<returns>") [text_with_style Style.preformatted "<nothing>"];
-        text "& *subchild* 4"]
+        text "& **subchild** 4"]
     ];
     frame @@ tree (text_with_style Style.preformatted "header 5")
       [lines_with_style Style.preformatted

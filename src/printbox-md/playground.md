@@ -179,3 +179,22 @@ multiline<br>
 &nbsp; code line 2</span>
 
 What happens with <returns> say & also `<returns>` html-ish syntax? &lt; and &gt; -- hmm &amp; only if it's &something; recognized?
+
+row 1<br>row 2<br>row 3
+
+row 1<hr>row 2<hr>row 3
+
+<span style="border-bottom:thin solid">row 1</span><br><span style="border-bottom:thin solid">row 2</span><br>row 3
+
+- row 1
+- row 2
+- row 3
+
+---
+
+- Line 1
+  > ---
+- Line 2.1<br>
+  Line 2.2
+  > ---
+- Line 3

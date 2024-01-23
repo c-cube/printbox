@@ -6,6 +6,7 @@ module Config = struct
   type preformatted = Code_block | Code_quote | Stylized
   type t = {
     tables: [`Text | `Html];
+    vlists: [`Line_break | `List | `As_table];
     foldable_trees: bool;
     multiline_preformatted: preformatted;
     one_line_preformatted: preformatted;
@@ -15,6 +16,7 @@ module Config = struct
 
   let default = {
     tables=`Text;
+    vlists=`List;
     foldable_trees=false;
     multiline_preformatted=Code_block;
     one_line_preformatted=Code_quote;
@@ -23,6 +25,7 @@ module Config = struct
   }
   let uniform = {
     tables=`Html;
+    vlists=`Line_break;
     foldable_trees=true;
     multiline_preformatted=Stylized;
     one_line_preformatted=Stylized;
@@ -32,6 +35,7 @@ module Config = struct
 
   let html_tables c = {c with tables=`Html}
   let text_tables c = {c with tables=`Text}
+  let vlists x c = {c with vlists=x}
   let foldable_trees c = {c with foldable_trees=true}
   let unfolded_trees c = {c with foldable_trees=false}
   let multiline_preformatted x c = {c with multiline_preformatted=x}
@@ -116,7 +120,7 @@ let pp_string_nbsp ~tab_width ~code_block ~code_quote ~html ~infix out s =
     while !i < len do
       k := !i;
       while check !i do
-        print_sp (!i > !k || check (!i + 1));
+        print_sp (!i = 0 || !i > !k || check (!i + 1));
         if s.[!i] = '\t' then for _ = 1 to tab_width - 1 do print_sp true done;
         incr i
       done;
@@ -193,6 +197,28 @@ let pp c out b =
     | B.Align {h = _; v=_; inner} ->
       (* NOT IMPLEMENTED YET *)
       loop ~in_span ~prefix inner
+    | B.Grid (bars, rows)
+          when c.Config.vlists <> `As_table &&
+               Array.for_all (fun row -> Array.length row = 1) rows -> (
+      let len = Array.length rows in
+      match c.Config.vlists with
+      | `As_table -> assert false
+      | `List ->
+        Array.iteri (fun i r ->
+            pp_print_string out "- ";
+            loop ~in_span ~prefix:(prefix ^ "  ") r.(0);
+            if i < len - 1 then (
+              if bars = `Bars then fprintf out "@,%s  > ---" prefix;
+              fprintf out "@,%s" prefix))
+          rows
+      | `Line_break ->
+        let br = if bars = `Bars then "</div>" else "<br>" in
+        Array.iteri (fun i r ->
+            if i < len - 1 && bars = `Bars
+            then fprintf out {|<div style="border-bottom:thin solid">@,%s|} prefix;
+            loop ~in_span ~prefix r.(0);
+            if i < len - 1 then fprintf out "%s@,%s" br prefix)
+          rows)
     | B.Grid (_, _) when c.Config.tables = `Html && String.length prefix = 0 ->
       PrintBox_html.pp ~indent:(not in_span) () out b
     | B.Grid (_, _) -> (
