@@ -14,8 +14,8 @@ bug-reports: "https://github.com/c-cube/printbox/issues"
 depends: [
   "dune" {>= "3.0"}
   "printbox" {= version}
-  "printbox-text" {= version & with-test}
-  "printbox-html" {= version & with-test}
+  "printbox-text" {= version}
+  "printbox-html" {= version}
   "odoc" {with-test}
   "mdx" {>= "1.4" & with-test}
   "odoc" {with-doc}
