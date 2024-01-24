@@ -55,6 +55,14 @@ Test default:
   > >      │
   > > ```
   > > 
+- header 1                                       |header 2                                       |<span style="border:thin solid">header 3</span>
+  -----------------------------------------------|-----------------------------------------------|-----------------------------------------------
+  cell 1.1                                       |<span style="border:thin solid">cell 1.2</span>|cell 1.3
+  <span style="border:thin solid">cell 2.1</span>|cell 2.2                                       |cell 2.3
+- > header 1                                       |header 2                                       |<span style="border:thin solid">header 3</span>
+  > -----------------------------------------------|-----------------------------------------------|-----------------------------------------------
+  > cell 1.1                                       |<span style="border:thin solid">cell 1.2</span>|cell 1.3
+  > <span style="border:thin solid">cell 2.1</span>|cell 2.2                                       |cell 2.3
 
 Test uniform unfolded:
 
@@ -149,6 +157,17 @@ Test uniform unfolded:
   </div>
   </div>
   </div>
+- header 1                                       |header 2                                       |<span style="border:thin solid">header 3</span>
+  -----------------------------------------------|-----------------------------------------------|-----------------------------------------------
+  cell 1.1                                       |<span style="border:thin solid">cell 1.2</span>|cell 1.3
+  <span style="border:thin solid">cell 2.1</span>|cell 2.2                                       |cell 2.3
+- <div style="border:thin solid">
+  
+  header 1                                       |header 2                                       |<span style="border:thin solid">header 3</span>
+  -----------------------------------------------|-----------------------------------------------|-----------------------------------------------
+  cell 1.1                                       |<span style="border:thin solid">cell 1.2</span>|cell 1.3
+  <span style="border:thin solid">cell 2.1</span>|cell 2.2                                       |cell 2.3
+  </div>
 
 Test foldable:
 <details><summary><span style="border:thin solid">root</span></summary>
@@ -220,6 +239,14 @@ Test foldable:
   > >      │
   > > ```
   > > 
+- header 1                                       |header 2                                       |<span style="border:thin solid">header 3</span>
+  -----------------------------------------------|-----------------------------------------------|-----------------------------------------------
+  cell 1.1                                       |<span style="border:thin solid">cell 1.2</span>|cell 1.3
+  <span style="border:thin solid">cell 2.1</span>|cell 2.2                                       |cell 2.3
+- > header 1                                       |header 2                                       |<span style="border:thin solid">header 3</span>
+  > -----------------------------------------------|-----------------------------------------------|-----------------------------------------------
+  > cell 1.1                                       |<span style="border:thin solid">cell 1.2</span>|cell 1.3
+  > <span style="border:thin solid">cell 2.1</span>|cell 2.2                                       |cell 2.3
 </details>
 
 Test uniform tab=2, text tables:
@@ -305,6 +332,17 @@ Test uniform tab=2, text tables:
   </div>
   </div>
   </div>
+- header 1                                       |header 2                                       |<span style="border:thin solid">header 3</span>
+  -----------------------------------------------|-----------------------------------------------|-----------------------------------------------
+  cell 1.1                                       |<span style="border:thin solid">cell 1.2</span>|cell 1.3
+  <span style="border:thin solid">cell 2.1</span>|cell 2.2                                       |cell 2.3
+- <div style="border:thin solid">
+  
+  header 1                                       |header 2                                       |<span style="border:thin solid">header 3</span>
+  -----------------------------------------------|-----------------------------------------------|-----------------------------------------------
+  cell 1.1                                       |<span style="border:thin solid">cell 1.2</span>|cell 1.3
+  <span style="border:thin solid">cell 2.1</span>|cell 2.2                                       |cell 2.3
+  </div>
 </details>
 
 Test single quote tab=2, text tables:
@@ -385,6 +423,17 @@ Test single quote tab=2, text tables:
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`│          10│20`<br>
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`│`
   </div>
+  </div>
+- header 1                                       |header 2                                       |<span style="border:thin solid">header 3</span>
+  -----------------------------------------------|-----------------------------------------------|-----------------------------------------------
+  cell 1.1                                       |<span style="border:thin solid">cell 1.2</span>|cell 1.3
+  <span style="border:thin solid">cell 2.1</span>|cell 2.2                                       |cell 2.3
+- <div style="border:thin solid">
+  
+  header 1                                       |header 2                                       |<span style="border:thin solid">header 3</span>
+  -----------------------------------------------|-----------------------------------------------|-----------------------------------------------
+  cell 1.1                                       |<span style="border:thin solid">cell 1.2</span>|cell 1.3
+  <span style="border:thin solid">cell 2.1</span>|cell 2.2                                       |cell 2.3
   </div>
 </details>
 

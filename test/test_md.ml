@@ -7,6 +7,13 @@ let b =
       [ pad' ~col:2 ~lines:2 @@ text "?";
         center_hv @@ record ["x", int 10; "y", int 20]];
     ] in
+  let bold = text_with_style Style.bold in
+  let native =
+    grid_l [
+      [ bold "header 1"; bold "header 2"; frame @@ bold "header 3" ];
+      [ line "cell 1.1"; frame @@ line "cell 1.2"; line "cell 1.3" ];
+      [ frame @@ line "cell 2.1"; line "cell 2.2"; line "cell 2.3" ];
+    ] in
   tree (frame @@ text "root") [
     frame @@ text "child 1";
     text_with_style Style.preformatted "child 2";
@@ -28,7 +35,9 @@ let b =
       [lines_with_style Style.preformatted
         ["subchild 5"; "  body 5"; "    subbody 5";
          "\tone tab end of sub 5"; "end of 5"]];
-    frame table
+    frame table;
+    native;
+    frame native
   ]
 
 let () = print_endline "Test default:"

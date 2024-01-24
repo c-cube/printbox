@@ -149,6 +149,39 @@ let rec multiline_heuristic b =
   | B.Tree (_, header, children) ->
     Array.length children > 0 || multiline_heuristic header
   | B.Link {inner; _} -> multiline_heuristic inner
+
+let rec line_of_length b =
+  match B.view b with
+  | B.Empty | B.Text {l=[]; _} -> 0
+  | B.Text {l=[s]; _} ->
+    if String.contains s '\n' then raise Not_found else String.length s
+  | B.Text _ -> raise Not_found
+  | B.Frame b -> line_of_length b + 39
+  | B.Pad (_, _) | B.Align _ | B.Grid _ -> raise Not_found
+  | B.Tree (_, header, [||]) -> line_of_length header
+  | B.Tree _ -> raise Not_found
+  | B.Link {inner; uri} -> line_of_length inner + String.length uri + 4
+
+let is_native_table rows =
+  let rec header h =
+    match B.view h with
+    | B.Text {l=[_]; style={B.Style.bold=true; _}} -> true
+    | B.Frame b -> header b
+    | _ -> false in
+  Array.for_all header rows.(0) &&
+  Array.for_all (fun row -> Array.for_all (Fun.negate multiline_heuristic) row) rows
+
+let rec remove_bold b =
+  match B.view b with
+  | B.Empty | B.Text {l=[]; _} -> B.empty
+  | B.Text {l; style} -> B.lines_with_style (B.Style.set_bold false style) l
+  | B.Frame b -> B.frame @@ remove_bold b
+  | B.Pad (pos, b) -> B.pad' ~col:pos.B.x ~lines:pos.B.y @@ remove_bold b
+  | B.Align {h; v; inner} -> B.align ~h ~v @@ remove_bold inner
+  | B.Grid _ -> assert false
+  | B.Tree (_, header, [||]) -> remove_bold header
+  | B.Tree _ -> assert false
+  | B.Link {inner; uri} -> B.link ~uri @@ remove_bold inner
   
 let pp c out b =
   let open Format in
@@ -219,6 +252,32 @@ let pp c out b =
             loop ~in_span ~prefix r.(0);
             if i < len - 1 then fprintf out "%s@,%s" br prefix)
           rows)
+    | B.Grid (_, [||]) -> ()
+    | B.Grid (bars, rows) when bars <> `None && is_native_table rows ->
+      let lengths =
+        Array.fold_left (Array.map2 (fun len b -> max len @@ line_of_length b))
+          (Array.map (fun _ -> 0) rows.(0)) rows in
+      let n_rows = Array.length rows and n_cols = Array.length rows.(0) in
+      Array.iteri (fun i header ->
+          loop ~in_span:true ~prefix:"" @@ remove_bold header;
+          if i < n_rows - 1 then
+            let len = line_of_length header in
+            fprintf out "%s|" (String.make (lengths.(i) - len) ' ')
+        ) rows.(0);
+      fprintf out "@,%s" prefix;
+      Array.iteri (fun j _ ->
+          pp_print_string out @@ String.make lengths.(j) '-';
+          if j < n_cols - 1 then pp_print_char out '|'
+        ) rows.(0);
+      Array.iteri (fun i row ->
+          if i > 0 then Array.iteri (fun j c ->
+              loop ~in_span:true ~prefix:"" c;
+              if j < n_cols - 1 then
+                let len = line_of_length c in
+                fprintf out "%s|" (String.make (lengths.(j) - len) ' ')
+            ) row;
+          if i < n_rows - 1 then fprintf out "@,%s" prefix;
+        ) rows
     | B.Grid (_, _) when c.Config.tables = `Html && String.length prefix = 0 ->
       PrintBox_html.pp ~indent:(not in_span) () out b
     | B.Grid (_, _) -> (

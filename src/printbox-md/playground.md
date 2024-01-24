@@ -198,3 +198,9 @@ row 1<hr>row 2<hr>row 3
   Line 2.2
   > ---
 - Line 3
+
+Header 1 | Header 2
+---------|---------
+  Row 1  | Row 1
+Row 2    | <span style="border:thin solid">Row 2</span>
+Row 3    | Row 3
