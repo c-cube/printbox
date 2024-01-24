@@ -113,11 +113,12 @@ let pp_string_escaped ~tab_width ~code_block ~code_quote ~html out s =
        but e.g. in VS Code Markdown Preview we need it for every other space. *)
     let len = String.length s in
     let opt_char i = if i < len then Some s.[i] else None in
-    let print_spaces n_spaces =
-      let halfsp = Array.to_list @@ Array.make ((n_spaces + 1) / 2) " " in
-      let trailing = if n_spaces mod 2 = 0 then "&nbsp;" else "" in
-      fprintf out "%s%s" (String.concat "&nbsp;" halfsp) trailing in
-    let print_tab () = print_spaces tab_width in
+    let print_spaces nbsp n_spaces =
+      if n_spaces > 0 then
+        let halfsp = Array.to_list @@ Array.make ((n_spaces + 1) / 2) " " in
+        let trailing = if n_spaces mod 2 = 0 then nbsp else "" in
+        fprintf out "%s%s" (String.concat nbsp halfsp) trailing in
+    let print_tab () = print_spaces "&nbsp;" tab_width in
     let print_next_chars =
       if html then
         fun i ->
@@ -126,10 +127,30 @@ let pp_string_escaped ~tab_width ~code_block ~code_quote ~html out s =
           | Some '>', _, _ -> pp_print_string out "&gt;"; 1
           | Some '&', _, _ -> pp_print_string out "&amp;"; 1
           | Some '\t', _, _ -> print_tab (); 1
-          | Some ' ', Some ' ', Some ' ' -> pp_print_string out " &nbsp; "; 3
-          | Some ' ', Some ' ', _ -> pp_print_string out " &nbsp;"; 2
+          | Some ' ', Some ' ', Some ' ' -> pp_print_string out " &nbsp;"; 2
+          | Some ' ', Some ' ', _ -> pp_print_string out "&nbsp; "; 2
           | Some c, _, _ -> pp_print_char out c; 1
           | _ -> len
+      else if code_quote then
+        fun i ->
+          match opt_char i, opt_char (i+1), opt_char (i+2) with
+          | Some ' ', Some ' ', Some ' ' when i = 0 -> pp_print_string out "·"; 1
+          | Some ' ', Some ' ', Some ' ' -> pp_print_string out " ·"; 2
+          | Some ' ', Some ' ', _ -> pp_print_string out "· "; 2
+          | Some '\t', Some ' ', _ when i = 0 && tab_width mod 2 = 0 ->
+            pp_print_string out "·"; print_spaces "·" tab_width; 2
+          | Some '\t', Some '\t', Some ' ' when i = 0 && tab_width mod 2 = 0 ->
+            pp_print_string out "·"; print_spaces "·" (tab_width - 1);
+            pp_print_string out "·"; print_spaces "·" tab_width; 2
+          | Some '\t', _, _ when i = 0 ->
+            pp_print_string out "·"; print_spaces "·" (tab_width - 1); 1
+          | Some '\t', Some ' ', _ when tab_width mod 2 = 1 ->
+            print_spaces "·" (tab_width + 1); 2
+          | Some '\t', Some '\t', _ when tab_width mod 2 = 1 ->
+            print_spaces "·" (2 * tab_width); 2
+          | Some '\t', _, _ -> print_spaces "·" tab_width; 1
+          | Some c, _, _ -> pp_print_char out c; 1
+          | _ -> len  
       else
         fun i ->
           match opt_char i, opt_char (i+1), opt_char (i+2) with
@@ -141,22 +162,15 @@ let pp_string_escaped ~tab_width ~code_block ~code_quote ~html out s =
           | Some c1, Some '_', Some c2 when c1 <> ' ' && c2 <> ' ' -> fprintf out "%c_%c" c1 c2; 3
           | Some '_', _, _ -> pp_print_string out "\\_"; 1
           | Some '\t', _, _ -> print_tab (); 1
-          | Some ' ', Some ' ', Some ' ' -> pp_print_string out " &nbsp; "; 3
-          | Some ' ', Some ' ', _ -> pp_print_string out " &nbsp;"; 2
+          | Some ' ', Some ' ', Some ' ' -> pp_print_string out " &nbsp;"; 2
+          | Some ' ', Some ' ', _ -> pp_print_string out "&nbsp; "; 2
           | Some c, _, _ -> pp_print_char out c; 1
           | _ -> len
     in
-    if code_quote then
-      let code = String.trim (s ^ "`") in
-      let n_spaces = len - String.length code + 1 in
-      if n_spaces > 0 then
-        let spaces = Array.to_list @@ Array.make n_spaces "&nbsp;" in
-        fprintf out {|<span style="font-family: monospace">%s</span>`%s|}
-          (String.concat "" spaces) code
-      else fprintf out "`%s" code
-    else
-      let i = ref 0 in
-      while !i < len do i := !i + print_next_chars !i done
+    let i = ref 0 in
+    if code_quote then pp_print_char out '`';
+    while !i < len do i := !i + print_next_chars !i done;
+    if code_quote then pp_print_char out '`'
 
 let rec multiline_heuristic b =
   match B.view b with
