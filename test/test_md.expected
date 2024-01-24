@@ -107,9 +107,9 @@ Test uniform unfolded:
   <span style="font-family: monospace">header 5</span>
   - <div style="font-family: monospace">
     subchild 5<br>
-    &nbsp;&nbsp;body 5<br>
-    &nbsp;&nbsp;&nbsp;&nbsp;subbody 5<br>
-    &nbsp;&nbsp;&nbsp;&nbsp;one tab end of sub 5<br>
+     &nbsp;body 5<br>
+     &nbsp;  subbody 5<br>
+     &nbsp; one tab end of sub 5<br>
     end of 5
     </div>
   </div>
@@ -303,9 +303,9 @@ Test uniform tab=2, text tables:
   
   - <div style="font-family: monospace">
     subchild 5<br>
-    &nbsp;&nbsp;body 5<br>
-    &nbsp;&nbsp;&nbsp;&nbsp;subbody 5<br>
-    &nbsp;&nbsp;one tab end of sub 5<br>
+     &nbsp;body 5<br>
+     &nbsp;  subbody 5<br>
+     one tab end of sub 5<br>
     end of 5
     </div>
   </details>
@@ -315,20 +315,20 @@ Test uniform tab=2, text tables:
   <div style="border:thin solid">
   
   <div style="font-family: monospace">
-  a&nbsp;&nbsp;&nbsp;&nbsp;│looooooooooooooooooooooooo<br>
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│oonng<br>
+  a &nbsp;  │looooooooooooooooooooooooo<br>
+   &nbsp;  &nbsp;│oonng<br>
   ─────┼──────────────────────────<br>
-  bx&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;┌─┬─┐<br>
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│x│y│<br>
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├─┼─┤<br>
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│1│2│<br>
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─┴─┘<br>
+  bx &nbsp; │ &nbsp;  &nbsp;  &nbsp;  ┌─┬─┐<br>
+   &nbsp;  &nbsp;│ &nbsp;  &nbsp;  &nbsp;  │x│y│<br>
+   &nbsp;  &nbsp;│ &nbsp;  &nbsp;  &nbsp;  ├─┼─┤<br>
+   &nbsp;  &nbsp;│ &nbsp;  &nbsp;  &nbsp;  │1│2│<br>
+   &nbsp;  &nbsp;│ &nbsp;  &nbsp;  &nbsp;  └─┴─┘<br>
   ─────┼──────────────────────────<br>
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br>
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;x │y<br>
-  &nbsp;&nbsp;?&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;──┼──<br>
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;10│20<br>
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│
+   &nbsp;  &nbsp;│<br>
+   &nbsp;  &nbsp;│ &nbsp;  &nbsp;  &nbsp;  x │y<br>
+   &nbsp;? &nbsp;│ &nbsp;  &nbsp;  &nbsp;  ──┼──<br>
+   &nbsp;  &nbsp;│ &nbsp;  &nbsp;  &nbsp;  10│20<br>
+   &nbsp;  &nbsp;│
   </div>
   </div>
   </div>
@@ -398,9 +398,9 @@ Test single quote tab=2, text tables:
   <details><summary><span style="font-family: monospace">header 5</span></summary>
   
   - `subchild 5`<br>
-    &nbsp;&nbsp;`body 5`<br>
-    &nbsp;&nbsp;&nbsp;&nbsp;`subbody 5`<br>
-    &nbsp;&nbsp;`one tab end of sub 5`<br>
+     `body 5`<br>
+     &nbsp; `subbody 5`<br>
+    &nbsp;`one tab end of sub 5`<br>
     `end of 5`
   </details>
   </div>
@@ -409,19 +409,19 @@ Test single quote tab=2, text tables:
   <div style="border:thin solid">
   
   `a    │looooooooooooooooooooooooo`<br>
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`│oonng`<br>
+   &nbsp; &nbsp;`│oonng`<br>
   `─────┼──────────────────────────`<br>
   `bx   │          ┌─┬─┐`<br>
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`│          │x│y│`<br>
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`│          ├─┼─┤`<br>
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`│          │1│2│`<br>
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`│          └─┴─┘`<br>
+   &nbsp; &nbsp;`│          │x│y│`<br>
+   &nbsp; &nbsp;`│          ├─┼─┤`<br>
+   &nbsp; &nbsp;`│          │1│2│`<br>
+   &nbsp; &nbsp;`│          └─┴─┘`<br>
   `─────┼──────────────────────────`<br>
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`│`<br>
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`│          x │y`<br>
-  &nbsp;&nbsp;`?  │          ──┼──`<br>
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`│          10│20`<br>
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`│`
+   &nbsp; &nbsp;`│`<br>
+   &nbsp; &nbsp;`│          x │y`<br>
+   `?  │          ──┼──`<br>
+   &nbsp; &nbsp;`│          10│20`<br>
+   &nbsp; &nbsp;`│`
   </div>
   </div>
 - header 1                                       |header 2                                       |<span style="border:thin solid">header 3</span>

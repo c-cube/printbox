@@ -96,45 +96,55 @@ let break_lines l =
       else Some s)
     lines
 
-let pp_string_nbsp ~tab_width ~code_block ~code_quote ~html ~infix out s =
+let pp_string_escaped ~tab_width ~code_block ~code_quote ~html out s =
   (* TODO: benchmark if writing to a buffer first would be more efficient. *)
   let open Format in
   if code_block then pp_print_string out s
   else
-    let print_sp nbsp =
-      pp_print_string out (if nbsp then "&nbsp;" else " ") in
-    let print_char =
-      if html then
-        fun c ->
-          pp_print_string out @@
-          match c with '<' -> "&lt;" | '>' -> "&gt;" | '&' -> "&amp;" | c -> String.make 1 c
-      else
-        fun c ->
-          pp_print_string out @@
-          (* TODO: consider extending this list, but maybe we shouldn't be too eager? *)
-          match c with '<' -> "\\<" | '>' -> "\\>" | '*' -> "\\*" | c -> String.make 1 c in
+    (* Inside "white-space: pre", we shouldn't need &nbsp; at all,
+       but e.g. in VS Code Markdown Preview we need it for every other space. *)
     let len = String.length s in
-    let check i = i < len && (s.[i] = ' ' || s.[i] = '\t') in
-    let i = ref 0 in
-    let k = ref 0 in
-    while !i < len do
-      k := !i;
-      while check !i do
-        print_sp (!i = 0 || !i > !k || check (!i + 1));
-        if s.[!i] = '\t' then for _ = 1 to tab_width - 1 do print_sp true done;
-        incr i
-      done;
-      if !k = 0 then pp_print_string out infix;
-      k := !i;
-      if code_quote then (
-        i := len;
-        (* TODO: escape the backtick `. *)
-        pp_print_string out @@ String.sub s !k (len - !k);)
-      else (
-        while !i < len && (not @@ check !i) do print_char s.[!i]; incr i done;
-        (* if !k < len then pp_print_string out @@ String.sub s !k (!i - !k); *)
-      )
-    done
+    let opt_char i = if i < len then Some s.[i] else None in
+    let print_spaces n_spaces =
+      let halfsp = Array.to_list @@ Array.make (n_spaces / 2) " " in
+      let trailing = if n_spaces mod 2 = 1 then "&nbsp;" else "" in
+      fprintf out "%s%s" (String.concat "&nbsp;" halfsp) trailing in
+    let print_tab () = print_spaces tab_width in
+    let print_next_chars =
+      if html then
+        fun i ->
+          match opt_char i, opt_char (i+1), opt_char (i+2) with
+          | Some '<', _, _ -> pp_print_string out "&lt;"; 1
+          | Some '>', _, _ -> pp_print_string out "&gt;"; 1
+          | Some '&', _, _ -> pp_print_string out "&amp;"; 1
+          | Some '\t', _, _ -> print_tab (); 1
+          | Some ' ', Some ' ', Some ' ' -> pp_print_string out " &nbsp; "; 3
+          | Some ' ', Some ' ', _ -> pp_print_string out " &nbsp;"; 2
+          | Some c, _, _ -> pp_print_char out c; 1
+          | _ -> len
+      else
+        fun i ->
+          match opt_char i, opt_char (i+1), opt_char (i+2) with
+          | Some '<', _, _ -> pp_print_string out "\\<"; 1
+          | Some '>', _, _ -> pp_print_string out "\\>"; 1
+          | Some ' ', Some '*', Some ' ' -> pp_print_string out " * "; 3
+          | Some '*', _, _ -> pp_print_string out "\\*"; 1
+          | Some ' ', Some '_', Some ' ' -> pp_print_string out " _ "; 3
+          | Some c1, Some '_', Some c2 when c1 <> ' ' && c2 <> ' ' -> fprintf out "%c_%c" c1 c2; 3
+          | Some '_', _, _ -> pp_print_string out "\\_"; 1
+          | Some '\t', _, _ -> print_tab (); 1
+          | Some ' ', Some ' ', Some ' ' -> pp_print_string out " &nbsp; "; 3
+          | Some ' ', Some ' ', _ -> pp_print_string out " &nbsp;"; 2
+          | Some c, _, _ -> pp_print_char out c; 1
+          | _ -> len
+    in
+    if code_quote then
+      let code = String.trim (s ^ "`") in
+      let n_spaces = len - String.length code + 1 in
+      print_spaces n_spaces; fprintf out "`%s" code
+    else
+      let i = ref 0 in
+      while !i < len do i := !i + print_next_chars !i done
 
 let rec multiline_heuristic b =
   match B.view b with
@@ -205,7 +215,7 @@ let pp c out b =
       let sty_pre, sty_post, code_block, code_quote, inline =
         style_format c ~in_span ~multiline style in
       let preformat =
-        pp_string_nbsp ~tab_width:c.Config.tab_width ~code_block ~code_quote ~html:in_span in
+        pp_string_escaped ~tab_width:c.Config.tab_width ~code_block ~code_quote ~html:in_span in
       pp_print_string out sty_pre;
       if not inline && String.length sty_pre > 0 then fprintf out "@,%s" prefix;
       if code_block then fprintf out "```@,%s" prefix;
@@ -214,10 +224,7 @@ let pp c out b =
         ~pp_sep:(fun out () ->
            if not code_block then pp_print_string out "<br>";
            fprintf out "@,%s" prefix)
-        (fun out s ->
-           if code_quote then fprintf out "%a`" (preformat ~infix:"`") s
-           else preformat ~infix:"" out s)
-        out l;
+        preformat out l;
       if not inline && String.length sty_pre > 0 then fprintf out "@,%s" prefix;
       if code_block then fprintf out "@,%s```@,%s" prefix prefix;
       pp_print_string out sty_post

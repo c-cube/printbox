@@ -173,10 +173,25 @@ multiline
 
 Trying this <pre>one-line code</pre> is not inline.
 
-<span style="font-family: monospace">this is
-multiline<br>
-&nbsp;&nbsp;code line 1<br>
-&nbsp; code line 2</span>
+VS Code Markdown previewer does not respect the semantics of `white-space: pre` -- unfortunately we still need to use `nbsp` to prevent collapsing white spaces.
+
+<dev style="font-family: monospace; white-space: pre">this is
+multiline
+&nbsp; code line 1
+&nbsp;&nbsp;code line 2
+    code line 3
+     code line 3
+ &nbsp; code line 4
+&nbsp;code line 4
+ &nbsp;code line 5
+</dev>
+
+Using `white-space: pre` to prevent line breaks:
+
+<dev style="white-space: pre">This is a very long line, let's check if it will break, or if a horizontal ruler will appear. | This is a very long line, let's check if it will break -- oh nice, a horizontal ruler has indeed appeared. | That's definitely nice and more readable.</dev>
+
+Using `<pre>`:
+
 
 What happens with <returns> say & also `<returns>` html-ish syntax? &lt; and &gt; -- hmm &amp; only if it's &something; recognized?
 
@@ -204,3 +219,13 @@ Header 1 | Header 2
   Row 1  | Row 1
 Row 2    | <span style="border:thin solid">Row 2</span>
 Row 3    | Row 3
+<dev style="white-space: pre">some long text possibly long long text</dev> | <span style="white-space: pre">some long text possibly long long text</span>
+
+Text formatting:
+
+*emphasis?*even*!?*more*Is it always emphasis?* Just one star: * is always * a star.
+
+_ is _ and _not is_ not. But _is_not is_. is _._ a _?
+
+
+` <this works > as fuck&nbsp;\t   not`
