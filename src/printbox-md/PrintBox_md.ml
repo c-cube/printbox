@@ -10,6 +10,7 @@ module Config = struct
     foldable_trees: bool;
     multiline_preformatted: preformatted;
     one_line_preformatted: preformatted;
+    non_preformatted: [`Minimal | `Stylized];
     frames: [`Quotation | `Stylized];
     tab_width: int;
   }
@@ -20,6 +21,7 @@ module Config = struct
     foldable_trees=false;
     multiline_preformatted=Code_block;
     one_line_preformatted=Code_quote;
+    non_preformatted=`Minimal;
     frames=`Quotation;
     tab_width=4;
   }
@@ -29,6 +31,7 @@ module Config = struct
     foldable_trees=true;
     multiline_preformatted=Stylized;
     one_line_preformatted=Stylized;
+    non_preformatted=`Stylized;
     frames=`Stylized;
     tab_width=4;
   }
@@ -61,10 +64,19 @@ end
   let preformatted_conf =
     if multiline then c.Config.multiline_preformatted else c.Config.one_line_preformatted in
   let stylized = in_span || preformatted_conf = Config.Stylized in
+  let code_block =
+    preformatted && not stylized && preformatted_conf = Config.Code_block in
+  let code_quote =
+    preformatted && not stylized && preformatted_conf = Config.Code_quote in
+  let handle_space = not code_block && not code_quote in
+  let pre_block =
+    handle_space && multiline && c.Config.non_preformatted = `Stylized in
   let s =
     (match bg_color with None -> [] | Some c -> ["background-color", encode_color c]) @
     (match fg_color with None -> [] | Some c -> ["color", encode_color c]) @
-    (if stylized && preformatted then ["font-family", "monospace"] else [])
+    (if stylized && preformatted then ["font-family", "monospace"] else []) @
+    (if handle_space && not multiline && c.Config.non_preformatted = `Stylized
+     then ["white-space", "pre"] else [])
   in
   let inline = in_span || not multiline in
   let spec_pre, spec_post =
@@ -81,11 +93,7 @@ end
     | false, _ -> "", ""
     | true, false -> "**", "**"
     | true, true -> "<b>", "</b>" in
-  let code_block =
-    preformatted && not stylized && preformatted_conf = Config.Code_block in
-  let code_quote =
-    preformatted && not stylized && preformatted_conf = Config.Code_quote in
-  bold_pre ^ sty_pre, sty_post ^ bold_post, code_block, code_quote, inline
+  bold_pre ^ sty_pre, sty_post ^ bold_post, code_block, pre_block, code_quote, inline
 
 let break_lines l =
   let lines = List.concat @@ List.map (String.split_on_char '\n') l in
@@ -212,20 +220,22 @@ let pp c out b =
     | B.Text {l; style} ->
       let l = break_lines l in
       let multiline = List.length l > 1 in
-      let sty_pre, sty_post, code_block, code_quote, inline =
+      let sty_pre, sty_post, code_block, pre_block, code_quote, inline =
         style_format c ~in_span ~multiline style in
       let preformat =
         pp_string_escaped ~tab_width:c.Config.tab_width ~code_block ~code_quote ~html:in_span in
       pp_print_string out sty_pre;
       if not inline && String.length sty_pre > 0 then fprintf out "@,%s" prefix;
       if code_block then fprintf out "```@,%s" prefix;
+      if pre_block then fprintf out {|<div style="white-space: pre">|};
       (* use html for gb_color, fg_color and md for bold, preformatted. *)
       pp_print_list
         ~pp_sep:(fun out () ->
-           if not code_block then pp_print_string out "<br>";
+           if not code_block && not pre_block then pp_print_string out "<br>";
            fprintf out "@,%s" prefix)
         preformat out l;
       if not inline && String.length sty_pre > 0 then fprintf out "@,%s" prefix;
+      if pre_block then fprintf out "</div>";
       if code_block then fprintf out "@,%s```@,%s" prefix prefix;
       pp_print_string out sty_post
     | B.Frame b ->

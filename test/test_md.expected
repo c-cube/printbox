@@ -66,52 +66,52 @@ Test default:
 
 Test uniform unfolded:
 
-<span style="border:thin solid">root</span>
-- <span style="border:thin solid">child 1</span>
-- <span style="font-family: monospace">child 2</span>
-- line 1<br>
-  line 2<br>
-  line 3
-- a row 1<br>
-  a row 2.1<br>
-  a row 2.2<br>
-  a row 3
+<span style="border:thin solid"><span style="white-space: pre">root</span></span>
+- <span style="border:thin solid"><span style="white-space: pre">child 1</span></span>
+- <span style="font-family: monospace;white-space: pre">child 2</span>
+- <div style="white-space: pre">line 1
+  line 2
+  line 3</div>
+- <span style="white-space: pre">a row 1</span><br>
+  <div style="white-space: pre">a row 2.1
+  a row 2.2</div><br>
+  <span style="white-space: pre">a row 3</span>
 - <div style="border-bottom:thin solid">
-  b row 1</div>
+  <span style="white-space: pre">b row 1</span></div>
   <div style="border-bottom:thin solid">
-  b row 2.1<br>
-  b row 2.2</div>
-  b row 3
+  <div style="white-space: pre">b row 2.1
+  b row 2.2</div></div>
+  <span style="white-space: pre">b row 3</span>
 - <div style="border:thin solid">
   
   <div style="border-bottom:thin solid">
-  c row 1</div>
+  <span style="white-space: pre">c row 1</span></div>
   <div style="border-bottom:thin solid">
-  c row 2.1<br>
-  c row 2.2</div>
-  c row 3
+  <div style="white-space: pre">c row 2.1
+  c row 2.2</div></div>
+  <span style="white-space: pre">c row 3</span>
   </div>
 - <div style="border:thin solid">
   
   
-  - <span style="border:thin solid">header 3</span>
-    - <span style="border:thin solid">subchild 3</span>
+  - <span style="border:thin solid"><span style="white-space: pre">header 3</span></span>
+    - <span style="border:thin solid"><span style="white-space: pre">subchild 3</span></span>
   </div>
 - 
-  - <span style="border:thin solid">header 4</span>
-    - \<returns\>
-      - <span style="font-family: monospace">\<nothing\></span>
-    - & \*\*subchild\*\* 4
+  - <span style="border:thin solid"><span style="white-space: pre">header 4</span></span>
+    - <span style="white-space: pre">\<returns\></span>
+      - <span style="font-family: monospace;white-space: pre">\<nothing\></span>
+    - <span style="white-space: pre">& \*\*subchild\*\* 4</span>
 - <div style="border:thin solid">
   
-  <span style="font-family: monospace">header 5</span>
+  <span style="font-family: monospace;white-space: pre">header 5</span>
   - <div style="font-family: monospace">
-    subchild 5<br>
-     &nbsp;body 5<br>
-     &nbsp;  subbody 5<br>
-     &nbsp; one tab end of sub 5<br>
+    <div style="white-space: pre">subchild 5
+     &nbsp;body 5
+     &nbsp;  subbody 5
+     &nbsp; one tab end of sub 5
     end of 5
-    </div>
+    </div></div>
   </div>
 - <div style="border:thin solid">
   
@@ -157,16 +157,16 @@ Test uniform unfolded:
   </div>
   </div>
   </div>
-- header 1                                       |header 2                                       |<span style="border:thin solid">header 3</span>
+- <span style="white-space: pre">header 1</span>                                       |<span style="white-space: pre">header 2</span>                                       |<span style="border:thin solid"><span style="white-space: pre">header 3</span></span>
   -----------------------------------------------|-----------------------------------------------|-----------------------------------------------
-  cell 1.1                                       |<span style="border:thin solid">cell 1.2</span>|cell 1.3
-  <span style="border:thin solid">cell 2.1</span>|cell 2.2                                       |cell 2.3
+  <span style="white-space: pre">cell 1.1</span>                                       |<span style="border:thin solid"><span style="white-space: pre">cell 1.2</span></span>|<span style="white-space: pre">cell 1.3</span>
+  <span style="border:thin solid"><span style="white-space: pre">cell 2.1</span></span>|<span style="white-space: pre">cell 2.2</span>                                       |<span style="white-space: pre">cell 2.3</span>
 - <div style="border:thin solid">
   
-  header 1                                       |header 2                                       |<span style="border:thin solid">header 3</span>
+  <span style="white-space: pre">header 1</span>                                       |<span style="white-space: pre">header 2</span>                                       |<span style="border:thin solid"><span style="white-space: pre">header 3</span></span>
   -----------------------------------------------|-----------------------------------------------|-----------------------------------------------
-  cell 1.1                                       |<span style="border:thin solid">cell 1.2</span>|cell 1.3
-  <span style="border:thin solid">cell 2.1</span>|cell 2.2                                       |cell 2.3
+  <span style="white-space: pre">cell 1.1</span>                                       |<span style="border:thin solid"><span style="white-space: pre">cell 1.2</span></span>|<span style="white-space: pre">cell 1.3</span>
+  <span style="border:thin solid"><span style="white-space: pre">cell 2.1</span></span>|<span style="white-space: pre">cell 2.2</span>                                       |<span style="white-space: pre">cell 2.3</span>
   </div>
 
 Test foldable:
@@ -250,64 +250,64 @@ Test foldable:
 </details>
 
 Test uniform tab=2, text tables:
-<details><summary><span style="border:thin solid">root</span></summary>
+<details><summary><span style="border:thin solid"><span style="white-space: pre">root</span></span></summary>
 
-- <span style="border:thin solid">child 1</span>
-- <span style="font-family: monospace">child 2</span>
-- line 1<br>
-  line 2<br>
-  line 3
-- a row 1<br>
-  a row 2.1<br>
-  a row 2.2<br>
-  a row 3
+- <span style="border:thin solid"><span style="white-space: pre">child 1</span></span>
+- <span style="font-family: monospace;white-space: pre">child 2</span>
+- <div style="white-space: pre">line 1
+  line 2
+  line 3</div>
+- <span style="white-space: pre">a row 1</span><br>
+  <div style="white-space: pre">a row 2.1
+  a row 2.2</div><br>
+  <span style="white-space: pre">a row 3</span>
 - <div style="border-bottom:thin solid">
-  b row 1</div>
+  <span style="white-space: pre">b row 1</span></div>
   <div style="border-bottom:thin solid">
-  b row 2.1<br>
-  b row 2.2</div>
-  b row 3
+  <div style="white-space: pre">b row 2.1
+  b row 2.2</div></div>
+  <span style="white-space: pre">b row 3</span>
 - <div style="border:thin solid">
   
   <div style="border-bottom:thin solid">
-  c row 1</div>
+  <span style="white-space: pre">c row 1</span></div>
   <div style="border-bottom:thin solid">
-  c row 2.1<br>
-  c row 2.2</div>
-  c row 3
+  <div style="white-space: pre">c row 2.1
+  c row 2.2</div></div>
+  <span style="white-space: pre">c row 3</span>
   </div>
 - <div style="border:thin solid">
   
   <details><summary></summary>
   
-  - <details><summary><span style="border:thin solid">header 3</span></summary>
+  - <details><summary><span style="border:thin solid"><span style="white-space: pre">header 3</span></span></summary>
     
-    - <span style="border:thin solid">subchild 3</span>
+    - <span style="border:thin solid"><span style="white-space: pre">subchild 3</span></span>
     </details>
   </details>
   </div>
 - <details><summary></summary>
   
-  - <details><summary><span style="border:thin solid">header 4</span></summary>
+  - <details><summary><span style="border:thin solid"><span style="white-space: pre">header 4</span></span></summary>
     
-    - <details><summary>&lt;returns&gt;</summary>
+    - <details><summary><span style="white-space: pre">&lt;returns&gt;</span></summary>
       
-      - <span style="font-family: monospace">\<nothing\></span>
+      - <span style="font-family: monospace;white-space: pre">\<nothing\></span>
       </details>
-    - & \*\*subchild\*\* 4
+    - <span style="white-space: pre">& \*\*subchild\*\* 4</span>
     </details>
   </details>
 - <div style="border:thin solid">
   
-  <details><summary><span style="font-family: monospace">header 5</span></summary>
+  <details><summary><span style="font-family: monospace;white-space: pre">header 5</span></summary>
   
   - <div style="font-family: monospace">
-    subchild 5<br>
-     &nbsp;body 5<br>
-     &nbsp;  subbody 5<br>
-     one tab end of sub 5<br>
+    <div style="white-space: pre">subchild 5
+     &nbsp;body 5
+     &nbsp;  subbody 5
+     one tab end of sub 5
     end of 5
-    </div>
+    </div></div>
   </details>
   </div>
 - <div style="border:thin solid">
@@ -315,87 +315,87 @@ Test uniform tab=2, text tables:
   <div style="border:thin solid">
   
   <div style="font-family: monospace">
-  a &nbsp;  │looooooooooooooooooooooooo<br>
-   &nbsp;  &nbsp;│oonng<br>
-  ─────┼──────────────────────────<br>
-  bx &nbsp; │ &nbsp;  &nbsp;  &nbsp;  ┌─┬─┐<br>
-   &nbsp;  &nbsp;│ &nbsp;  &nbsp;  &nbsp;  │x│y│<br>
-   &nbsp;  &nbsp;│ &nbsp;  &nbsp;  &nbsp;  ├─┼─┤<br>
-   &nbsp;  &nbsp;│ &nbsp;  &nbsp;  &nbsp;  │1│2│<br>
-   &nbsp;  &nbsp;│ &nbsp;  &nbsp;  &nbsp;  └─┴─┘<br>
-  ─────┼──────────────────────────<br>
-   &nbsp;  &nbsp;│<br>
-   &nbsp;  &nbsp;│ &nbsp;  &nbsp;  &nbsp;  x │y<br>
-   &nbsp;? &nbsp;│ &nbsp;  &nbsp;  &nbsp;  ──┼──<br>
-   &nbsp;  &nbsp;│ &nbsp;  &nbsp;  &nbsp;  10│20<br>
+  <div style="white-space: pre">a &nbsp;  │looooooooooooooooooooooooo
+   &nbsp;  &nbsp;│oonng
+  ─────┼──────────────────────────
+  bx &nbsp; │ &nbsp;  &nbsp;  &nbsp;  ┌─┬─┐
+   &nbsp;  &nbsp;│ &nbsp;  &nbsp;  &nbsp;  │x│y│
+   &nbsp;  &nbsp;│ &nbsp;  &nbsp;  &nbsp;  ├─┼─┤
+   &nbsp;  &nbsp;│ &nbsp;  &nbsp;  &nbsp;  │1│2│
+   &nbsp;  &nbsp;│ &nbsp;  &nbsp;  &nbsp;  └─┴─┘
+  ─────┼──────────────────────────
    &nbsp;  &nbsp;│
+   &nbsp;  &nbsp;│ &nbsp;  &nbsp;  &nbsp;  x │y
+   &nbsp;? &nbsp;│ &nbsp;  &nbsp;  &nbsp;  ──┼──
+   &nbsp;  &nbsp;│ &nbsp;  &nbsp;  &nbsp;  10│20
+   &nbsp;  &nbsp;│
+  </div></div>
   </div>
   </div>
-  </div>
-- header 1                                       |header 2                                       |<span style="border:thin solid">header 3</span>
+- <span style="white-space: pre">header 1</span>                                       |<span style="white-space: pre">header 2</span>                                       |<span style="border:thin solid"><span style="white-space: pre">header 3</span></span>
   -----------------------------------------------|-----------------------------------------------|-----------------------------------------------
-  cell 1.1                                       |<span style="border:thin solid">cell 1.2</span>|cell 1.3
-  <span style="border:thin solid">cell 2.1</span>|cell 2.2                                       |cell 2.3
+  <span style="white-space: pre">cell 1.1</span>                                       |<span style="border:thin solid"><span style="white-space: pre">cell 1.2</span></span>|<span style="white-space: pre">cell 1.3</span>
+  <span style="border:thin solid"><span style="white-space: pre">cell 2.1</span></span>|<span style="white-space: pre">cell 2.2</span>                                       |<span style="white-space: pre">cell 2.3</span>
 - <div style="border:thin solid">
   
-  header 1                                       |header 2                                       |<span style="border:thin solid">header 3</span>
+  <span style="white-space: pre">header 1</span>                                       |<span style="white-space: pre">header 2</span>                                       |<span style="border:thin solid"><span style="white-space: pre">header 3</span></span>
   -----------------------------------------------|-----------------------------------------------|-----------------------------------------------
-  cell 1.1                                       |<span style="border:thin solid">cell 1.2</span>|cell 1.3
-  <span style="border:thin solid">cell 2.1</span>|cell 2.2                                       |cell 2.3
+  <span style="white-space: pre">cell 1.1</span>                                       |<span style="border:thin solid"><span style="white-space: pre">cell 1.2</span></span>|<span style="white-space: pre">cell 1.3</span>
+  <span style="border:thin solid"><span style="white-space: pre">cell 2.1</span></span>|<span style="white-space: pre">cell 2.2</span>                                       |<span style="white-space: pre">cell 2.3</span>
   </div>
 </details>
 
 Test single quote tab=2, text tables:
-<details><summary><span style="border:thin solid">root</span></summary>
+<details><summary><span style="border:thin solid"><span style="white-space: pre">root</span></span></summary>
 
-- <span style="border:thin solid">child 1</span>
-- <span style="font-family: monospace">child 2</span>
-- line 1<br>
-  line 2<br>
-  line 3
-- a row 1<br>
-  a row 2.1<br>
-  a row 2.2<br>
-  a row 3
+- <span style="border:thin solid"><span style="white-space: pre">child 1</span></span>
+- <span style="font-family: monospace;white-space: pre">child 2</span>
+- <div style="white-space: pre">line 1
+  line 2
+  line 3</div>
+- <span style="white-space: pre">a row 1</span><br>
+  <div style="white-space: pre">a row 2.1
+  a row 2.2</div><br>
+  <span style="white-space: pre">a row 3</span>
 - <div style="border-bottom:thin solid">
-  b row 1</div>
+  <span style="white-space: pre">b row 1</span></div>
   <div style="border-bottom:thin solid">
-  b row 2.1<br>
-  b row 2.2</div>
-  b row 3
+  <div style="white-space: pre">b row 2.1
+  b row 2.2</div></div>
+  <span style="white-space: pre">b row 3</span>
 - <div style="border:thin solid">
   
   <div style="border-bottom:thin solid">
-  c row 1</div>
+  <span style="white-space: pre">c row 1</span></div>
   <div style="border-bottom:thin solid">
-  c row 2.1<br>
-  c row 2.2</div>
-  c row 3
+  <div style="white-space: pre">c row 2.1
+  c row 2.2</div></div>
+  <span style="white-space: pre">c row 3</span>
   </div>
 - <div style="border:thin solid">
   
   <details><summary></summary>
   
-  - <details><summary><span style="border:thin solid">header 3</span></summary>
+  - <details><summary><span style="border:thin solid"><span style="white-space: pre">header 3</span></span></summary>
     
-    - <span style="border:thin solid">subchild 3</span>
+    - <span style="border:thin solid"><span style="white-space: pre">subchild 3</span></span>
     </details>
   </details>
   </div>
 - <details><summary></summary>
   
-  - <details><summary><span style="border:thin solid">header 4</span></summary>
+  - <details><summary><span style="border:thin solid"><span style="white-space: pre">header 4</span></span></summary>
     
-    - <details><summary>&lt;returns&gt;</summary>
+    - <details><summary><span style="white-space: pre">&lt;returns&gt;</span></summary>
       
-      - <span style="font-family: monospace">\<nothing\></span>
+      - <span style="font-family: monospace;white-space: pre">\<nothing\></span>
       </details>
-    - & \*\*subchild\*\* 4
+    - <span style="white-space: pre">& \*\*subchild\*\* 4</span>
     </details>
   </details>
 - <div style="border:thin solid">
   
-  <details><summary><span style="font-family: monospace">header 5</span></summary>
+  <details><summary><span style="font-family: monospace;white-space: pre">header 5</span></summary>
   
   - `subchild 5`<br>
      `body 5`<br>
@@ -424,16 +424,16 @@ Test single quote tab=2, text tables:
    &nbsp; &nbsp;`│`
   </div>
   </div>
-- header 1                                       |header 2                                       |<span style="border:thin solid">header 3</span>
+- <span style="white-space: pre">header 1</span>                                       |<span style="white-space: pre">header 2</span>                                       |<span style="border:thin solid"><span style="white-space: pre">header 3</span></span>
   -----------------------------------------------|-----------------------------------------------|-----------------------------------------------
-  cell 1.1                                       |<span style="border:thin solid">cell 1.2</span>|cell 1.3
-  <span style="border:thin solid">cell 2.1</span>|cell 2.2                                       |cell 2.3
+  <span style="white-space: pre">cell 1.1</span>                                       |<span style="border:thin solid"><span style="white-space: pre">cell 1.2</span></span>|<span style="white-space: pre">cell 1.3</span>
+  <span style="border:thin solid"><span style="white-space: pre">cell 2.1</span></span>|<span style="white-space: pre">cell 2.2</span>                                       |<span style="white-space: pre">cell 2.3</span>
 - <div style="border:thin solid">
   
-  header 1                                       |header 2                                       |<span style="border:thin solid">header 3</span>
+  <span style="white-space: pre">header 1</span>                                       |<span style="white-space: pre">header 2</span>                                       |<span style="border:thin solid"><span style="white-space: pre">header 3</span></span>
   -----------------------------------------------|-----------------------------------------------|-----------------------------------------------
-  cell 1.1                                       |<span style="border:thin solid">cell 1.2</span>|cell 1.3
-  <span style="border:thin solid">cell 2.1</span>|cell 2.2                                       |cell 2.3
+  <span style="white-space: pre">cell 1.1</span>                                       |<span style="border:thin solid"><span style="white-space: pre">cell 1.2</span></span>|<span style="white-space: pre">cell 1.3</span>
+  <span style="border:thin solid"><span style="white-space: pre">cell 2.1</span></span>|<span style="white-space: pre">cell 2.2</span>                                       |<span style="white-space: pre">cell 2.3</span>
   </div>
 </details>
 
