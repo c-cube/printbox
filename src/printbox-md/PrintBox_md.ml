@@ -144,23 +144,33 @@ let rec multiline_heuristic b =
   | B.Text _ -> true
   | B.Frame b -> multiline_heuristic b
   | B.Pad (_, _) -> true
-  | B.Align _ -> false
-  | B.Grid (_, arr) -> Array.length arr > 1
+  | B.Align {inner; _} -> multiline_heuristic inner
+  | B.Grid (_, rows) ->
+    Array.length rows > 1 || Array.exists (Array.exists multiline_heuristic) rows
   | B.Tree (_, header, children) ->
     Array.length children > 0 || multiline_heuristic header
   | B.Link {inner; _} -> multiline_heuristic inner
 
-let rec line_of_length b =
+let rec line_of_length_exn b =
   match B.view b with
   | B.Empty | B.Text {l=[]; _} -> 0
   | B.Text {l=[s]; _} ->
     if String.contains s '\n' then raise Not_found else String.length s
   | B.Text _ -> raise Not_found
-  | B.Frame b -> line_of_length b + 39
-  | B.Pad (_, _) | B.Align _ | B.Grid _ -> raise Not_found
-  | B.Tree (_, header, [||]) -> line_of_length header
+  | B.Frame b -> line_of_length_exn b + 39
+  | B.Pad (_, _) -> raise Not_found
+  | B.Align {inner; _} -> line_of_length_exn inner
+  | B.Grid (_, [||]) | B.Grid (_, [|[||]|]) -> 0
+  | B.Grid (`None, [|row|]) ->
+    (* "&nbsp;" *)
+    (Array.length row - 1) * 6 + Array.fold_left (+) 0 (Array.map line_of_length_exn row)
+  | B.Grid (`Bars, [|row|]) ->
+    (* " | " *)
+    (Array.length row - 1) * 3 + Array.fold_left (+) 0 (Array.map line_of_length_exn row)
+  | B.Grid _ -> raise Not_found
+  | B.Tree (_, header, [||]) -> line_of_length_exn header
   | B.Tree _ -> raise Not_found
-  | B.Link {inner; uri} -> line_of_length inner + String.length uri + 4
+  | B.Link {inner; uri} -> line_of_length_exn inner + String.length uri + 4
 
 let is_native_table rows =
   let rec header h =
@@ -255,13 +265,13 @@ let pp c out b =
     | B.Grid (_, [||]) -> ()
     | B.Grid (bars, rows) when bars <> `None && is_native_table rows ->
       let lengths =
-        Array.fold_left (Array.map2 (fun len b -> max len @@ line_of_length b))
+        Array.fold_left (Array.map2 (fun len b -> max len @@ line_of_length_exn b))
           (Array.map (fun _ -> 0) rows.(0)) rows in
       let n_rows = Array.length rows and n_cols = Array.length rows.(0) in
       Array.iteri (fun i header ->
           loop ~in_span:true ~prefix:"" @@ remove_bold header;
           if i < n_rows - 1 then
-            let len = line_of_length header in
+            let len = line_of_length_exn header in
             fprintf out "%s|" (String.make (lengths.(i) - len) ' ')
         ) rows.(0);
       fprintf out "@,%s" prefix;
@@ -273,7 +283,7 @@ let pp c out b =
           if i > 0 then Array.iteri (fun j c ->
               loop ~in_span:true ~prefix:"" c;
               if j < n_cols - 1 then
-                let len = line_of_length c in
+                let len = line_of_length_exn c in
                 fprintf out "%s|" (String.make (lengths.(j) - len) ' ')
             ) row;
           if i < n_rows - 1 then fprintf out "@,%s" prefix;
