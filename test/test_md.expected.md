@@ -109,7 +109,7 @@ Test uniform unfolded:
     <div style="white-space: pre">subchild 5
      &nbsp;body 5
      &nbsp;  subbody 5
-     &nbsp; one tab end of sub 5
+     &nbsp; &nbsp;one tab end of sub 5
     end of 5
     </div></div>
   </div>
@@ -305,7 +305,7 @@ Test uniform tab=2, text tables:
     <div style="white-space: pre">subchild 5
      &nbsp;body 5
      &nbsp;  subbody 5
-     one tab end of sub 5
+     &nbsp;one tab end of sub 5
     end of 5
     </div></div>
   </details>
@@ -398,9 +398,9 @@ Test single quote tab=2, text tables:
   <details><summary><span style="font-family: monospace;white-space: pre">header 5</span></summary>
   
   - `subchild 5`<br>
-     `body 5`<br>
-     &nbsp; `subbody 5`<br>
-    &nbsp;`one tab end of sub 5`<br>
+    <span style="font-family: monospace">&nbsp;&nbsp;</span>`body 5`<br>
+    <span style="font-family: monospace">&nbsp;&nbsp;&nbsp;&nbsp;</span>`subbody 5`<br>
+    <span style="font-family: monospace">&nbsp;</span>`one tab end of sub 5`<br>
     `end of 5`
   </details>
   </div>
@@ -409,19 +409,19 @@ Test single quote tab=2, text tables:
   <div style="border:thin solid">
   
   `a    │looooooooooooooooooooooooo`<br>
-   &nbsp; &nbsp;`│oonng`<br>
+  <span style="font-family: monospace">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>`│oonng`<br>
   `─────┼──────────────────────────`<br>
   `bx   │          ┌─┬─┐`<br>
-   &nbsp; &nbsp;`│          │x│y│`<br>
-   &nbsp; &nbsp;`│          ├─┼─┤`<br>
-   &nbsp; &nbsp;`│          │1│2│`<br>
-   &nbsp; &nbsp;`│          └─┴─┘`<br>
+  <span style="font-family: monospace">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>`│          │x│y│`<br>
+  <span style="font-family: monospace">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>`│          ├─┼─┤`<br>
+  <span style="font-family: monospace">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>`│          │1│2│`<br>
+  <span style="font-family: monospace">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>`│          └─┴─┘`<br>
   `─────┼──────────────────────────`<br>
-   &nbsp; &nbsp;`│`<br>
-   &nbsp; &nbsp;`│          x │y`<br>
-   `?  │          ──┼──`<br>
-   &nbsp; &nbsp;`│          10│20`<br>
-   &nbsp; &nbsp;`│`
+  <span style="font-family: monospace">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>`│`<br>
+  <span style="font-family: monospace">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>`│          x │y`<br>
+  <span style="font-family: monospace">&nbsp;&nbsp;</span>`?  │          ──┼──`<br>
+  <span style="font-family: monospace">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>`│          10│20`<br>
+  <span style="font-family: monospace">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>`│`
   </div>
   </div>
 - <span style="white-space: pre">header 1</span>                                       |<span style="white-space: pre">header 2</span>                                       |<span style="border:thin solid"><span style="white-space: pre">header 3</span></span>

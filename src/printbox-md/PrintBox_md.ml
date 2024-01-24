@@ -114,8 +114,8 @@ let pp_string_escaped ~tab_width ~code_block ~code_quote ~html out s =
     let len = String.length s in
     let opt_char i = if i < len then Some s.[i] else None in
     let print_spaces n_spaces =
-      let halfsp = Array.to_list @@ Array.make (n_spaces / 2) " " in
-      let trailing = if n_spaces mod 2 = 1 then "&nbsp;" else "" in
+      let halfsp = Array.to_list @@ Array.make ((n_spaces + 1) / 2) " " in
+      let trailing = if n_spaces mod 2 = 0 then "&nbsp;" else "" in
       fprintf out "%s%s" (String.concat "&nbsp;" halfsp) trailing in
     let print_tab () = print_spaces tab_width in
     let print_next_chars =
@@ -149,7 +149,11 @@ let pp_string_escaped ~tab_width ~code_block ~code_quote ~html out s =
     if code_quote then
       let code = String.trim (s ^ "`") in
       let n_spaces = len - String.length code + 1 in
-      print_spaces n_spaces; fprintf out "`%s" code
+      if n_spaces > 0 then
+        let spaces = Array.to_list @@ Array.make n_spaces "&nbsp;" in
+        fprintf out {|<span style="font-family: monospace">%s</span>`%s|}
+          (String.concat "" spaces) code
+      else fprintf out "`%s" code
     else
       let i = ref 0 in
       while !i < len do i := !i + print_next_chars !i done
