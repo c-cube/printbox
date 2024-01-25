@@ -252,11 +252,12 @@ let pp c out b =
            if not code_block then pp_print_string out "<br>";
            fprintf out "@,%s" prefix)
         preformat out l;
-      if not inline && String.length sty_pre > 0 then fprintf out "@,%s" prefix;
+      (* if not inline && String.length sty_pre > 0 then fprintf out "@,%s" prefix; *)
       if code_block then fprintf out "@,%s```@,%s" prefix prefix;
-      pp_print_string out sty_post
+      pp_print_string out sty_post;
+      if not inline && String.length sty_post > 0 then fprintf out "@,%s@,%s" prefix prefix
     | B.Frame b ->
-      if c.Config.frames = `Stylized then
+      if c.Config.frames = `Stylized then (
         let inline = no_md || not (multiline_heuristic b) in
         let spec_pre, spec_post =
           if inline
@@ -265,8 +266,9 @@ let pp c out b =
         fprintf out {|%sborder:thin solid">|} spec_pre;
         if not inline then fprintf out "@,%s@,%s" prefix prefix;
         loop ~no_md ~prefix b;
-        if not inline then fprintf out "@,%s" prefix;
-        pp_print_string out spec_post
+        (* if not inline then fprintf out "@,%s" prefix; *)
+        pp_print_string out spec_post;
+        if not inline then fprintf out "@,%s@,%s" prefix prefix)
       else if no_md then
         (* E.g. in a first Markdown table cell, "> " would mess up rendering. *)
         fprintf out "[%a]" (fun _out -> loop ~no_md ~prefix:(prefix ^ " ")) b
@@ -316,12 +318,13 @@ let pp c out b =
               fprintf out "@,%s" prefix))
           rows
       | `Line_break ->
-        let br = if bars = `Bars then "</div>" else "<br>" in
         Array.iteri (fun i r ->
             if i < len - 1 && bars = `Bars
             then fprintf out {|<div style="border-bottom:thin solid">@,%s|} prefix;
             loop ~no_md ~prefix r.(0);
-            if i < len - 1 then fprintf out "%s@,%s" br prefix)
+            if i < len - 1 then (
+              if bars = `Bars then fprintf out "</div>@,%s@,%s" prefix prefix
+              else fprintf out "<br>@,%s" prefix))
           rows)
     | B.Grid (_, [||]) -> ()
     | B.Grid (bars, rows) when bars <> `None && is_native_table rows ->

@@ -57,14 +57,14 @@ Test default:
   > >      │
   > > ```
   > > 
-- header 1  |header 2  |[header 3]
+- header 1  |header 2  |> header 3
   ----------|----------|----------
-  cell 1.1  |[cell 1.2]|cell 1.3
-  [cell 2.1]|cell 2.2  |<b>cell 2.3</b>
-- > header 1  |header 2  |[header 3]
+  cell 1.1  |> cell 1.2|cell 1.3
+  > cell 2.1|cell 2.2  |**cell 2.3**
+- > header 1  |header 2  |> header 3
   > ----------|----------|----------
-  > cell 1.1  |[cell 1.2]|cell 1.3
-  > [cell 2.1]|cell 2.2  |<b>cell 2.3</b>
+  > cell 1.1  |> cell 1.2|cell 1.3
+  > > cell 2.1|cell 2.2  |**cell 2.3**
 
 Test uniform unfolded:
 
@@ -80,9 +80,11 @@ Test uniform unfolded:
   <span style="border:thin solid">a row 3</span>
 - <div style="border-bottom:thin solid">
   b row 1</div>
+  
   <div style="border-bottom:thin solid">
   b row 2.1<br>
   b row 2.2</div>
+  
   **b row 3**
 - **a longiiish column 1** &nbsp; a longiiish column 2 &nbsp; <span style="border:thin solid">a longiiish column 3</span> &nbsp; a longiiish column 4
 - <span style="border-right: thin solid">b longiiish column 1 </span> <span style="border-right: thin solid">**b longiiish column 2** </span> <span style="border-right: thin solid">b longiiish column 3 </span> <span style="border:thin solid">b longiiish column 4</span>
@@ -90,17 +92,21 @@ Test uniform unfolded:
   
   <div style="border-bottom:thin solid">
   c row 1</div>
+  
   <div style="border-bottom:thin solid">
   c row 2.1<br>
   c row 2.2</div>
-  c row 3
-  </div>
+  
+  c row 3</div>
+  
+  
 - <div style="border:thin solid">
   
   
   - <span style="border:thin solid">header 3</span>
-    - <span style="border:thin solid">subchild 3</span>
-  </div>
+    - <span style="border:thin solid">subchild 3</span></div>
+  
+  
 - 
   - <span style="border:thin solid">header 4</span>
     - \<returns\>
@@ -114,9 +120,11 @@ Test uniform unfolded:
     · body 5<br>
     · · subbody 5<br>
     · · one tab end of sub 5<br>
-    end of 5
+    end of 5</div>
+    
     </div>
-  </div>
+  
+  
 - <div style="border:thin solid">
   
   <div style="border:thin solid">
@@ -158,20 +166,23 @@ Test uniform unfolded:
      </td>
     </tr>
    </table>
+  </div></div>
+  
   </div>
-  </div>
-  </div>
+  
+  
 - header 1                                       |header 2                                       |<span style="border:thin solid">header 3</span>
   -----------------------------------------------|-----------------------------------------------|-----------------------------------------------
   cell 1.1                                       |<span style="border:thin solid">cell 1.2</span>|cell 1.3
-  <span style="border:thin solid">cell 2.1</span>|cell 2.2                                       |<b>cell 2.3</b>
+  <span style="border:thin solid">cell 2.1</span>|cell 2.2                                       |**cell 2.3**
 - <div style="border:thin solid">
   
   header 1                                       |header 2                                       |<span style="border:thin solid">header 3</span>
   -----------------------------------------------|-----------------------------------------------|-----------------------------------------------
   cell 1.1                                       |<span style="border:thin solid">cell 1.2</span>|cell 1.3
-  <span style="border:thin solid">cell 2.1</span>|cell 2.2                                       |<b>cell 2.3</b>
-  </div>
+  <span style="border:thin solid">cell 2.1</span>|cell 2.2                                       |**cell 2.3**</div>
+  
+  
 
 Test foldable:
 <details><summary>[root]</summary>
@@ -245,14 +256,14 @@ Test foldable:
   > >      │
   > > ```
   > > 
-- header 1  |header 2  |[header 3]
+- header 1  |header 2  |> header 3
   ----------|----------|----------
-  cell 1.1  |[cell 1.2]|cell 1.3
-  [cell 2.1]|cell 2.2  |<b>cell 2.3</b>
-- > header 1  |header 2  |[header 3]
+  cell 1.1  |> cell 1.2|cell 1.3
+  > cell 2.1|cell 2.2  |**cell 2.3**
+- > header 1  |header 2  |> header 3
   > ----------|----------|----------
-  > cell 1.1  |[cell 1.2]|cell 1.3
-  > [cell 2.1]|cell 2.2  |<b>cell 2.3</b>
+  > cell 1.1  |> cell 1.2|cell 1.3
+  > > cell 2.1|cell 2.2  |**cell 2.3**
 </details>
 
 Test uniform tab=2, text tables:
@@ -269,9 +280,11 @@ Test uniform tab=2, text tables:
   <span style="border:thin solid">a row 3</span>
 - <div style="border-bottom:thin solid">
   b row 1</div>
+  
   <div style="border-bottom:thin solid">
   b row 2.1<br>
   b row 2.2</div>
+  
   **b row 3**
 - **a longiiish column 1** &nbsp; a longiiish column 2 &nbsp; <span style="border:thin solid">a longiiish column 3</span> &nbsp; a longiiish column 4
 - <span style="border-right: thin solid">b longiiish column 1 </span> <span style="border-right: thin solid">**b longiiish column 2** </span> <span style="border-right: thin solid">b longiiish column 3 </span> <span style="border:thin solid">b longiiish column 4</span>
@@ -279,11 +292,14 @@ Test uniform tab=2, text tables:
   
   <div style="border-bottom:thin solid">
   c row 1</div>
+  
   <div style="border-bottom:thin solid">
   c row 2.1<br>
   c row 2.2</div>
-  c row 3
-  </div>
+  
+  c row 3</div>
+  
+  
 - <div style="border:thin solid">
   
   <details><summary></summary>
@@ -292,8 +308,9 @@ Test uniform tab=2, text tables:
     
     - <span style="border:thin solid">subchild 3</span>
     </details>
-  </details>
-  </div>
+  </details></div>
+  
+  
 - <details><summary></summary>
   
   - <details><summary><span style="border:thin solid">header 4</span></summary>
@@ -314,10 +331,12 @@ Test uniform tab=2, text tables:
     · body 5<br>
     · · subbody 5<br>
     · one tab end of sub 5<br>
-    end of 5
-    </div>
-  </details>
-  </div>
+    end of 5</div>
+    
+    
+  </details></div>
+  
+  
 - <div style="border:thin solid">
   
   <div style="border:thin solid">
@@ -336,21 +355,25 @@ Test uniform tab=2, text tables:
   · ·· │ · · · ·· x │y<br>
   · ?· │ · · · ·· ──┼──<br>
   · ·· │ · · · ·· 10│20<br>
-  · ·· │
+  · ·· │</div>
+  
   </div>
+  
   </div>
-  </div>
+  
+  
 - header 1                                       |header 2                                       |<span style="border:thin solid">header 3</span>
   -----------------------------------------------|-----------------------------------------------|-----------------------------------------------
   cell 1.1                                       |<span style="border:thin solid">cell 1.2</span>|cell 1.3
-  <span style="border:thin solid">cell 2.1</span>|cell 2.2                                       |<b>cell 2.3</b>
+  <span style="border:thin solid">cell 2.1</span>|cell 2.2                                       |**cell 2.3**
 - <div style="border:thin solid">
   
   header 1                                       |header 2                                       |<span style="border:thin solid">header 3</span>
   -----------------------------------------------|-----------------------------------------------|-----------------------------------------------
   cell 1.1                                       |<span style="border:thin solid">cell 1.2</span>|cell 1.3
-  <span style="border:thin solid">cell 2.1</span>|cell 2.2                                       |<b>cell 2.3</b>
-  </div>
+  <span style="border:thin solid">cell 2.1</span>|cell 2.2                                       |**cell 2.3**</div>
+  
+  
 </details>
 
 Test single quote tab=2, text tables:
@@ -367,9 +390,11 @@ Test single quote tab=2, text tables:
   <span style="border:thin solid">a row 3</span>
 - <div style="border-bottom:thin solid">
   b row 1</div>
+  
   <div style="border-bottom:thin solid">
   b row 2.1<br>
   b row 2.2</div>
+  
   **b row 3**
 - **a longiiish column 1** &nbsp; a longiiish column 2 &nbsp; <span style="border:thin solid">a longiiish column 3</span> &nbsp; a longiiish column 4
 - <span style="border-right: thin solid">b longiiish column 1 </span> <span style="border-right: thin solid">**b longiiish column 2** </span> <span style="border-right: thin solid">b longiiish column 3 </span> <span style="border:thin solid">b longiiish column 4</span>
@@ -377,11 +402,14 @@ Test single quote tab=2, text tables:
   
   <div style="border-bottom:thin solid">
   c row 1</div>
+  
   <div style="border-bottom:thin solid">
   c row 2.1<br>
   c row 2.2</div>
-  c row 3
-  </div>
+  
+  c row 3</div>
+  
+  
 - <div style="border:thin solid">
   
   <details><summary></summary>
@@ -390,8 +418,9 @@ Test single quote tab=2, text tables:
     
     - <span style="border:thin solid">subchild 3</span>
     </details>
-  </details>
-  </div>
+  </details></div>
+  
+  
 - <details><summary></summary>
   
   - <details><summary><span style="border:thin solid">header 4</span></summary>
@@ -412,8 +441,9 @@ Test single quote tab=2, text tables:
     `· · subbody 5`<br>
     `· one tab end of sub 5`<br>
     `end of 5`
-  </details>
-  </div>
+  </details></div>
+  
+  
 - <div style="border:thin solid">
   
   <div style="border:thin solid">
@@ -431,20 +461,23 @@ Test single quote tab=2, text tables:
   `· ·· │ · · · ·· x │y`<br>
   `· ?· │ · · · ·· ──┼──`<br>
   `· ·· │ · · · ·· 10│20`<br>
-  `· ·· │`
+  `· ·· │`</div>
+  
   </div>
-  </div>
+  
+  
 - header 1                                       |header 2                                       |<span style="border:thin solid">header 3</span>
   -----------------------------------------------|-----------------------------------------------|-----------------------------------------------
   cell 1.1                                       |<span style="border:thin solid">cell 1.2</span>|cell 1.3
-  <span style="border:thin solid">cell 2.1</span>|cell 2.2                                       |<b>cell 2.3</b>
+  <span style="border:thin solid">cell 2.1</span>|cell 2.2                                       |**cell 2.3**
 - <div style="border:thin solid">
   
   header 1                                       |header 2                                       |<span style="border:thin solid">header 3</span>
   -----------------------------------------------|-----------------------------------------------|-----------------------------------------------
   cell 1.1                                       |<span style="border:thin solid">cell 1.2</span>|cell 1.3
-  <span style="border:thin solid">cell 2.1</span>|cell 2.2                                       |<b>cell 2.3</b>
-  </div>
+  <span style="border:thin solid">cell 2.1</span>|cell 2.2                                       |**cell 2.3**</div>
+  
+  
 </details>
 
 The end.
