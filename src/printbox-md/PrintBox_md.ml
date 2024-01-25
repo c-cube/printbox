@@ -112,39 +112,41 @@ let pp_string_escaped ~tab_width ~code_block ~code_quote ~html out s =
         let halfsp = Array.to_list @@ Array.make ((n_spaces + 1) / 2) " " in
         let trailing = if n_spaces mod 2 = 0 then nbsp else "" in
         fprintf out "%s%s" (String.concat nbsp halfsp) trailing in
-    let print_tab () = print_spaces "&nbsp;" tab_width in
+    let print_next_spaces i =
+      match opt_char i, opt_char (i+1), opt_char (i+2) with
+      | Some ' ', Some ' ', Some ' ' when i = 0 -> pp_print_string out "·"; 1
+      | Some ' ', Some ' ', Some ' ' -> pp_print_string out " ·"; 2
+      | Some ' ', Some ' ', _ -> pp_print_string out "· "; 2
+      | Some '\t', Some ' ', _ when i = 0 && tab_width mod 2 = 0 ->
+        pp_print_string out "·"; print_spaces "·" tab_width; 2
+      | Some '\t', Some '\t', Some ' ' when i = 0 && tab_width mod 2 = 0 ->
+        pp_print_string out "·"; print_spaces "·" (tab_width - 1);
+        pp_print_string out "·"; print_spaces "·" tab_width; 2
+      | Some '\t', _, _ when i = 0 ->
+        pp_print_string out "·"; print_spaces "·" (tab_width - 1); 1
+      | Some '\t', Some ' ', _ when tab_width mod 2 = 1 ->
+        print_spaces "·" (tab_width + 1); 2
+      | Some '\t', Some '\t', _ when tab_width mod 2 = 1 ->
+        print_spaces "·" (2 * tab_width); 2
+      | Some '\t', _, _ -> print_spaces "·" tab_width; 1
+      | Some ' ', _, _ -> pp_print_string out " "; 1
+      | _ -> assert false in
     let print_next_chars =
       if html then
         fun i ->
-          match opt_char i, opt_char (i+1), opt_char (i+2) with
-          | Some '<', _, _ -> pp_print_string out "&lt;"; 1
-          | Some '>', _, _ -> pp_print_string out "&gt;"; 1
-          | Some '&', _, _ -> pp_print_string out "&amp;"; 1
-          | Some '\t', _, _ -> print_tab (); 1
-          | Some ' ', Some ' ', Some ' ' -> pp_print_string out " &nbsp;"; 2
-          | Some ' ', Some ' ', _ -> pp_print_string out "&nbsp; "; 2
-          | Some c, _, _ -> pp_print_char out c; 1
-          | _ -> len
+          match opt_char i with
+          | Some '<' -> pp_print_string out "&lt;"; 1
+          | Some '>' -> pp_print_string out "&gt;"; 1
+          | Some '&' -> pp_print_string out "&amp;"; 1
+          | Some '\t' | Some ' ' -> print_next_spaces i
+          | Some c -> pp_print_char out c; 1
+          | None -> len
       else if code_quote then
         fun i ->
-          match opt_char i, opt_char (i+1), opt_char (i+2) with
-          | Some ' ', Some ' ', Some ' ' when i = 0 -> pp_print_string out "·"; 1
-          | Some ' ', Some ' ', Some ' ' -> pp_print_string out " ·"; 2
-          | Some ' ', Some ' ', _ -> pp_print_string out "· "; 2
-          | Some '\t', Some ' ', _ when i = 0 && tab_width mod 2 = 0 ->
-            pp_print_string out "·"; print_spaces "·" tab_width; 2
-          | Some '\t', Some '\t', Some ' ' when i = 0 && tab_width mod 2 = 0 ->
-            pp_print_string out "·"; print_spaces "·" (tab_width - 1);
-            pp_print_string out "·"; print_spaces "·" tab_width; 2
-          | Some '\t', _, _ when i = 0 ->
-            pp_print_string out "·"; print_spaces "·" (tab_width - 1); 1
-          | Some '\t', Some ' ', _ when tab_width mod 2 = 1 ->
-            print_spaces "·" (tab_width + 1); 2
-          | Some '\t', Some '\t', _ when tab_width mod 2 = 1 ->
-            print_spaces "·" (2 * tab_width); 2
-          | Some '\t', _, _ -> print_spaces "·" tab_width; 1
-          | Some c, _, _ -> pp_print_char out c; 1
-          | _ -> len  
+          match opt_char i with
+          | Some '\t' | Some ' ' -> print_next_spaces i
+          | Some c -> pp_print_char out c; 1
+          | None -> len  
       else
         fun i ->
           match opt_char i, opt_char (i+1), opt_char (i+2) with
@@ -155,9 +157,7 @@ let pp_string_escaped ~tab_width ~code_block ~code_quote ~html out s =
           | Some ' ', Some '_', Some ' ' -> pp_print_string out " _ "; 3
           | Some c1, Some '_', Some c2 when c1 <> ' ' && c2 <> ' ' -> fprintf out "%c_%c" c1 c2; 3
           | Some '_', _, _ -> pp_print_string out "\\_"; 1
-          | Some '\t', _, _ -> print_tab (); 1
-          | Some ' ', Some ' ', Some ' ' -> pp_print_string out " &nbsp;"; 2
-          | Some ' ', Some ' ', _ -> pp_print_string out "&nbsp; "; 2
+          | Some '\t', _, _ | Some ' ', _, _ -> print_next_spaces i
           | Some c, _, _ -> pp_print_char out c; 1
           | _ -> len
     in
