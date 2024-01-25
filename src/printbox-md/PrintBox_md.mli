@@ -26,8 +26,6 @@ module Config : sig
   
   val text_tables : t -> t
   (** Output tables via {!PrintBox_text}. Already the case for the {!default} config. *)
-
-  val non_preformatted : [`Minimal | `Stylized] -> t -> t
   
   val vlists : [`Line_break | `List | `As_table] -> t -> t
   (** How to output {!PrintBox.vlist} boxes, i.e. single-column grids.
@@ -40,11 +38,10 @@ module Config : sig
   val hlists : [`Minimal | `Stylized | `As_table] -> t -> t
   (** How to output {!PrintBox.hlist} boxes, i.e. single-row grids, curently only if they fit
       in one line.
-      - [`Minimal] uses spaces and a horizontal bar ["|"] to separate columns.
-        If {!Config.non_preformatted} is [`Stylized], it also uses the ["white-space: pre"] style
-        to prevent line breaks. It is set in the {!default} config.
-      - [`Stylized] uses ["white-space: pre"] style to prevent line breaks, and instead of ["|"]
-        it uses the border style to provide grid bars. It is set in the {!uniform} config.
+      - [`Minimal] uses spaces and a horizontal bar [" | "] to separate columns.
+        It is set in the {!default} config.
+      - [`Stylized] instead of ["|"] uses the border style to provide grid bars.
+        It is set in the {!uniform} config.
       - [`As_table] falls back to the general table printing mechanism. *)
   
   val foldable_trees : t -> t

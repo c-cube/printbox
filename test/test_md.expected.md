@@ -68,56 +68,54 @@ Test default:
 
 Test uniform unfolded:
 
-<span style="border:thin solid"><span style="white-space: pre">root</span></span>
-- <span style="border:thin solid"><span style="white-space: pre">child 1</span></span>
-- <span style="font-family: monospace;white-space: pre">child 2</span>
-- <span style="white-space: pre">line 1
-  line 2
-  line 3</span>
-- <span style="white-space: pre">a row 1</span><br>
-  <span style="white-space: pre">a row 2.1
-  a row 2.2</span><br>
-  <span style="border:thin solid"><span style="white-space: pre">a row 3</span></span>
+<span style="border:thin solid">root</span>
+- <span style="border:thin solid">child 1</span>
+- <span style="font-family: monospace">child 2</span>
+- line 1<br>
+  line 2<br>
+  line 3
+- a row 1<br>
+  a row 2.1<br>
+  a row 2.2<br>
+  <span style="border:thin solid">a row 3</span>
 - <div style="border-bottom:thin solid">
-  <span style="white-space: pre">b row 1</span></div>
+  b row 1</div>
   <div style="border-bottom:thin solid">
-  <span style="white-space: pre">b row 2.1
-  b row 2.2</span></div>
-  **<span style="white-space: pre">b row 3</span>**
-- <div style="white-space: pre">**a longiiish column 1** &nbsp; a longiiish column 2 &nbsp; <span style="border:thin solid">a longiiish column 3</span> &nbsp; a longiiish column 4
-  </div>
-- <div style="white-space: pre"><span style="border-right: thin solid">b longiiish column 1 </span> <span style="border-right: thin solid">**b longiiish column 2** </span> <span style="border-right: thin solid">b longiiish column 3 </span> <span style="border:thin solid">b longiiish column 4</span>
-  </div>
+  b row 2.1<br>
+  b row 2.2</div>
+  **b row 3**
+- **a longiiish column 1** &nbsp; a longiiish column 2 &nbsp; <span style="border:thin solid">a longiiish column 3</span> &nbsp; a longiiish column 4
+- <span style="border-right: thin solid">b longiiish column 1 </span> <span style="border-right: thin solid">**b longiiish column 2** </span> <span style="border-right: thin solid">b longiiish column 3 </span> <span style="border:thin solid">b longiiish column 4</span>
 - <div style="border:thin solid">
   
   <div style="border-bottom:thin solid">
-  <span style="white-space: pre">c row 1</span></div>
+  c row 1</div>
   <div style="border-bottom:thin solid">
-  <span style="white-space: pre">c row 2.1
-  c row 2.2</span></div>
-  <span style="white-space: pre">c row 3</span>
+  c row 2.1<br>
+  c row 2.2</div>
+  c row 3
   </div>
 - <div style="border:thin solid">
   
   
-  - <span style="border:thin solid"><span style="white-space: pre">header 3</span></span>
-    - <span style="border:thin solid"><span style="white-space: pre">subchild 3</span></span>
+  - <span style="border:thin solid">header 3</span>
+    - <span style="border:thin solid">subchild 3</span>
   </div>
 - 
-  - <span style="border:thin solid"><span style="white-space: pre">header 4</span></span>
-    - <span style="white-space: pre">\<returns\></span>
-      - <span style="font-family: monospace;white-space: pre">\<nothing\></span>
-    - <span style="white-space: pre">& \*\*subchild\*\* 4</span>
+  - <span style="border:thin solid">header 4</span>
+    - \<returns\>
+      - <span style="font-family: monospace">\<nothing\></span>
+    - & \*\*subchild\*\* 4
 - <div style="border:thin solid">
   
-  <span style="font-family: monospace;white-space: pre">header 5</span>
+  <span style="font-family: monospace">header 5</span>
   - <div style="font-family: monospace">
-    <span style="white-space: pre">subchild 5
-    &nbsp; body 5
-     &nbsp;&nbsp; subbody 5
-     &nbsp; &nbsp;one tab end of sub 5
+    subchild 5<br>
+    &nbsp; body 5<br>
+     &nbsp;&nbsp; subbody 5<br>
+     &nbsp; &nbsp;one tab end of sub 5<br>
     end of 5
-    </span></div>
+    </div>
   </div>
 - <div style="border:thin solid">
   
@@ -258,68 +256,66 @@ Test foldable:
 </details>
 
 Test uniform tab=2, text tables:
-<details><summary><span style="border:thin solid"><span style="white-space: pre">root</span></span></summary>
+<details><summary><span style="border:thin solid">root</span></summary>
 
-- <span style="border:thin solid"><span style="white-space: pre">child 1</span></span>
-- <span style="font-family: monospace;white-space: pre">child 2</span>
-- <span style="white-space: pre">line 1
-  line 2
-  line 3</span>
-- <span style="white-space: pre">a row 1</span><br>
-  <span style="white-space: pre">a row 2.1
-  a row 2.2</span><br>
-  <span style="border:thin solid"><span style="white-space: pre">a row 3</span></span>
+- <span style="border:thin solid">child 1</span>
+- <span style="font-family: monospace">child 2</span>
+- line 1<br>
+  line 2<br>
+  line 3
+- a row 1<br>
+  a row 2.1<br>
+  a row 2.2<br>
+  <span style="border:thin solid">a row 3</span>
 - <div style="border-bottom:thin solid">
-  <span style="white-space: pre">b row 1</span></div>
+  b row 1</div>
   <div style="border-bottom:thin solid">
-  <span style="white-space: pre">b row 2.1
-  b row 2.2</span></div>
-  **<span style="white-space: pre">b row 3</span>**
-- <div style="white-space: pre">**a longiiish column 1** &nbsp; a longiiish column 2 &nbsp; <span style="border:thin solid">a longiiish column 3</span> &nbsp; a longiiish column 4
-  </div>
-- <div style="white-space: pre"><span style="border-right: thin solid">b longiiish column 1 </span> <span style="border-right: thin solid">**b longiiish column 2** </span> <span style="border-right: thin solid">b longiiish column 3 </span> <span style="border:thin solid">b longiiish column 4</span>
-  </div>
+  b row 2.1<br>
+  b row 2.2</div>
+  **b row 3**
+- **a longiiish column 1** &nbsp; a longiiish column 2 &nbsp; <span style="border:thin solid">a longiiish column 3</span> &nbsp; a longiiish column 4
+- <span style="border-right: thin solid">b longiiish column 1 </span> <span style="border-right: thin solid">**b longiiish column 2** </span> <span style="border-right: thin solid">b longiiish column 3 </span> <span style="border:thin solid">b longiiish column 4</span>
 - <div style="border:thin solid">
   
   <div style="border-bottom:thin solid">
-  <span style="white-space: pre">c row 1</span></div>
+  c row 1</div>
   <div style="border-bottom:thin solid">
-  <span style="white-space: pre">c row 2.1
-  c row 2.2</span></div>
-  <span style="white-space: pre">c row 3</span>
+  c row 2.1<br>
+  c row 2.2</div>
+  c row 3
   </div>
 - <div style="border:thin solid">
   
   <details><summary></summary>
   
-  - <details><summary><span style="border:thin solid"><span style="white-space: pre">header 3</span></span></summary>
+  - <details><summary><span style="border:thin solid">header 3</span></summary>
     
-    - <span style="border:thin solid"><span style="white-space: pre">subchild 3</span></span>
+    - <span style="border:thin solid">subchild 3</span>
     </details>
   </details>
   </div>
 - <details><summary></summary>
   
-  - <details><summary><span style="border:thin solid"><span style="white-space: pre">header 4</span></span></summary>
+  - <details><summary><span style="border:thin solid">header 4</span></summary>
     
-    - <details><summary><span style="white-space: pre">&lt;returns&gt;</span></summary>
+    - <details><summary>&lt;returns&gt;</summary>
       
-      - <span style="font-family: monospace;white-space: pre">\<nothing\></span>
+      - <span style="font-family: monospace">\<nothing\></span>
       </details>
-    - <span style="white-space: pre">& \*\*subchild\*\* 4</span>
+    - & \*\*subchild\*\* 4
     </details>
   </details>
 - <div style="border:thin solid">
   
-  <details><summary><span style="font-family: monospace;white-space: pre">header 5</span></summary>
+  <details><summary><span style="font-family: monospace">header 5</span></summary>
   
   - <div style="font-family: monospace">
-    <span style="white-space: pre">subchild 5
-    &nbsp; body 5
-     &nbsp;&nbsp; subbody 5
-     &nbsp;one tab end of sub 5
+    subchild 5<br>
+    &nbsp; body 5<br>
+     &nbsp;&nbsp; subbody 5<br>
+     &nbsp;one tab end of sub 5<br>
     end of 5
-    </span></div>
+    </div>
   </details>
   </div>
 - <div style="border:thin solid">
@@ -327,21 +323,21 @@ Test uniform tab=2, text tables:
   <div style="border:thin solid">
   
   <div style="font-family: monospace">
-  <span style="white-space: pre">a &nbsp;&nbsp; │looooooooooooooooooooooooo
-   &nbsp; &nbsp; │oonng
-  ─────┼──────────────────────────
-  bx &nbsp; │ &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; ┌─┬─┐
-   &nbsp; &nbsp; │ &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; │x│y│
-   &nbsp; &nbsp; │ &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; ├─┼─┤
-   &nbsp; &nbsp; │ &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; │1│2│
-   &nbsp; &nbsp; │ &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; └─┴─┘
-  ─────┼──────────────────────────
+  a &nbsp;&nbsp; │looooooooooooooooooooooooo<br>
+   &nbsp; &nbsp; │oonng<br>
+  ─────┼──────────────────────────<br>
+  bx &nbsp; │ &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; ┌─┬─┐<br>
+   &nbsp; &nbsp; │ &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; │x│y│<br>
+   &nbsp; &nbsp; │ &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; ├─┼─┤<br>
+   &nbsp; &nbsp; │ &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; │1│2│<br>
+   &nbsp; &nbsp; │ &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; └─┴─┘<br>
+  ─────┼──────────────────────────<br>
+   &nbsp; &nbsp; │<br>
+   &nbsp; &nbsp; │ &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; x │y<br>
+  &nbsp; ?&nbsp; │ &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; ──┼──<br>
+   &nbsp; &nbsp; │ &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 10│20<br>
    &nbsp; &nbsp; │
-   &nbsp; &nbsp; │ &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; x │y
-  &nbsp; ?&nbsp; │ &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; ──┼──
-   &nbsp; &nbsp; │ &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 10│20
-   &nbsp; &nbsp; │
-  </span></div>
+  </div>
   </div>
   </div>
 - header 1                                       |header 2                                       |<span style="border:thin solid">header 3</span>
@@ -358,60 +354,58 @@ Test uniform tab=2, text tables:
 </details>
 
 Test single quote tab=2, text tables:
-<details><summary><span style="border:thin solid"><span style="white-space: pre">root</span></span></summary>
+<details><summary><span style="border:thin solid">root</span></summary>
 
-- <span style="border:thin solid"><span style="white-space: pre">child 1</span></span>
-- <span style="font-family: monospace;white-space: pre">child 2</span>
-- <span style="white-space: pre">line 1
-  line 2
-  line 3</span>
-- <span style="white-space: pre">a row 1</span><br>
-  <span style="white-space: pre">a row 2.1
-  a row 2.2</span><br>
-  <span style="border:thin solid"><span style="white-space: pre">a row 3</span></span>
+- <span style="border:thin solid">child 1</span>
+- <span style="font-family: monospace">child 2</span>
+- line 1<br>
+  line 2<br>
+  line 3
+- a row 1<br>
+  a row 2.1<br>
+  a row 2.2<br>
+  <span style="border:thin solid">a row 3</span>
 - <div style="border-bottom:thin solid">
-  <span style="white-space: pre">b row 1</span></div>
+  b row 1</div>
   <div style="border-bottom:thin solid">
-  <span style="white-space: pre">b row 2.1
-  b row 2.2</span></div>
-  **<span style="white-space: pre">b row 3</span>**
-- <div style="white-space: pre">**a longiiish column 1** &nbsp; a longiiish column 2 &nbsp; <span style="border:thin solid">a longiiish column 3</span> &nbsp; a longiiish column 4
-  </div>
-- <div style="white-space: pre"><span style="border-right: thin solid">b longiiish column 1 </span> <span style="border-right: thin solid">**b longiiish column 2** </span> <span style="border-right: thin solid">b longiiish column 3 </span> <span style="border:thin solid">b longiiish column 4</span>
-  </div>
+  b row 2.1<br>
+  b row 2.2</div>
+  **b row 3**
+- **a longiiish column 1** &nbsp; a longiiish column 2 &nbsp; <span style="border:thin solid">a longiiish column 3</span> &nbsp; a longiiish column 4
+- <span style="border-right: thin solid">b longiiish column 1 </span> <span style="border-right: thin solid">**b longiiish column 2** </span> <span style="border-right: thin solid">b longiiish column 3 </span> <span style="border:thin solid">b longiiish column 4</span>
 - <div style="border:thin solid">
   
   <div style="border-bottom:thin solid">
-  <span style="white-space: pre">c row 1</span></div>
+  c row 1</div>
   <div style="border-bottom:thin solid">
-  <span style="white-space: pre">c row 2.1
-  c row 2.2</span></div>
-  <span style="white-space: pre">c row 3</span>
+  c row 2.1<br>
+  c row 2.2</div>
+  c row 3
   </div>
 - <div style="border:thin solid">
   
   <details><summary></summary>
   
-  - <details><summary><span style="border:thin solid"><span style="white-space: pre">header 3</span></span></summary>
+  - <details><summary><span style="border:thin solid">header 3</span></summary>
     
-    - <span style="border:thin solid"><span style="white-space: pre">subchild 3</span></span>
+    - <span style="border:thin solid">subchild 3</span>
     </details>
   </details>
   </div>
 - <details><summary></summary>
   
-  - <details><summary><span style="border:thin solid"><span style="white-space: pre">header 4</span></span></summary>
+  - <details><summary><span style="border:thin solid">header 4</span></summary>
     
-    - <details><summary><span style="white-space: pre">&lt;returns&gt;</span></summary>
+    - <details><summary>&lt;returns&gt;</summary>
       
-      - <span style="font-family: monospace;white-space: pre">\<nothing\></span>
+      - <span style="font-family: monospace">\<nothing\></span>
       </details>
-    - <span style="white-space: pre">& \*\*subchild\*\* 4</span>
+    - & \*\*subchild\*\* 4
     </details>
   </details>
 - <div style="border:thin solid">
   
-  <details><summary><span style="font-family: monospace;white-space: pre">header 5</span></summary>
+  <details><summary><span style="font-family: monospace">header 5</span></summary>
   
   - `subchild 5`<br>
     `· body 5`<br>
