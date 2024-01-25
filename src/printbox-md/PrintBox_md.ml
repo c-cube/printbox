@@ -202,7 +202,7 @@ let rec line_of_length_heuristic_exn c b =
     (* "<span style="border:thin solid"></span>" *)
     line_of_length_heuristic_exn c b + 39
   | B.Frame b ->
-    (* "> " *)
+    (* "> " or "[]" *)
     line_of_length_heuristic_exn c b + 2
   | B.Pad (_, _) -> raise Not_found
   | B.Align {inner; _} -> line_of_length_heuristic_exn c inner
@@ -269,7 +269,7 @@ let pp c out b =
       if code_block then fprintf out "@,%s```@,%s" prefix prefix;
       pp_print_string out sty_post
     | B.Frame b ->
-      if no_md || c.Config.frames = `Stylized then
+      if c.Config.frames = `Stylized then
         let inline = no_md || not (multiline_heuristic b) in
         let spec_pre, spec_post =
           if inline
@@ -280,6 +280,9 @@ let pp c out b =
         loop ~no_md ~has_pre ~prefix b;
         if not inline then fprintf out "@,%s" prefix;
         pp_print_string out spec_post
+      else if no_md then
+        (* E.g. in a first Markdown table cell, "> " would mess up rendering. *)
+        fprintf out "[%a]" (fun _out -> loop ~no_md ~has_pre ~prefix:(prefix ^ " ")) b
       else fprintf out "> %a" (fun _out -> loop ~no_md ~has_pre ~prefix:(prefix ^ "> ")) b
     | B.Pad (_, b) -> 
       (* NOT IMPLEMENTED YET *)
