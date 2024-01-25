@@ -20,6 +20,12 @@ let b =
     lines ["line 1"; "line 2"; "line 3"];
     vlist ~bars:false [line "a row 1"; lines ["a row 2.1"; "a row 2.2"]; line "a row 3"];
     vlist ~bars:true [line "b row 1"; lines ["b row 2.1"; "b row 2.2"]; line "b row 3"];
+    hlist ~bars:false [
+      line "a longiiish column 1"; line "a longiiish column 2";
+      frame @@ line "a longiiish column 3"; line "a longiiish column 4"];
+    hlist ~bars:true [
+      line "b longiiish column 1"; line "b longiiish column 2";
+      line "b longiiish column 3"; frame @@ line "b longiiish column 4"];
     frame @@ vlist ~bars:true [
       line "c row 1"; lines ["c row 2.1"; "c row 2.2"]; line "c row 3"
     ];

@@ -7,6 +7,7 @@ module Config = struct
   type t = {
     tables: [`Text | `Html];
     vlists: [`Line_break | `List | `As_table];
+    hlists: [`Minimal | `Stylized | `As_table];
     foldable_trees: bool;
     multiline_preformatted: preformatted;
     one_line_preformatted: preformatted;
@@ -18,6 +19,7 @@ module Config = struct
   let default = {
     tables=`Text;
     vlists=`List;
+    hlists=`Minimal;
     foldable_trees=false;
     multiline_preformatted=Code_block;
     one_line_preformatted=Code_quote;
@@ -28,6 +30,7 @@ module Config = struct
   let uniform = {
     tables=`Html;
     vlists=`Line_break;
+    hlists=`Stylized;
     foldable_trees=true;
     multiline_preformatted=Stylized;
     one_line_preformatted=Stylized;
@@ -38,7 +41,9 @@ module Config = struct
 
   let html_tables c = {c with tables=`Html}
   let text_tables c = {c with tables=`Text}
+  let non_preformatted x c = {c with non_preformatted=x}
   let vlists x c = {c with vlists=x}
+  let hlists x c = {c with hlists=x}
   let foldable_trees c = {c with foldable_trees=true}
   let unfolded_trees c = {c with foldable_trees=false}
   let multiline_preformatted x c = {c with multiline_preformatted=x}
@@ -187,26 +192,33 @@ let rec multiline_heuristic b =
     Array.length children > 0 || multiline_heuristic header
   | B.Link {inner; _} -> multiline_heuristic inner
 
-let rec line_of_length_exn b =
+let rec line_of_length_heuristic_exn c b =
   match B.view b with
   | B.Empty | B.Text {l=[]; _} -> 0
   | B.Text {l=[s]; _} ->
     if String.contains s '\n' then raise Not_found else String.length s
   | B.Text _ -> raise Not_found
-  | B.Frame b -> line_of_length_exn b + 39
+  | B.Frame b when c.Config.frames = `Stylized ->
+    (* "<span style="border:thin solid"></span>" *)
+    line_of_length_heuristic_exn c b + 39
+  | B.Frame b ->
+    (* "> " *)
+    line_of_length_heuristic_exn c b + 2
   | B.Pad (_, _) -> raise Not_found
-  | B.Align {inner; _} -> line_of_length_exn inner
+  | B.Align {inner; _} -> line_of_length_heuristic_exn c inner
   | B.Grid (_, [||]) | B.Grid (_, [|[||]|]) -> 0
-  | B.Grid (`None, [|row|]) ->
-    (* "&nbsp;" *)
-    (Array.length row - 1) * 6 + Array.fold_left (+) 0 (Array.map line_of_length_exn row)
-  | B.Grid (`Bars, [|row|]) ->
+  | B.Grid (`None, [|row|]) when c.Config.hlists = `Minimal ->
+    (* " &nbsp; " *)
+    (Array.length row - 1) * 8 +
+    Array.fold_left (+) 0 (Array.map (line_of_length_heuristic_exn c) row)
+  | B.Grid (`Bars, [|row|]) when c.Config.hlists = `Minimal ->
     (* " | " *)
-    (Array.length row - 1) * 3 + Array.fold_left (+) 0 (Array.map line_of_length_exn row)
+    (Array.length row - 1) * 3 +
+    Array.fold_left (+) 0 (Array.map (line_of_length_heuristic_exn c) row)
   | B.Grid _ -> raise Not_found
-  | B.Tree (_, header, [||]) -> line_of_length_exn header
+  | B.Tree (_, header, [||]) -> line_of_length_heuristic_exn c header
   | B.Tree _ -> raise Not_found
-  | B.Link {inner; uri} -> line_of_length_exn inner + String.length uri + 4
+  | B.Link {inner; uri} -> line_of_length_heuristic_exn c inner + String.length uri + 4
 
 let is_native_table rows =
   let rec header h =
@@ -275,6 +287,38 @@ let pp c out b =
     | B.Align {h = _; v=_; inner} ->
       (* NOT IMPLEMENTED YET *)
       loop ~in_span ~prefix inner
+    | B.Grid (bars, [|row|])
+      when c.Config.hlists <> `As_table &&
+           Array.for_all (Fun.negate multiline_heuristic) row -> (
+      let len = Array.length row in
+      match c.Config.hlists, c.Config.non_preformatted with
+      | `As_table, _ -> assert false
+      | `Minimal, `Minimal ->
+        Array.iteri (fun i r ->
+            loop ~in_span ~prefix r;
+            if i < len - 1 then (
+              if bars = `Bars then fprintf out " | " else fprintf out " &nbsp; "))
+          row
+      | _, `Stylized | `Stylized, _ ->
+        let spec_pre, spec_post =
+          if in_span
+          then {|<span style="|}, "</span>"
+          else {|<div style="|}, "</div>" in
+        fprintf out {|%swhite-space: pre">|} spec_pre;
+        if not in_span then fprintf out "@,%s@,%s" prefix prefix;
+        Array.iteri (fun i r ->
+            if i < len - 1 && bars = `Bars && c.Config.hlists = `Stylized
+            then fprintf out {|<span style="border-right: thin solid">|};
+            loop ~in_span ~prefix r;
+            if i < len - 1 then (
+              if bars = `Bars && c.Config.hlists = `Stylized
+              then fprintf out "</span>"
+              else if bars = `Bars then fprintf out " | "
+              else fprintf out " &nbsp; "))
+          row;
+        if not in_span then fprintf out "@,%s" prefix;
+        pp_print_string out spec_post
+    )
     | B.Grid (bars, rows)
           when c.Config.vlists <> `As_table &&
                Array.for_all (fun row -> Array.length row = 1) rows -> (
@@ -300,13 +344,13 @@ let pp c out b =
     | B.Grid (_, [||]) -> ()
     | B.Grid (bars, rows) when bars <> `None && is_native_table rows ->
       let lengths =
-        Array.fold_left (Array.map2 (fun len b -> max len @@ line_of_length_exn b))
+        Array.fold_left (Array.map2 (fun len b -> max len @@ line_of_length_heuristic_exn c b))
           (Array.map (fun _ -> 0) rows.(0)) rows in
       let n_rows = Array.length rows and n_cols = Array.length rows.(0) in
       Array.iteri (fun i header ->
           loop ~in_span:true ~prefix:"" @@ remove_bold header;
           if i < n_rows - 1 then
-            let len = line_of_length_exn header in
+            let len = line_of_length_heuristic_exn c header in
             fprintf out "%s|" (String.make (lengths.(i) - len) ' ')
         ) rows.(0);
       fprintf out "@,%s" prefix;
@@ -315,10 +359,10 @@ let pp c out b =
           if j < n_cols - 1 then pp_print_char out '|'
         ) rows.(0);
       Array.iteri (fun i row ->
-          if i > 0 then Array.iteri (fun j c ->
-              loop ~in_span:true ~prefix:"" c;
+          if i > 0 then Array.iteri (fun j b ->
+              loop ~in_span:true ~prefix:"" b;
               if j < n_cols - 1 then
-                let len = line_of_length_exn c in
+                let len = line_of_length_heuristic_exn c b in
                 fprintf out "%s|" (String.make (lengths.(j) - len) ' ')
             ) row;
           if i < n_rows - 1 then fprintf out "@,%s" prefix;
