@@ -70,7 +70,7 @@ Test default:
   > cell 1.1  |[cell 1.2]|cell 1.3
   > [cell 2.1]|cell 2.2  |**cell 2.3**
 
-Test uniform unfolded:
+Test uniform unfolded (broken because of #34):
 
 <div><div style="border:thin solid"><span class="">root</span></div></div>
 
@@ -334,7 +334,7 @@ Test foldable:
   </details>
   
   
-- > <details><summary>`header 5`</summary>
+- > <details><summary><code>header 5</code></summary>
   > 
   > - 
   >   ```
@@ -381,13 +381,9 @@ Test foldable:
 
 
 Test uniform tab=2, text tables:
-<details><summary>
-```
-┌────┐
-│root│
-└────┘
-```
-</summary>
+<details><summary><code>┌────┐<br>
+│root│<br>
+└────┘</code></summary>
 
 - 
   ```
@@ -462,13 +458,9 @@ Test uniform tab=2, text tables:
   
 - <details><summary></summary>
   
-  - <details><summary>
-    ```
-    ┌────────┐
-    │header 4│
-    └────────┘
-    ```
-    </summary>
+  - <details><summary><code>┌────────┐<br>
+    │header 4│<br>
+    └────────┘</code></summary>
     
     - <details><summary>&lt;returns&gt;</summary>
       
@@ -556,9 +548,9 @@ Test uniform tab=2, text tables:
 
 
 Test single quote tab=2, text tables:
-<details><summary>`┌────┐`<br>
-`│root│`<br>
-`└────┘`</summary>
+<details><summary><code>┌────┐<br>
+│root│<br>
+└────┘</code></summary>
 
 - `┌───────┐`<br>
   `│child 1│`<br>
@@ -609,9 +601,9 @@ Test single quote tab=2, text tables:
   `└──────────────────┘`
 - <details><summary></summary>
   
-  - <details><summary>`┌────────┐`<br>
-    `│header 4│`<br>
-    `└────────┘`</summary>
+  - <details><summary><code>┌────────┐<br>
+    │header 4│<br>
+    └────────┘</code></summary>
     
     - <details><summary>&lt;returns&gt;</summary>
       

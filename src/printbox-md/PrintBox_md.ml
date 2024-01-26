@@ -54,15 +54,21 @@ end
   (* Colors require support for styles: see issue #37 *)
   let {bold; bg_color = _; fg_color = _; preformatted} = s in
   let preformatted_conf =
-    if multiline then c.Config.multiline_preformatted else c.Config.one_line_preformatted in
-  let code_block = preformatted && preformatted_conf = Config.Code_block in
-  let code_quote = preformatted && preformatted_conf = Config.Code_quote in
+    if multiline then c.Config.multiline_preformatted
+    else c.Config.one_line_preformatted in
+  let code_block =
+    not no_md && preformatted && preformatted_conf = Config.Code_block in
+  let code_quote =
+    not no_md && preformatted && preformatted_conf = Config.Code_quote in
   let bold_pre, bold_post =
     match bold, no_md with
     | false, _ -> "", ""
     | true, false -> "**", "**"
     | true, true -> "<b>", "</b>" in
-  bold_pre, bold_post, code_block, code_quote
+  let code_pre, code_post =
+    if code_block || code_quote || not preformatted then "", ""
+    else "<code>", "</code>" in
+  bold_pre ^ code_pre, code_post ^ bold_post, code_block, code_quote
 
 let break_lines l =
   let lines = List.concat @@ List.map (String.split_on_char '\n') l in
