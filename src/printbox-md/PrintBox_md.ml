@@ -212,6 +212,7 @@ let pp c out b =
   let open Format in
   (* We cannot use Format for indentation, because we need to insert ">" at the right places. *)
   let rec loop ~no_block ~no_md ~prefix b =
+    let br = if no_md then "<br>" else "  " in
     match B.view b with
     | B.Empty -> ()
     | B.Text {l; style} ->
@@ -225,7 +226,7 @@ let pp c out b =
       if code_block then fprintf out "@,%s```@,%s" prefix prefix;
       pp_print_list
         ~pp_sep:(fun out () ->
-           if not code_block then pp_print_string out "<br>";
+           if not code_block then pp_print_string out br;
            fprintf out "@,%s" prefix)
         preformat out l;
       if code_block then fprintf out "@,%s```@,%s" prefix prefix;
@@ -277,8 +278,8 @@ let pp c out b =
         Array.iteri (fun i r ->
             loop ~no_block ~no_md ~prefix r.(0);
             if i < len - 1 then (
-              if bars = `Bars then fprintf out "<br>@,%s> ---@,%s" prefix prefix
-              else fprintf out "<br>@,%s@,%s" prefix prefix))
+              if bars = `Bars then fprintf out "%s@,%s> ---@,%s" br prefix prefix
+              else fprintf out "%s@,%s@,%s" br prefix prefix))
           rows)
     | B.Grid (_, [||]) -> ()
     | B.Grid (bars, rows) when bars <> `None && is_native_table c rows ->
