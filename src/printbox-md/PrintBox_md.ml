@@ -290,10 +290,11 @@ let pp c out b =
           rows)
     | B.Grid (_, [||]) -> ()
     | B.Grid (bars, rows) when bars <> `None && is_native_table c rows ->
+      let n_rows = Array.length rows and n_cols = Array.length rows.(0) in
       let lengths =
         Array.fold_left (Array.map2 (fun len b -> max len @@ line_of_length_heuristic_exn c b))
-          (Array.map (fun _ -> 0) rows.(0)) rows in
-      let n_rows = Array.length rows and n_cols = Array.length rows.(0) in
+          (Array.map (fun b -> line_of_length_heuristic_exn c b - 4) rows.(0))
+          @@ Array.sub rows 1 (n_rows - 1) in
       Array.iteri (fun i header ->
           let header = remove_bold header in
           loop ~no_block:true ~no_md ~prefix:"" header;

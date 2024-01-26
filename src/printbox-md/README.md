@@ -136,10 +136,10 @@ Trees are rendered as:
 
 There is a special case carved out for Markdown syntax tables.
 
-Header    |cells    |[must be]    |bold.
-----------|---------|-------------|-----------------
-Rows      |[must be]|single       |line.
-[Only]    |then     |**we get**   |a Markdown table.
+Header|cells    |[must be] |bold.
+------|---------|----------|-----------------
+Rows  |[must be]|single    |line.
+[Only]|then     |**we get**|a Markdown table.
 
 <div>
  <table class="framed">
