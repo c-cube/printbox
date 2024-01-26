@@ -70,13 +70,12 @@ Test default:
   > cell 1.1  |[cell 1.2]|cell 1.3
   > [cell 2.1]|cell 2.2  |**cell 2.3**
 
-Test uniform unfolded (broken because of #34):
+Test uniform unfolded:
 
-<div><div style="border:thin solid"><span class="">root</span></div></div>
+<div><div style="border:thin solid"><div class="">root</div></div></div>
 
 
-- <div><div style="border:thin solid"><span class="">child 1</span></div>
-  </div>
+- <div><div style="border:thin solid"><div class="">child 1</div></div></div>
   
   
 - `child 2`
@@ -88,8 +87,7 @@ Test uniform unfolded (broken because of #34):
   a row 2.1  
   a row 2.2  
   
-  <div><div style="border:thin solid"><span class="">a row 3</span></div>
-  </div>
+  <div><div style="border:thin solid"><div class="">a row 3</div></div></div>
   
   
 - b row 1  
@@ -101,12 +99,12 @@ Test uniform unfolded (broken because of #34):
 - <div>
    <table class="non-framed">
     <tr class="">
-     <td class=""><span class=""><b>a longiiish column 1</b></span></td>
-     <td class=""><span class="">a longiiish column 2</span></td>
+     <td class=""><div class=""><b>a longiiish column 1</b></div></td>
+     <td class=""><div class="">a longiiish column 2</div></td>
      <td class="">
-      <div style="border:thin solid"><span class="">a longiiish column 3</span>
+      <div style="border:thin solid"><div class="">a longiiish column 3</div>
       </div>
-     </td><td class=""><span class="">a longiiish column 4</span></td>
+     </td><td class=""><div class="">a longiiish column 4</div></td>
     </tr>
    </table>
   </div>
@@ -114,11 +112,11 @@ Test uniform unfolded (broken because of #34):
   
 - <div>
    <table class="framed">
-    <tr class=""><td class=""><span class="">b longiiish column 1</span></td>
-     <td class=""><span class=""><b>b longiiish column 2</b></span></td>
-     <td class=""><span class="">b longiiish column 3</span></td>
+    <tr class=""><td class=""><div class="">b longiiish column 1</div></td>
+     <td class=""><div class=""><b>b longiiish column 2</b></div></td>
+     <td class=""><div class="">b longiiish column 3</div></td>
      <td class="">
-      <div style="border:thin solid"><span class="">b longiiish column 4</span>
+      <div style="border:thin solid"><div class="">b longiiish column 4</div>
       </div>
      </td>
     </tr>
@@ -126,157 +124,53 @@ Test uniform unfolded (broken because of #34):
   </div>
   
   
-- <div>
-   <div style="border:thin solid">
-    <table class="framed">
-     <tr class=""><td class=""><span class="">c row 1</span></td></tr>
-     <tr class=""><td class=""><span class="">c row 2.1c row 2.2</span></td>
-     </tr><tr class=""><td class=""><span class="">c row 3</span></td></tr>
-    </table>
-   </div>
-  </div>
+- <div><div style="border:thin solid"><table class="framed"><tr class=""><td class=""><div class="">c row 1</div></td></tr><tr class=""><td class=""><div class="">c row 2.1<br/>c row 2.2</div></td></tr><tr class=""><td class=""><div class="">c row 3</div></td></tr></table></div></div>
   
   
-- <div>
-   <div style="border:thin solid">
-    <div><div></div>
-     <ul>
-      <li>
-       <div>
-        <div style="border:thin solid"><span class="">header 3</span></div>
-        <ul>
-         <li>
-          <div style="border:thin solid"><span class="">subchild 3</span>
-          </div>
-         </li>
-        </ul>
-       </div>
-      </li>
-     </ul>
-    </div>
-   </div>
-  </div>
+- <div><div style="border:thin solid"><div><div></div><ul><li><div><div style="border:thin solid"><div class="">header 3</div></div><ul><li><div style="border:thin solid"><div class="">subchild 3</div></div></li></ul></div></li></ul></div></div></div>
   
   
 - 
-  - <div><div style="border:thin solid"><span class="">header 4</span></div>
-    </div>
+  - <div><div style="border:thin solid"><div class="">header 4</div></div></div>
     
     
     - \<returns\>
       - `<nothing>`
     - & \*\*subchild\*\* 4
-- <div>
-   <div style="border:thin solid">
-    <div>
-     <pre><span class="" style="font-family: monospace">header 5</span></pre>
-     <ul>
-      <li>
-       <pre>
-        <span class="" style="font-family: monospace">subchild 5  body 5
-             subbody 5	one tab end of sub 5end of 5
-        </span>
-       </pre>
-      </li>
-     </ul>
-    </div>
-   </div>
-  </div>
+- <div><div style="border:thin solid"><div><pre class="" style="font-family: monospace">header 5</pre><ul><li><pre class="" style="font-family: monospace">subchild 5
+  body 5
+    subbody 5
+	one tab end of sub 5
+end of 5</pre></li></ul></div></div></div>
   
   
-- <div>
-   <div style="border:thin solid">
-    <div style="border:thin solid">
-     <table class="framed">
-      <tr class=""><td class=""><span class="">a</span></td>
-       <td class=""><span class="">looooooooooooooooooooooooo
-                                   oonng</span>
-       </td>
-      </tr>
-      <tr class=""><td class=""><span class="">bx</span></td>
-       <td class="">
-        <div class="center">
-         <div style="border:thin solid">
-          <table class="framed">
-           <tr class=""><td class=""><span class="">x</span></td>
-            <td class=""><span class="">y</span></td>
-           </tr>
-           <tr class=""><td class=""><span class="">1</span></td>
-            <td class=""><span class="">2</span></td>
-           </tr>
-          </table>
-         </div>
-        </div>
-       </td>
-      </tr>
-      <tr class=""><td class=""><span class="">?</span></td>
-       <td class="">
-        <div class="center">
-         <table class="framed">
-          <tr class=""><td class=""><span class="">x</span></td>
-           <td class=""><span class="">y</span></td>
-          </tr>
-          <tr class=""><td class=""><span class="">10</span></td>
-           <td class=""><span class="">20</span></td>
-          </tr>
-         </table>
-        </div>
-       </td>
-      </tr>
-     </table>
-    </div>
-   </div>
-  </div>
+- <div><div style="border:thin solid"><div style="border:thin solid"><table class="framed"><tr class=""><td class=""><div class="">a</div></td><td class=""><div class="">looooooooooooooooooooooooo<br/>oonng</div></td></tr><tr class=""><td class=""><div class="">bx</div></td><td class=""><div class="center"><div style="border:thin solid"><table class="framed"><tr class=""><td class=""><div class="">x</div></td><td class=""><div class="">y</div></td></tr><tr class=""><td class=""><div class="">1</div></td><td class=""><div class="">2</div></td></tr></table></div></div></td></tr><tr class=""><td class=""><div class="">?</div></td><td class=""><div class="center"><table class="framed"><tr class=""><td class=""><div class="">x</div></td><td class=""><div class="">y</div></td></tr><tr class=""><td class=""><div class="">10</div></td><td class=""><div class="">20</div></td></tr></table></div></td></tr></table></div></div></div>
   
   
 - <div>
    <table class="framed">
-    <tr class=""><td class=""><span class=""><b>header 1</b></span></td>
-     <td class=""><span class=""><b>header 2</b></span></td>
+    <tr class=""><td class=""><div class=""><b>header 1</b></div></td>
+     <td class=""><div class=""><b>header 2</b></div></td>
      <td class="">
-      <div style="border:thin solid"><span class=""><b>header 3</b></span>
-      </div>
+      <div style="border:thin solid"><div class=""><b>header 3</b></div></div>
      </td>
     </tr>
-    <tr class=""><td class=""><span class="">cell 1.1</span></td>
+    <tr class=""><td class=""><div class="">cell 1.1</div></td>
      <td class="">
-      <div style="border:thin solid"><span class="">cell 1.2</span></div>
-     </td><td class=""><span class="">cell 1.3</span></td>
+      <div style="border:thin solid"><div class="">cell 1.2</div></div>
+     </td><td class=""><div class="">cell 1.3</div></td>
     </tr>
     <tr class="">
      <td class="">
-      <div style="border:thin solid"><span class="">cell 2.1</span></div>
-     </td><td class=""><span class="">cell 2.2</span></td>
-     <td class=""><span class=""><b>cell 2.3</b></span></td>
+      <div style="border:thin solid"><div class="">cell 2.1</div></div>
+     </td><td class=""><div class="">cell 2.2</div></td>
+     <td class=""><div class=""><b>cell 2.3</b></div></td>
     </tr>
    </table>
   </div>
   
   
-- <div>
-   <div style="border:thin solid">
-    <table class="framed">
-     <tr class=""><td class=""><span class=""><b>header 1</b></span></td>
-      <td class=""><span class=""><b>header 2</b></span></td>
-      <td class="">
-       <div style="border:thin solid"><span class=""><b>header 3</b></span>
-       </div>
-      </td>
-     </tr>
-     <tr class=""><td class=""><span class="">cell 1.1</span></td>
-      <td class="">
-       <div style="border:thin solid"><span class="">cell 1.2</span></div>
-      </td><td class=""><span class="">cell 1.3</span></td>
-     </tr>
-     <tr class="">
-      <td class="">
-       <div style="border:thin solid"><span class="">cell 2.1</span></div>
-      </td><td class=""><span class="">cell 2.2</span></td>
-      <td class=""><span class=""><b>cell 2.3</b></span></td>
-     </tr>
-    </table>
-   </div>
-  </div>
+- <div><div style="border:thin solid"><table class="framed"><tr class=""><td class=""><div class=""><b>header 1</b></div></td><td class=""><div class=""><b>header 2</b></div></td><td class=""><div style="border:thin solid"><div class=""><b>header 3</b></div></div></td></tr><tr class=""><td class=""><div class="">cell 1.1</div></td><td class=""><div style="border:thin solid"><div class="">cell 1.2</div></div></td><td class=""><div class="">cell 1.3</div></td></tr><tr class=""><td class=""><div style="border:thin solid"><div class="">cell 2.1</div></div></td><td class=""><div class="">cell 2.2</div></td><td class=""><div class=""><b>cell 2.3</b></div></td></tr></table></div></div>
   
   
 

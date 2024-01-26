@@ -234,7 +234,8 @@ let pp c out b =
     | B.Frame fb -> (
       match c.Config.frames, c.Config.tables, no_block with
       | `As_table, `Html, _ ->
-        PrintBox_html.pp ~flush:false ~indent:(not no_block) () out b;
+        (* Don't indent in case there's an embedded multiline preformatted text. *)
+        PrintBox_html.pp ~flush:false ~indent:false () out b;
         if not no_md then fprintf out "@,%s@,%s" prefix prefix
       | `As_table, `Text, _ ->
         let style = B.Style.preformatted in
