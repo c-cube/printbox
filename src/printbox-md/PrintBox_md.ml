@@ -167,8 +167,11 @@ let rec multiline_heuristic c b =
 let rec line_of_length_heuristic_exn c b =
   match B.view b with
   | B.Empty | B.Text {l=[]; _} -> 0
-  | B.Text {l=[s]; _} ->
-    if String.contains s '\n' then raise Not_found else String.length s
+  | B.Text {l=[s]; style} ->
+    let from_bold = if style.B.Style.bold then 4 else 0 in
+    let from_code =
+      if style.B.Style.preformatted then if String.contains s '`' then 6 else 2 else 0 in
+    if String.contains s '\n' then raise Not_found else String.length s + from_bold + from_code
   | B.Text _ -> raise Not_found
   | B.Frame _ when c.Config.frames = `As_table -> raise Not_found
   | B.Frame b ->
@@ -292,7 +295,8 @@ let pp c out b =
           (Array.map (fun _ -> 0) rows.(0)) rows in
       let n_rows = Array.length rows and n_cols = Array.length rows.(0) in
       Array.iteri (fun i header ->
-          loop ~no_block:true ~no_md ~prefix:"" @@ remove_bold header;
+          let header = remove_bold header in
+          loop ~no_block:true ~no_md ~prefix:"" header;
           if i < n_cols - 1 then
             let len = line_of_length_heuristic_exn c header in
             fprintf out "%s|" (String.make (max 0 @@ lengths.(i) - len) ' ')
