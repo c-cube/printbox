@@ -74,10 +74,10 @@ end
     (match fg_color with None -> [] | Some c -> ["color", encode_color c]) @
     (if stylized && preformatted then ["font-family", "monospace"] else [])
   in
+  (* FIXME: CommonMark seems to prevent <span> *)
   let inline = no_block || not multiline in
   let spec_pre, spec_post =
-    (* CommonMark does not support <span> *)
-    if inline && no_md then {|<span style="|}, "</span>"
+    if inline then {|<span style="|}, "</span>"
     else {|<div style="|}, "</div>" in
   let sty_pre, sty_post =
     match s with
@@ -189,8 +189,8 @@ let rec line_of_length_heuristic_exn c b =
     if String.contains s '\n' then raise Not_found else String.length s
   | B.Text _ -> raise Not_found
   | B.Frame b when c.Config.frames = `Stylized ->
-    (* "<div style="border:thin solid"></div>" *)
-    line_of_length_heuristic_exn c b + 37
+    (* "<span style="border:thin solid"></span>" *)
+    line_of_length_heuristic_exn c b + 39
   | B.Frame b ->
     (* "> " or "[]" *)
     line_of_length_heuristic_exn c b + 2
@@ -242,12 +242,10 @@ let pp c out b =
       let multiline = List.length l > 1 in
       let sty_pre, sty_post, code_block, code_quote, inline =
         style_format c ~no_block ~no_md ~multiline style in
-      pp_print_string out sty_pre;
-      let html = no_md || (inline && String.length sty_pre > 0 && sty_pre.[0] = '<') in
-      if not html && String.length sty_pre > 0 && sty_pre.[0] = '<'
-      then fprintf out "@,%s@,%s" prefix prefix;
       let preformat =
-        pp_string_escaped ~tab_width:c.Config.tab_width ~code_block ~code_quote ~html in
+        pp_string_escaped ~tab_width:c.Config.tab_width ~code_block ~code_quote ~html:no_md in
+      pp_print_string out sty_pre;
+      if not inline && String.length sty_pre > 0 then fprintf out "@,%s" prefix;
       if code_block then fprintf out "```@,%s" prefix;
       (* use html for gb_color, fg_color and md for bold, preformatted. *)
       pp_print_list
@@ -257,22 +255,19 @@ let pp c out b =
         preformat out l;
       if code_block then fprintf out "@,%s```@,%s" prefix prefix;
       pp_print_string out sty_post;
-      if not no_md && String.length sty_post > 0 && sty_post.[0] = '<'
-      then fprintf out "@,%s@,%s" prefix prefix
+      if not inline && String.length sty_post > 0 then fprintf out "@,%s@,%s" prefix prefix
     | B.Frame b ->
       if c.Config.frames = `Stylized then (
         let inline = no_block || not (multiline_heuristic b) in
         let spec_pre, spec_post =
-          (* CommonMark does not support <span> *)
-          if inline && no_md
+          if inline
           then {|<span style="|}, "</span>"
           else {|<div style="|}, "</div>" in
         fprintf out {|%sborder:thin solid">|} spec_pre;
-        let html = no_md || inline in
-        if not html then fprintf out "@,%s@,%s" prefix prefix;
-        loop ~no_block ~no_md:html ~prefix b;
+        if not inline then fprintf out "@,%s@,%s" prefix prefix;
+        loop ~no_block ~no_md ~prefix b;
         pp_print_string out spec_post;
-        if not no_md then fprintf out "@,%s@,%s" prefix prefix)
+        if not inline then fprintf out "@,%s@,%s" prefix prefix)
       else if no_block then
         (* E.g. in a first Markdown table cell, "> " would mess up rendering. *)
         fprintf out "[%a]" (fun _out -> loop ~no_block ~no_md ~prefix:(prefix ^ " ")) b
@@ -324,15 +319,12 @@ let pp c out b =
           rows
       | `Line_break ->
         Array.iteri (fun i r ->
-            if i < len - 1 && bars = `Bars then (
-              fprintf out {|<div style="border-bottom:thin solid">@,%s|} prefix;
-              if not no_md then fprintf out "@,%s" prefix);
+            if i < len - 1 && bars = `Bars
+            then fprintf out {|<div style="border-bottom:thin solid">@,%s|} prefix;
             loop ~no_block ~no_md ~prefix r.(0);
             if i < len - 1 then (
-              if bars = `Bars then (
-                fprintf out "</div>@,%s" prefix;
-                if not no_md then fprintf out "@,%s" prefix)
-          else fprintf out "<br>@,%s" prefix))
+              if bars = `Bars then fprintf out "</div>@,%s@,%s" prefix prefix
+              else fprintf out "<br>@,%s" prefix))
           rows)
     | B.Grid (_, [||]) -> ()
     | B.Grid (bars, rows) when bars <> `None && is_native_table rows ->
