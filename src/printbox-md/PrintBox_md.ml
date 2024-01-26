@@ -49,7 +49,7 @@ module Config = struct
   let stylized_frames c = {c with frames=`Stylized}
 end
 
- let style_format c ~no_md ~multiline (s:B.Style.t) =
+ let style_format c ~no_block ~no_md ~multiline (s:B.Style.t) =
   let open B.Style in
   let {bold; bg_color; fg_color; preformatted} = s in
   let encode_color = function
@@ -74,7 +74,8 @@ end
     (match fg_color with None -> [] | Some c -> ["color", encode_color c]) @
     (if stylized && preformatted then ["font-family", "monospace"] else [])
   in
-  let inline = no_md || not multiline in
+  (* FIXME: CommonMark seems to prevent <span> *)
+  let inline = no_block || not multiline in
   let spec_pre, spec_post =
     if inline then {|<span style="|}, "</span>"
     else {|<div style="|}, "</div>" in
@@ -233,14 +234,14 @@ let rec remove_bold b =
 let pp c out b =
   let open Format in
   (* We cannot use Format for indentation, because we need to insert ">" at the right places. *)
-  let rec loop ~no_md ~prefix b =
+  let rec loop ~no_block ~no_md ~prefix b =
     match B.view b with
     | B.Empty -> ()
     | B.Text {l; style} ->
       let l = break_lines l in
       let multiline = List.length l > 1 in
       let sty_pre, sty_post, code_block, code_quote, inline =
-        style_format c ~no_md ~multiline style in
+        style_format c ~no_block ~no_md ~multiline style in
       let preformat =
         pp_string_escaped ~tab_width:c.Config.tab_width ~code_block ~code_quote ~html:no_md in
       pp_print_string out sty_pre;
@@ -252,33 +253,32 @@ let pp c out b =
            if not code_block then pp_print_string out "<br>";
            fprintf out "@,%s" prefix)
         preformat out l;
-      (* if not inline && String.length sty_pre > 0 then fprintf out "@,%s" prefix; *)
       if code_block then fprintf out "@,%s```@,%s" prefix prefix;
       pp_print_string out sty_post;
       if not inline && String.length sty_post > 0 then fprintf out "@,%s@,%s" prefix prefix
     | B.Frame b ->
       if c.Config.frames = `Stylized then (
-        let inline = no_md || not (multiline_heuristic b) in
+        let inline = no_block || not (multiline_heuristic b) in
         let spec_pre, spec_post =
           if inline
           then {|<span style="|}, "</span>"
           else {|<div style="|}, "</div>" in
         fprintf out {|%sborder:thin solid">|} spec_pre;
         if not inline then fprintf out "@,%s@,%s" prefix prefix;
-        loop ~no_md ~prefix b;
-        (* if not inline then fprintf out "@,%s" prefix; *)
+        loop ~no_block ~no_md ~prefix b;
         pp_print_string out spec_post;
         if not inline then fprintf out "@,%s@,%s" prefix prefix)
-      else if no_md then
+      else if no_block then
         (* E.g. in a first Markdown table cell, "> " would mess up rendering. *)
-        fprintf out "[%a]" (fun _out -> loop ~no_md ~prefix:(prefix ^ " ")) b
-      else fprintf out "> %a" (fun _out -> loop ~no_md ~prefix:(prefix ^ "> ")) b
+        fprintf out "[%a]" (fun _out -> loop ~no_block ~no_md ~prefix:(prefix ^ " ")) b
+      else fprintf out "> %a"
+        (fun _out -> loop ~no_block ~no_md ~prefix:(prefix ^ "> ")) b
     | B.Pad (_, b) -> 
       (* NOT IMPLEMENTED YET *)
-      loop ~no_md ~prefix b
+      loop ~no_block ~no_md ~prefix b
     | B.Align {h = _; v=_; inner} ->
       (* NOT IMPLEMENTED YET *)
-      loop ~no_md ~prefix inner
+      loop ~no_block ~no_md ~prefix inner
     | B.Grid (bars, [|row|])
       when c.Config.hlists <> `As_table &&
            Array.for_all (Fun.negate multiline_heuristic) row -> (
@@ -287,7 +287,7 @@ let pp c out b =
       | `As_table -> assert false
       | `Minimal ->
         Array.iteri (fun i r ->
-            loop ~no_md ~prefix r;
+            loop ~no_block ~no_md ~prefix r;
             if i < len - 1 then (
               if bars = `Bars then fprintf out " | " else fprintf out " &nbsp; "))
           row
@@ -295,7 +295,7 @@ let pp c out b =
         Array.iteri (fun i r ->
             if i < len - 1 && bars = `Bars && c.Config.hlists = `Stylized
             then fprintf out {|<span style="border-right: thin solid">|};
-            loop ~no_md ~prefix r;
+            loop ~no_block ~no_md ~prefix r;
             if i < len - 1 then (
               if bars = `Bars && c.Config.hlists = `Stylized
               then fprintf out " </span> "
@@ -312,7 +312,7 @@ let pp c out b =
       | `List ->
         Array.iteri (fun i r ->
             pp_print_string out "- ";
-            loop ~no_md ~prefix:(prefix ^ "  ") r.(0);
+            loop ~no_block ~no_md ~prefix:(prefix ^ "  ") r.(0);
             if i < len - 1 then (
               if bars = `Bars then fprintf out "@,%s  > ---" prefix;
               fprintf out "@,%s" prefix))
@@ -321,7 +321,7 @@ let pp c out b =
         Array.iteri (fun i r ->
             if i < len - 1 && bars = `Bars
             then fprintf out {|<div style="border-bottom:thin solid">@,%s|} prefix;
-            loop ~no_md ~prefix r.(0);
+            loop ~no_block ~no_md ~prefix r.(0);
             if i < len - 1 then (
               if bars = `Bars then fprintf out "</div>@,%s@,%s" prefix prefix
               else fprintf out "<br>@,%s" prefix))
@@ -333,7 +333,7 @@ let pp c out b =
           (Array.map (fun _ -> 0) rows.(0)) rows in
       let n_rows = Array.length rows and n_cols = Array.length rows.(0) in
       Array.iteri (fun i header ->
-          loop ~no_md:true ~prefix:"" @@ remove_bold header;
+          loop ~no_block:true ~no_md ~prefix:"" @@ remove_bold header;
           if i < n_rows - 1 then
             let len = line_of_length_heuristic_exn c header in
             fprintf out "%s|" (String.make (lengths.(i) - len) ' ')
@@ -345,7 +345,7 @@ let pp c out b =
         ) rows.(0);
       Array.iteri (fun i row ->
           if i > 0 then Array.iteri (fun j b ->
-              loop ~no_md:true ~prefix:"" b;
+              loop ~no_block:true ~no_md ~prefix:"" b;
               if j < n_cols - 1 then
                 let len = line_of_length_heuristic_exn c b in
                 fprintf out "%s|" (String.make (lengths.(j) - len) ' ')
@@ -353,40 +353,40 @@ let pp c out b =
           if i < n_rows - 1 then fprintf out "@,%s" prefix;
         ) rows
     | B.Grid (_, _) when c.Config.tables = `Html && String.length prefix = 0 ->
-      PrintBox_html.pp ~indent:(not no_md) () out b
+      PrintBox_html.pp ~indent:(not no_block) () out b
     | B.Grid (_, _) -> (
       match c.Config.tables with
       | `Text ->
           let style = B.Style.preformatted in
           let l = break_lines [PrintBox_text.to_string b] in
-          loop ~no_md ~prefix (B.lines_with_style style l)
+          loop ~no_block ~no_md ~prefix (B.lines_with_style style l)
       | `Html ->
-        let table = PrintBox_html.(if no_md then to_string else to_string_indent) b in
+        let table = PrintBox_html.(if no_block then to_string else to_string_indent) b in
         let lines = break_lines [table] in
         pp_print_list
-          ~pp_sep:(fun out () -> if not no_md then fprintf out "@,%s" prefix)
+          ~pp_sep:(fun out () -> if not no_block then fprintf out "@,%s" prefix)
           pp_print_string out lines)
     | B.Tree (_extra_indent, header, [||]) ->
-      loop ~no_md ~prefix header
+      loop ~no_block ~no_md ~prefix header
     | B.Tree (extra_indent, header, body) ->
       if c.Config.foldable_trees
       then
         fprintf out "<details><summary>%a</summary>@,%s@,%s- "
-          (fun _out -> loop ~no_md:true ~prefix) header prefix prefix
-      else (loop ~no_md ~prefix header; fprintf out "@,%s- " prefix);
+          (fun _out -> loop ~no_block:true ~no_md:true ~prefix) header prefix prefix
+      else (loop ~no_block ~no_md ~prefix header; fprintf out "@,%s- " prefix);
       let pp_sep out () = fprintf out "@,%s- " prefix in
       let subprefix = prefix ^ String.make (2 + extra_indent) ' ' in
       pp_print_list
         ~pp_sep
-        (fun _out sub -> loop ~no_md ~prefix:subprefix sub)
+        (fun _out sub -> loop ~no_block ~no_md ~prefix:subprefix sub)
         out @@ Array.to_list body;
       if c.Config.foldable_trees then fprintf out "@,%s</details>" prefix
     | B.Link {uri; inner} ->
       pp_print_string out "[";
-      loop ~no_md ~prefix:(prefix ^ " ") inner;
+      loop ~no_block:true ~no_md ~prefix:(prefix ^ " ") inner;
       fprintf out "](%s)" uri in
   pp_open_vbox out 0;
-  loop ~no_md:false ~prefix:"" b;
+  loop ~no_block:false ~no_md:false ~prefix:"" b;
   pp_close_box out ()
 
 let to_string c b =
