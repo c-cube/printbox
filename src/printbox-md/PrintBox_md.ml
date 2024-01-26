@@ -3,15 +3,15 @@
 module B = PrintBox
 
 module Config = struct
-  type preformatted = Code_block | Code_quote | Stylized
+  type preformatted = Code_block | Code_quote
   type t = {
     tables: [`Text | `Html];
     vlists: [`Line_break | `List | `As_table];
-    hlists: [`Minimal | `Stylized | `As_table];
+    hlists: [`Minimal | `As_table];
     foldable_trees: bool;
     multiline_preformatted: preformatted;
     one_line_preformatted: preformatted;
-    frames: [`Quotation | `Stylized];
+    frames: [`Quotation | `As_table];
     tab_width: int;
   }
 
@@ -28,11 +28,11 @@ module Config = struct
   let uniform = {
     tables=`Html;
     vlists=`Line_break;
-    hlists=`Stylized;
+    hlists=`As_table;
     foldable_trees=true;
-    multiline_preformatted=Stylized;
-    one_line_preformatted=Stylized;
-    frames=`Stylized;
+    multiline_preformatted=Code_block;
+    one_line_preformatted=Code_quote;
+    frames=`As_table;
     tab_width=4;
   }
 
@@ -46,51 +46,23 @@ module Config = struct
   let one_line_preformatted x c = {c with one_line_preformatted=x}
   let tab_width x c = {c with tab_width=x}
   let quotation_frames c = {c with frames=`Quotation}
-  let stylized_frames c = {c with frames=`Stylized}
+  let table_frames c = {c with frames=`As_table}
 end
 
- let style_format c ~no_block ~no_md ~multiline (s:B.Style.t) =
+ let style_format c ~no_md ~multiline (s:B.Style.t) =
   let open B.Style in
-  let {bold; bg_color; fg_color; preformatted} = s in
-  let encode_color = function
-    | Red -> "red"
-    | Blue -> "blue"
-    | Green -> "green"
-    | Yellow -> "yellow"
-    | Cyan -> "cyan"
-    | Black -> "black"
-    | Magenta -> "magenta"
-    | White -> "white"
-  in
+  (* Colors require support for styles: see issue #37 *)
+  let {bold; bg_color = _; fg_color = _; preformatted} = s in
   let preformatted_conf =
     if multiline then c.Config.multiline_preformatted else c.Config.one_line_preformatted in
-  let stylized = no_md || preformatted_conf = Config.Stylized in
-  let code_block =
-    preformatted && not stylized && preformatted_conf = Config.Code_block in
-  let code_quote =
-    preformatted && not stylized && preformatted_conf = Config.Code_quote in
-  let s =
-    (match bg_color with None -> [] | Some c -> ["background-color", encode_color c]) @
-    (match fg_color with None -> [] | Some c -> ["color", encode_color c]) @
-    (if stylized && preformatted then ["font-family", "monospace"] else [])
-  in
-  (* FIXME: CommonMark seems to prevent <span> *)
-  let inline = no_block || not multiline in
-  let spec_pre, spec_post =
-    if inline then {|<span style="|}, "</span>"
-    else {|<div style="|}, "</div>" in
-  let sty_pre, sty_post =
-    match s with
-      | [] -> "", ""
-      | s ->
-        spec_pre ^ String.concat ";" (List.map (fun (k,v) -> k ^ ": " ^ v) s) ^ {|">|},
-        spec_post in
+  let code_block = preformatted && preformatted_conf = Config.Code_block in
+  let code_quote = preformatted && preformatted_conf = Config.Code_quote in
   let bold_pre, bold_post =
     match bold, no_md with
     | false, _ -> "", ""
     | true, false -> "**", "**"
     | true, true -> "<b>", "</b>" in
-  bold_pre ^ sty_pre, sty_post ^ bold_post, code_block, code_quote, inline
+  bold_pre, bold_post, code_block, code_quote
 
 let break_lines l =
   let lines = List.concat @@ List.map (String.split_on_char '\n') l in
@@ -102,7 +74,6 @@ let break_lines l =
     lines
 
 let pp_string_escaped ~tab_width ~code_block ~code_quote ~html out s =
-  (* TODO: benchmark if writing to a buffer first would be more efficient. *)
   let open Format in
   if code_block then pp_print_string out s
   else
@@ -167,20 +138,22 @@ let pp_string_escaped ~tab_width ~code_block ~code_quote ~html out s =
     while !i < len do i := !i + print_next_chars !i done;
     if code_quote then pp_print_char out '`'
 
-let rec multiline_heuristic b =
+let rec multiline_heuristic c b =
   match B.view b with
   | B.Empty -> false
   | B.Text {l=[]; _} -> false
   | B.Text {l=[s]; _} -> String.contains s '\n'
   | B.Text _ -> true
-  | B.Frame b -> multiline_heuristic b
+  | B.Frame _ when c.Config.frames = `As_table -> true
+  | B.Frame b -> multiline_heuristic c b
   | B.Pad (_, _) -> true
-  | B.Align {inner; _} -> multiline_heuristic inner
+  | B.Align {inner; _} -> multiline_heuristic c inner
+  | B.Grid (_, [|_|]) when c.Config.hlists = `As_table -> true
   | B.Grid (_, rows) ->
-    Array.length rows > 1 || Array.exists (Array.exists multiline_heuristic) rows
+    Array.length rows > 1 || Array.exists (Array.exists @@ multiline_heuristic c) rows
   | B.Tree (_, header, children) ->
-    Array.length children > 0 || multiline_heuristic header
-  | B.Link {inner; _} -> multiline_heuristic inner
+    Array.length children > 0 || multiline_heuristic c header
+  | B.Link {inner; _} -> multiline_heuristic c inner
 
 let rec line_of_length_heuristic_exn c b =
   match B.view b with
@@ -188,9 +161,7 @@ let rec line_of_length_heuristic_exn c b =
   | B.Text {l=[s]; _} ->
     if String.contains s '\n' then raise Not_found else String.length s
   | B.Text _ -> raise Not_found
-  | B.Frame b when c.Config.frames = `Stylized ->
-    (* "<span style="border:thin solid"></span>" *)
-    line_of_length_heuristic_exn c b + 39
+  | B.Frame _ when c.Config.frames = `As_table -> raise Not_found
   | B.Frame b ->
     (* "> " or "[]" *)
     line_of_length_heuristic_exn c b + 2
@@ -210,14 +181,14 @@ let rec line_of_length_heuristic_exn c b =
   | B.Tree _ -> raise Not_found
   | B.Link {inner; uri} -> line_of_length_heuristic_exn c inner + String.length uri + 4
 
-let is_native_table rows =
+let is_native_table c rows =
   let rec header h =
     match B.view h with
     | B.Text {l=[_]; style={B.Style.bold=true; _}} -> true
     | B.Frame b -> header b
     | _ -> false in
   Array.for_all header rows.(0) &&
-  Array.for_all (fun row -> Array.for_all (Fun.negate multiline_heuristic) row) rows
+  Array.for_all (fun row -> Array.for_all (Fun.negate @@ multiline_heuristic c) row) rows
 
 let rec remove_bold b =
   match B.view b with
@@ -240,39 +211,33 @@ let pp c out b =
     | B.Text {l; style} ->
       let l = break_lines l in
       let multiline = List.length l > 1 in
-      let sty_pre, sty_post, code_block, code_quote, inline =
-        style_format c ~no_block ~no_md ~multiline style in
+      let sty_pre, sty_post, code_block, code_quote =
+        style_format c ~no_md ~multiline style in
       let preformat =
         pp_string_escaped ~tab_width:c.Config.tab_width ~code_block ~code_quote ~html:no_md in
       pp_print_string out sty_pre;
-      if not inline && String.length sty_pre > 0 then fprintf out "@,%s" prefix;
-      if code_block then fprintf out "```@,%s" prefix;
-      (* use html for gb_color, fg_color and md for bold, preformatted. *)
+      if code_block then fprintf out "@,%s```@,%s" prefix prefix;
       pp_print_list
         ~pp_sep:(fun out () ->
            if not code_block then pp_print_string out "<br>";
            fprintf out "@,%s" prefix)
         preformat out l;
       if code_block then fprintf out "@,%s```@,%s" prefix prefix;
-      pp_print_string out sty_post;
-      if not inline && String.length sty_post > 0 then fprintf out "@,%s@,%s" prefix prefix
-    | B.Frame b ->
-      if c.Config.frames = `Stylized then (
-        let inline = no_block || not (multiline_heuristic b) in
-        let spec_pre, spec_post =
-          if inline
-          then {|<span style="|}, "</span>"
-          else {|<div style="|}, "</div>" in
-        fprintf out {|%sborder:thin solid">|} spec_pre;
-        if not inline then fprintf out "@,%s@,%s" prefix prefix;
-        loop ~no_block ~no_md ~prefix b;
-        pp_print_string out spec_post;
-        if not inline then fprintf out "@,%s@,%s" prefix prefix)
-      else if no_block then
+      pp_print_string out sty_post
+    | B.Frame fb -> (
+      match c.Config.frames, c.Config.tables, no_block with
+      | `As_table, `Html, _ ->
+        PrintBox_html.pp ~flush:false ~indent:(not no_block) () out b;
+        if not no_md then fprintf out "@,%s@,%s" prefix prefix
+      | `As_table, `Text, _ ->
+        let style = B.Style.preformatted in
+        let l = break_lines [PrintBox_text.to_string b] in
+        loop ~no_block ~no_md ~prefix (B.lines_with_style style l)
+      | _, _, true ->
         (* E.g. in a first Markdown table cell, "> " would mess up rendering. *)
-        fprintf out "[%a]" (fun _out -> loop ~no_block ~no_md ~prefix:(prefix ^ " ")) b
-      else fprintf out "> %a"
-        (fun _out -> loop ~no_block ~no_md ~prefix:(prefix ^ "> ")) b
+        fprintf out "[%a]" (fun _out -> loop ~no_block ~no_md ~prefix:(prefix ^ " ")) fb
+      | _ -> fprintf out "> %a"
+        (fun _out -> loop ~no_block ~no_md ~prefix:(prefix ^ "> ")) fb)
     | B.Pad (_, b) -> 
       (* NOT IMPLEMENTED YET *)
       loop ~no_block ~no_md ~prefix b
@@ -280,29 +245,14 @@ let pp c out b =
       (* NOT IMPLEMENTED YET *)
       loop ~no_block ~no_md ~prefix inner
     | B.Grid (bars, [|row|])
-      when c.Config.hlists <> `As_table &&
-           Array.for_all (Fun.negate multiline_heuristic) row -> (
+      when c.Config.hlists = `Minimal &&
+           Array.for_all (Fun.negate @@ multiline_heuristic c) row ->
       let len = Array.length row in
-      match c.Config.hlists with
-      | `As_table -> assert false
-      | `Minimal ->
-        Array.iteri (fun i r ->
-            loop ~no_block:true ~no_md ~prefix r;
-            if i < len - 1 then (
-              if bars = `Bars then fprintf out " | " else fprintf out " &nbsp; "))
-          row
-      | `Stylized ->
-        Array.iteri (fun i r ->
-            if i < len - 1 && bars = `Bars && c.Config.hlists = `Stylized
-            then fprintf out {|<span style="border-right: thin solid">|};
-            loop ~no_block:true ~no_md ~prefix r;
-            if i < len - 1 then (
-              if bars = `Bars && c.Config.hlists = `Stylized
-              then fprintf out " </span> "
-              else if bars = `Bars then fprintf out " | "
-              else fprintf out " &nbsp; "))
-          row
-    )
+      Array.iteri (fun i r ->
+          loop ~no_block:true ~no_md ~prefix r;
+          if i < len - 1 then (
+            if bars = `Bars then fprintf out " | " else fprintf out " &nbsp; "))
+        row
     | B.Grid (bars, rows)
           when c.Config.vlists <> `As_table &&
                Array.for_all (fun row -> Array.length row = 1) rows -> (
@@ -319,15 +269,13 @@ let pp c out b =
           rows
       | `Line_break ->
         Array.iteri (fun i r ->
-            if i < len - 1 && bars = `Bars
-            then fprintf out {|<div style="border-bottom:thin solid">@,%s|} prefix;
             loop ~no_block ~no_md ~prefix r.(0);
             if i < len - 1 then (
-              if bars = `Bars then fprintf out "</div>@,%s@,%s" prefix prefix
-              else fprintf out "<br>@,%s" prefix))
+              if bars = `Bars then fprintf out "<br>@,%s> ---@,%s" prefix prefix
+              else fprintf out "<br>@,%s@,%s" prefix prefix))
           rows)
     | B.Grid (_, [||]) -> ()
-    | B.Grid (bars, rows) when bars <> `None && is_native_table rows ->
+    | B.Grid (bars, rows) when bars <> `None && is_native_table c rows ->
       let lengths =
         Array.fold_left (Array.map2 (fun len b -> max len @@ line_of_length_heuristic_exn c b))
           (Array.map (fun _ -> 0) rows.(0)) rows in
@@ -353,7 +301,8 @@ let pp c out b =
           if i < n_rows - 1 then fprintf out "@,%s" prefix;
         ) rows
     | B.Grid (_, _) when c.Config.tables = `Html && String.length prefix = 0 ->
-      PrintBox_html.pp ~indent:(not no_block) () out b
+      PrintBox_html.pp ~flush:false ~indent:(not no_block) () out b;
+      if not no_md then fprintf out "@,%s@,%s" prefix prefix
     | B.Grid (_, _) -> (
       match c.Config.tables with
       | `Text ->
@@ -365,7 +314,8 @@ let pp c out b =
         let lines = break_lines [table] in
         pp_print_list
           ~pp_sep:(fun out () -> if not no_block then fprintf out "@,%s" prefix)
-          pp_print_string out lines)
+          pp_print_string out lines);
+        if not no_md then fprintf out "@,%s@,%s" prefix prefix
     | B.Tree (_extra_indent, header, [||]) ->
       loop ~no_block ~no_md ~prefix header
     | B.Tree (extra_indent, header, body) ->
@@ -380,7 +330,8 @@ let pp c out b =
         ~pp_sep
         (fun _out sub -> loop ~no_block ~no_md ~prefix:subprefix sub)
         out @@ Array.to_list body;
-      if c.Config.foldable_trees then fprintf out "@,%s</details>" prefix
+      if c.Config.foldable_trees
+      then fprintf out "@,%s</details>@,%s@,%s" prefix prefix prefix
     | B.Link {uri; inner} ->
       pp_print_string out "[";
       loop ~no_block:true ~no_md ~prefix:(prefix ^ " ") inner;

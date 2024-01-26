@@ -4,14 +4,12 @@
 
 (** {2 Markdown configuration} *)
 module Config : sig
-  type preformatted = Code_block | Code_quote | Stylized
+  type preformatted = Code_block | Code_quote
   (** The output option for preformatted-style text, and for outputting tables as text.
       - [Code_block]: use Markdown's backquoted-block style: [```], equivalent to HTML's [<pre>].
         Downside: Markdown's style classes make it extra prominent.
       - [Code_quote]: use Markdown's inline code style: single quote [`].
-        Downside: does not respect whitespace. We convert leading spaces to "nbsp" for indentation.
-      - [Stylized]: use [font-family: monospace] and convert spaces to "nbsp".
-        Upside: lightweight -- no frame around and lighter font. Downside: unreadable MD source. *)
+        Downside: does not respect whitespace. We double spaces to "· " for indentation. *)
 
   type t
 
@@ -29,19 +27,19 @@ module Config : sig
   
   val vlists : [`Line_break | `List | `As_table] -> t -> t
   (** How to output {!PrintBox.vlist} boxes, i.e. single-column grids.
-      - [`Line_break] is set in the {!uniform} config; when the {!PrintBox.vlist} has bars,
-        it puts a bottom border div around a row.
-      - [`List] is set in the {!default} config; when the {!PrintBox.vlist} has bars,
-        it puts a quoted horizontal rule ["> ---"] at the bottom of a row.
+      - [`Line_break]: when the {!PrintBox.vlist} has bars, it puts a quoted horizontal rule
+        ["> ---"] at the bottom of a row, otherwise puts an extra empty line.
+        It is set in the {!uniform} config.
+      - [`List]: puts each row as a separate list item; in addition, when the {!PrintBox.vlist}
+        has bars, it puts a quoted horizontal rule ["> ---"] at the bottom of a row.
+        It is set in the {!default} config.
       - [`As_table] falls back to the general table printing mechanism. *)
 
-  val hlists : [`Minimal | `Stylized | `As_table] -> t -> t
+  val hlists : [`Minimal | `As_table] -> t -> t
   (** How to output {!PrintBox.hlist} boxes, i.e. single-row grids, curently only if they fit
       in one line.
       - [`Minimal] uses spaces and a horizontal bar [" | "] to separate columns.
         It is set in the {!default} config.
-      - [`Stylized] instead of ["|"] uses the border style to provide grid bars.
-        It is set in the {!uniform} config.
       - [`As_table] falls back to the general table printing mechanism. *)
   
   val foldable_trees : t -> t
@@ -59,15 +57,14 @@ module Config : sig
   (* How to output single-line preformatted text. *)
   
   val tab_width : int -> t -> t
-  (* One tab is this many spaces, when outputting preformatted text via [Stylized],
-     and via [Code_quote] (only for indentation). *)
+  (* One tab is this many spaces. *)
   
   val quotation_frames :  t -> t
-  (** Output frames using Markdown's quotation syntax [> ].
+  (** Output frames using Markdown's quotation syntax [> ], or surrouding by [[]] if inline.
       Already the case for the {!default} config. *)
 
-  val stylized_frames :  t -> t
-  (** Output frames using a border style. It's intended to be similar to what {!PrintBox_html} does.
+  val table_frames :  t -> t
+  (** Output frames by falling back to the mechanism used to output tables.
       Already the case for the {!uniform} config. *)
 end
 
