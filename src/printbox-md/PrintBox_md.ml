@@ -237,7 +237,7 @@ let pp c out b =
         if not no_md then fprintf out "@,%s@,%s" prefix prefix
       | `As_table, `Text, _ ->
         let style = B.Style.preformatted in
-        let l = break_lines [PrintBox_text.to_string b] in
+        let l = break_lines [PrintBox_text.to_string_with ~style:false b] in
         loop ~no_block ~no_md ~prefix (B.lines_with_style style l)
       | _, _, true ->
         (* E.g. in a first Markdown table cell, "> " would mess up rendering. *)
@@ -313,7 +313,7 @@ let pp c out b =
       match c.Config.tables with
       | `Text ->
           let style = B.Style.preformatted in
-          let l = break_lines [PrintBox_text.to_string b] in
+          let l = break_lines [PrintBox_text.to_string_with ~style:false b] in
           loop ~no_block ~no_md ~prefix (B.lines_with_style style l)
       | `Html ->
         let table = PrintBox_html.(if no_block then to_string else to_string_indent) b in
