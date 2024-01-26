@@ -130,6 +130,7 @@ let pp_string_escaped ~tab_width ~code_block ~code_quote ~html out s =
           match opt_char i, opt_char (i+1), opt_char (i+2) with
           | Some '<', _, _ -> pp_print_string out "\\<"; 1
           | Some '>', _, _ -> pp_print_string out "\\>"; 1
+          | Some '`', _, _ -> pp_print_string out "\\`"; 1
           | Some ' ', Some '*', Some ' ' -> pp_print_string out " * "; 3
           | Some '*', _, _ -> pp_print_string out "\\*"; 1
           | Some ' ', Some '_', Some ' ' -> pp_print_string out " _ "; 3
@@ -140,9 +141,11 @@ let pp_string_escaped ~tab_width ~code_block ~code_quote ~html out s =
           | _ -> len
     in
     let i = ref 0 in
-    if code_quote then pp_print_char out '`';
+    let quote_pre, quote_post =
+      if code_quote && String.contains s '`' then "`` ", " ``" else "`", "`" in
+    if code_quote then pp_print_string out quote_pre;
     while !i < len do i := !i + print_next_chars !i done;
-    if code_quote then pp_print_char out '`'
+    if code_quote then pp_print_string out quote_post
 
 let rec multiline_heuristic c b =
   match B.view b with
