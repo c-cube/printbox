@@ -173,8 +173,11 @@ let to_string ?config b =
 let to_string_indent ?config b =
   Format.asprintf "@[%a@]@." (H.pp_elt ~indent:true ()) (to_html ?config b)
 
-let pp ?config ?indent () pp b =
+let pp ?(flush=true) ?config ?indent () pp b =
+  if flush then
     Format.fprintf pp "@[%a@]@." (H.pp_elt ?indent ()) (to_html ?config b)
+  else
+    Format.fprintf pp "@[%a@]" (H.pp_elt ?indent ()) (to_html ?config b)
   
 let to_string_doc ?config b =
   let meta_str = "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">" in
