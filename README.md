@@ -259,7 +259,7 @@ an alternative solution where trees are printed in HTML using the
 # print_endline PrintBox_html.(to_string
   ~config:Config.(tree_summary true default)
     B.(tree (text "0")[text "1"; tree (text "ω") [text "ω²"]]));;
-<div><details><summary><span class="">0</span></summary><ul><li><span class="">1</span></li><li><details><summary><span class="">ω</span></summary><ul><li><span class="">ω²</span></li></ul></details></li></ul></details></div>
+<div><details><summary><span class="">0</span></summary><ul><li><div class="">1</div></li><li><details><summary><span class="">ω</span></summary><ul><li><div class="">ω²</div></li></ul></details></li></ul></details></div>
 
 - : unit = ()
 ```
