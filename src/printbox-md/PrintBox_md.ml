@@ -293,9 +293,9 @@ let pp c out b =
       let n_rows = Array.length rows and n_cols = Array.length rows.(0) in
       Array.iteri (fun i header ->
           loop ~no_block:true ~no_md ~prefix:"" @@ remove_bold header;
-          if i < n_rows - 1 then
+          if i < n_cols - 1 then
             let len = line_of_length_heuristic_exn c header in
-            fprintf out "%s|" (String.make (lengths.(i) - len) ' ')
+            fprintf out "%s|" (String.make (max 0 @@ lengths.(i) - len) ' ')
         ) rows.(0);
       fprintf out "@,%s" prefix;
       Array.iteri (fun j _ ->
@@ -307,7 +307,7 @@ let pp c out b =
               loop ~no_block:true ~no_md ~prefix:"" b;
               if j < n_cols - 1 then
                 let len = line_of_length_heuristic_exn c b in
-                fprintf out "%s|" (String.make (lengths.(j) - len) ' ')
+                fprintf out "%s|" (String.make (max 0 @@ lengths.(j) - len) ' ')
             ) row;
           if i < n_rows - 1 then fprintf out "@,%s" prefix;
         ) rows
