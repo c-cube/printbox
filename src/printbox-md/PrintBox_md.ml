@@ -287,7 +287,7 @@ let pp c out b =
       | `As_table -> assert false
       | `Minimal ->
         Array.iteri (fun i r ->
-            loop ~no_block ~no_md ~prefix r;
+            loop ~no_block:true ~no_md ~prefix r;
             if i < len - 1 then (
               if bars = `Bars then fprintf out " | " else fprintf out " &nbsp; "))
           row
@@ -295,7 +295,7 @@ let pp c out b =
         Array.iteri (fun i r ->
             if i < len - 1 && bars = `Bars && c.Config.hlists = `Stylized
             then fprintf out {|<span style="border-right: thin solid">|};
-            loop ~no_block ~no_md ~prefix r;
+            loop ~no_block:true ~no_md ~prefix r;
             if i < len - 1 then (
               if bars = `Bars && c.Config.hlists = `Stylized
               then fprintf out " </span> "
