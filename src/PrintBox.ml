@@ -67,9 +67,11 @@ let line_with_style style s =
 
 let line s = line_with_style Style.default s
 
-(* FIXME: does not handle '\r' *)
-let text s = Text {l=String.split_on_char '\n' s; style=Style.default}
-let text_with_style style s = Text {l=String.split_on_char '\n' s; style}
+let mk_text_ s : string list =
+  if String.contains s '\n' then String.split_on_char '\n' s else [s]
+
+let text s = Text {l=mk_text_ s; style=Style.default}
+let text_with_style style s = Text {l=mk_text_ s;  style}
 
 let sprintf_with_style style format =
   let buffer = Buffer.create 64 in
