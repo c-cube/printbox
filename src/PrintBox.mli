@@ -54,7 +54,10 @@
 
 *)
 
-type position = { x:int ; y: int }
+type position = {
+  x: int;
+  y: int;
+}
 (** Positions are relative to the upper-left corner, that is,
     when [x] increases we go toward the right, and when [y] increases
     we go toward the bottom (same order as a printer) *)
@@ -75,30 +78,22 @@ module Style : sig
 
   type t = {
     bold: bool;
-    bg_color: color option; (** backgroud color *)
-    fg_color: color option; (** foreground color *)
+    bg_color: color option;  (** backgroud color *)
+    fg_color: color option;  (** foreground color *)
     preformatted: bool;
-    (** where supported, the text rendering should be monospaced and respect whitespace *)
+        (** where supported, the text rendering should be monospaced and respect whitespace *)
   }
   (** Basic styling (color, bold).
       @since 0.3 *)
 
   val default : t
-
   val set_bg_color : color -> t -> t
-
   val set_fg_color : color -> t -> t
-
   val set_bold : bool -> t -> t
-
   val set_preformatted : bool -> t -> t
-
   val bg_color : color -> t
-
   val fg_color : color -> t
-
   val bold : t
-
   val preformatted : t
 end
 
@@ -123,11 +118,11 @@ type view = private
   | Frame of t
   | Pad of position * t (* vertical and horizontal padding *)
   | Align of {
-      h: [`Left | `Center | `Right];
-      v: [`Top | `Center | `Bottom];
+      h: [ `Left | `Center | `Right ];
+      v: [ `Top | `Center | `Bottom ];
       inner: t;
-    } (** Alignment within the surrounding box *)
-  | Grid of [`Bars | `None] * t array array
+    }  (** Alignment within the surrounding box *)
+  | Grid of [ `Bars | `None ] * t array array
   | Tree of int * t * t array (* int: indent *)
   | Link of {
       uri: string;
@@ -163,9 +158,7 @@ val lines : string list -> t
     [lines l] is the same as [text (String.concat "\n" l)]. *)
 
 val int_ : int -> t
-
 val bool_ : bool -> t
-
 val float_ : float -> t
 
 val int : int -> t
@@ -192,7 +185,8 @@ val vpad : int -> t -> t
 val hpad : int -> t -> t
 (** Pad horizontally by [n] spaces *)
 
-val align : h:[`Left | `Right | `Center] -> v:[`Top | `Bottom | `Center] -> t -> t
+val align :
+  h:[ `Left | `Right | `Center ] -> v:[ `Top | `Bottom | `Center ] -> t -> t
 (** Control alignment of the given box wrt its surrounding box, if any.
     @param h horizontal alignment
     @param v vertical alignment
@@ -222,10 +216,7 @@ val center_hv : t -> t
 (** Try to center within the surrounding box, as in [align ~h:`Center ~v:`Center]
     @since 0.3 *)
 
-val grid :
-  ?pad:(t -> t) ->
-  ?bars:bool ->
-  t array array -> t
+val grid : ?pad:(t -> t) -> ?bars:bool -> t array array -> t
 (** Grid of boxes (no frame between boxes). The matrix is indexed
     with lines first, then columns. The array must be a proper matrix,
     that is, all lines must have the same number of columns!
@@ -234,36 +225,25 @@ val grid :
     @param bars if true, each item of the grid will be framed.
       default value is [true] *)
 
-val grid_text :
-  ?pad:(t -> t) -> ?bars:bool ->
-  string array array -> t
+val grid_text : ?pad:(t -> t) -> ?bars:bool -> string array array -> t
 (** Same as {!grid}, but wraps every cell into a {!text} box *)
 
 val transpose : 'a array array -> 'a array array
 (** Transpose a matrix *)
 
-val init_grid : ?bars:bool ->
-  line:int -> col:int -> (line:int -> col:int -> t) -> t
+val init_grid :
+  ?bars:bool -> line:int -> col:int -> (line:int -> col:int -> t) -> t
 (** Same as {!grid} but takes the matrix as a function *)
 
-val grid_l : 
-  ?pad:(t -> t) ->
-  ?bars:bool ->
-  t list list -> t
+val grid_l : ?pad:(t -> t) -> ?bars:bool -> t list list -> t
 (** Same as {!grid} but from lists.
     @since 0.3 *)
 
-val grid_text_l : 
-  ?pad:(t -> t) ->
-  ?bars:bool ->
-  string list list -> t
+val grid_text_l : ?pad:(t -> t) -> ?bars:bool -> string list list -> t
 (** Same as {!grid_text} but from lists.
     @since 0.3 *)
 
-val record :
-  ?pad:(t -> t) ->
-  ?bars:bool ->
-  (string * t) list -> t
+val record : ?pad:(t -> t) -> ?bars:bool -> (string * t) list -> t
 (** A record displayed as a table, each field being a columng [(label,value)].
     {[
       # frame @@ record ["a", int 1; "b", float 3.14; "c", bool true];;
@@ -275,10 +255,7 @@ val record :
     ]}
     @since 0.3 *)
 
-val v_record :
-  ?pad:(t -> t) ->
-  ?bars:bool ->
-  (string * t) list -> t
+val v_record : ?pad:(t -> t) -> ?bars:bool -> (string * t) list -> t
 (** Like {!record}, but printed vertically rather than horizontally.
     {[
       # frame @@ v_record ["a", int 1; "b", float 3.14; "c", bool true];;
@@ -305,7 +282,6 @@ val grid_map_l : ?bars:bool -> ('a -> t) -> 'a list list -> t
     @since 0.4 *)
 
 val vlist_map : ?bars:bool -> ('a -> t) -> 'a list -> t
-
 val hlist_map : ?bars:bool -> ('a -> t) -> 'a list -> t
 
 val tree : ?indent:int -> t -> t list -> t
@@ -340,13 +316,14 @@ val sprintf_with_style : Style.t -> ('a, Buffer.t, unit, t) format4 -> 'a
 (** Formatting for {!text}, with style
     @since 0.3 *)
 
-val asprintf_with_style : Style.t -> ('a, Format.formatter, unit, t) format4 -> 'a
+val asprintf_with_style :
+  Style.t -> ('a, Format.formatter, unit, t) format4 -> 'a
 (** Formatting for {!text}, with style.
     @since 0.3 *)
 
 (** {2 Simple Structural Interface} *)
 
-type 'a ktree = unit -> [`Nil | `Node of 'a * 'a ktree list]
+type 'a ktree = unit -> [ `Nil | `Node of 'a * 'a ktree list ]
 type box = t
 
 module Simple : sig
