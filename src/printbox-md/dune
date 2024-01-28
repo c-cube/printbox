@@ -16,5 +16,6 @@
  (target README.md)
  (mode (promote))
  (action
-  (with-outputs-to %{target}
+  (with-outputs-to
+   %{target}
    (run %{dep:readme.exe}))))

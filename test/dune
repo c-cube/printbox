@@ -1,6 +1,6 @@
-
 (env
-  (_ (flags :standard -warn-error -a)))
+ (_
+  (flags :standard -warn-error -a)))
 
 (test
  (name test_ann_0_3)
@@ -13,7 +13,6 @@
  (modules test1)
  (package printbox-text)
  (libraries printbox printbox-text))
-
 
 (test
  (name test_blending)
@@ -38,4 +37,5 @@
  (deps test_md.expected)
  (targets test_md.expected.md)
  (mode promote)
- (action (copy %{deps} %{targets})))
+ (action
+  (copy %{deps} %{targets})))

@@ -1,4 +1,3 @@
-
 (* This file is free software. See file "license" for more details. *)
 
 (** {1 Output HTML} *)
@@ -7,7 +6,7 @@ open Tyxml
 
 type 'a html = 'a Html.elt
 
-val prelude : [> Html_types.style] html
+val prelude : [> Html_types.style ] html
 (** HTML text to embed in the "<head>", defining the style for tables *)
 
 val prelude_str : string
@@ -29,19 +28,25 @@ module Config : sig
   val a_row : Html_types.div_attrib Html.attrib list -> t -> t
   val cls_col : string list -> t -> t
   val a_col : Html_types.div_attrib Html.attrib list -> t -> t
+
   val tree_summary : bool -> t -> t
   (** When set to true, the trees are rendered collapsed
       using the [<detalis>] HTML5 element. *)
 end
 
-val to_html : ?config:Config.t -> PrintBox.t -> [`Div] html
+val to_html : ?config:Config.t -> PrintBox.t -> [ `Div ] html
 (** HTML for one box *)
 
 val pp :
-  ?flush:bool -> ?config:Config.t -> ?indent:bool -> unit -> Format.formatter -> PrintBox.t -> unit
+  ?flush:bool ->
+  ?config:Config.t ->
+  ?indent:bool ->
+  unit ->
+  Format.formatter ->
+  PrintBox.t ->
+  unit
 
 val to_string : ?config:Config.t -> PrintBox.t -> string
-
 val to_string_indent : ?config:Config.t -> PrintBox.t -> string
 
 val to_string_doc : ?config:Config.t -> PrintBox.t -> string
