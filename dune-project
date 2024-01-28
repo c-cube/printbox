@@ -35,3 +35,15 @@ Printbox allows to print nested boxes, lists, arrays, tables in several formats"
            (odoc :with-test)
            (tyxml (>= 4.3))
            (mdx (and (>= 1.4) :with-test))))
+
+(package
+  (name printbox-md)
+(synopsis "Printbox Markdown rendering")
+(description "
+Adds Markdown output handling to the printbox package, with fallback to text and simplified HTML.
+Printbox allows to print nested boxes, lists, arrays, tables in several formats")
+  (depends (printbox (= :version))
+           (printbox-text (and (= :version)))
+           (printbox-html (and (= :version)))
+           (odoc :with-test)
+           (mdx (and (>= 1.4) :with-test))))

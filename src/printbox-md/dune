@@ -1,0 +1,20 @@
+(library
+ (name printbox_md)
+ (public_name printbox-md)
+ (wrapped false)
+ (modules PrintBox_md)
+ (flags :standard -w +a-3-4-44-29 -safe-string)
+ (libraries printbox printbox-text printbox-html))
+
+(executable
+ (name readme)
+ (modules readme)
+ (libraries printbox printbox-md))
+
+(rule
+ (alias runtest)
+ (target README.md)
+ (mode (promote))
+ (action
+  (with-outputs-to %{target}
+   (run %{dep:readme.exe}))))
