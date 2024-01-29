@@ -1,5 +1,10 @@
 # Changes
 
+## 0.9
+
+- fix `PrintBox.text` will correctly handle newlines
+- new `printbox-md` backend, generating markdown (by @lukstafi)
+
 ## 0.8
 
 - require dune 3.0

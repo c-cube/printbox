@@ -2,11 +2,11 @@
 (name printbox)
 (using mdx 0.2)
 (generate_opam_files true)
-(version 0.8)
+(version 0.9)
 (license "BSD-2-Clause")
 
-(authors "Simon Cruanes" "Guillaume Bury")
-(maintainers c-cube)
+(authors "Simon Cruanes" "Guillaume Bury" "lukstafi")
+(maintainers c-cube lukstafi)
 (source (github c-cube/printbox))
 
 (package

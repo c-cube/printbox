@@ -1,6 +1,8 @@
-(* This file is free software. See file "license" for more details. *)
+(** Output Markdown.
 
-(** {1 Output Markdown} *)
+    @since 0.9 *)
+
+(* This file is free software. See file "license" for more details. *)
 
 (** {2 Markdown configuration} *)
 module Config : sig
