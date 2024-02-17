@@ -33,11 +33,9 @@ or if \`Bars are set, |  by the | vertical dash.
 
 <div>
  <table class="framed">
-  <tr class="">
-   <td class="">
-    <div class="">It only works when<br/>all the elements fit</div>
-   </td><td class=""><div class="">logically speaking,</div></td>
-   <td class=""><div class=""><b>on a single line.</b></div></td>
+  <tr><td><div>It only works when<br/>all the elements fit</div></td>
+   <td><div>logically speaking,</div></td>
+   <td><div><b>on a single line.</b></div></td>
   </tr>
  </table>
 </div>
@@ -46,13 +44,9 @@ or if \`Bars are set, |  by the | vertical dash.
 
 <div>
  <table class="non-framed">
-  <tr class="">
-   <td class=""><div class="">Otherwise, the fallback behavior is as if</div>
-   </td>
-   <td class=""><pre class="" style="font-family: monospace">`As_table</pre>
-   </td>
-   <td class=""><div class="">was used to configure horizontal boxes.</div>
-   </td>
+  <tr><td><div>Otherwise, the fallback behavior is as if</div></td>
+   <td><pre><span style="font-family: monospace">`As_table</span></pre></td>
+   <td><div>was used to configure horizontal boxes.</div></td>
   </tr>
  </table>
 </div>
@@ -105,7 +99,7 @@ to separate the entries (here with style \`Line_break).
 
 - And suprisingly it works even better
 - - when tables are configured
-  - <div><div style="border:thin solid"><div class="">to fallback on</div></div></div>
+  - <div><div style="border:thin solid"><div>to fallback on</div></div></div>
     
     
   - HTML -- but it doesn't work on GitHub Preview.
@@ -143,29 +137,21 @@ Rows  |[must be]|single    |line.
 
 <div>
  <table class="framed">
-  <tr class=""><td class=""><div class=""><b>Tables</b></div></td>
-   <td class=""><div class=""><b>that meet</b></div></td>
-   <td class="">
-    <div style="border:thin solid"><div class=""><b>neither</b></div></div>
-   </td><td class=""><div class=""><b>of:</b></div></td>
+  <tr><td><div><b>Tables</b></div></td><td><div><b>that meet</b></div></td>
+   <td><div style="border:thin solid"><div><b>neither</b></div></div></td>
+   <td><div><b>of:</b></div></td>
   </tr>
-  <tr class="">
-   <td class="">
-    <div style="border:thin solid">
-     <div class=""><b>Markdown's native</b></div>
-    </div>
-   </td><td class=""><div class="">restrictions,</div></td>
-   <td class=""><div class="">special cases:</div></td>
-   <td class=""><pre class="" style="font-family: monospace">hlist
-                                                             vlist</pre>
-   </td>
+  <tr>
+   <td>
+    <div style="border:thin solid"><div><b>Markdown's native</b></div></div>
+   </td><td><div>restrictions,</div></td><td><div>special cases:</div></td>
+   <td><pre><span style="font-family: monospace">hlistvlist</span></pre></td>
   </tr>
-  <tr class=""><td class=""><div class="">End up</div></td>
-   <td class=""><div class="">as either</div></td>
-   <td class=""><div class="">of the fallbacks:</div></td>
-   <td class="">
-    <pre class="" style="font-family: monospace">printbox-text
-                                                 printbox-html
+  <tr><td><div>End up</div></td><td><div>as either</div></td>
+   <td><div>of the fallbacks:</div></td>
+   <td>
+    <pre>
+     <span style="font-family: monospace">printbox-textprintbox-html</span>
     </pre>
    </td>
   </tr>
