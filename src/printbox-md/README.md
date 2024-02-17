@@ -121,9 +121,7 @@ Trees are rendered as:
   - **are the details.**
   </details>
   
-  
 </details>
-
 
 
 ### Tables

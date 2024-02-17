@@ -494,8 +494,10 @@ let pp c out b =
         (fun _out sub -> loop ~no_block ~no_md ~prefix:subprefix sub)
         out
       @@ Array.to_list body;
+      (* Note: vlist and tree element separators move to a new line.
+         A non-html hlist or table as a parent would not produce correct results. *)
       if c.Config.foldable_trees then
-        fprintf out "@,%s</details>@,%s@,%s" prefix prefix prefix
+        fprintf out "@,%s</details>@,%s" prefix prefix
     | B.Link { uri; inner } ->
       pp_print_string out "[";
       loop ~no_block:true ~no_md ~prefix:(prefix ^ " ") inner;

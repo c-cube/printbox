@@ -191,9 +191,7 @@ Test foldable:
   >   - > subchild 3
   >   </details>
   >   
-  >   
   > </details>
-  > 
   > 
 - <details><summary></summary>
   
@@ -204,13 +202,10 @@ Test foldable:
       - `<nothing>`
       </details>
       
-      
     - & \*\*subchild\*\* 4
     </details>
     
-    
   </details>
-  
   
 - > <details><summary><code>header 5</code></summary>
   > 
@@ -224,7 +219,6 @@ Test foldable:
   >   ```
   >   
   > </details>
-  > 
   > 
 - > > 
   > > ```
@@ -255,7 +249,6 @@ Test foldable:
   > cell 1.1  |[cell 1.2]|cell 1.3
   > [cell 2.1]|cell 2.2  |**cell 2.3**
 </details>
-
 
 
 Test uniform tab=2, text tables:
@@ -345,13 +338,10 @@ Test uniform tab=2, text tables:
       - `<nothing>`
       </details>
       
-      
     - & \*\*subchild\*\* 4
     </details>
     
-    
   </details>
-  
   
 - 
   ```
@@ -424,7 +414,6 @@ Test uniform tab=2, text tables:
 </details>
 
 
-
 Test single quote tab=2, text tables:
 <details><summary><code>┌────┐<br>
 │root│<br>
@@ -488,13 +477,10 @@ Test single quote tab=2, text tables:
       - `<nothing>`
       </details>
       
-      
     - & \*\*subchild\*\* 4
     </details>
     
-    
   </details>
-  
   
 - `┌───────────────────────┐`  
   `│header 5 · · · · · · · │`  
@@ -549,7 +535,6 @@ Test single quote tab=2, text tables:
   `│└────────┘│ · · · ·· │ · · · ·· │`  
   `└──────────┴──────────┴──────────┘`
 </details>
-
 
 
 The end.
