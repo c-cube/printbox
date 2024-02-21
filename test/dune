@@ -21,6 +21,12 @@
  (libraries printbox printbox-text))
 
 (test
+ (name test_text_uri)
+ (modules test_text_uri)
+ (package printbox-text)
+ (libraries printbox printbox-text))
+
+(test
  (name test_html)
  (modules test_html)
  (package printbox-html)
