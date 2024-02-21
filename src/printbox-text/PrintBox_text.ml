@@ -11,6 +11,7 @@ type position = PrintBox.position = {
 
 module Style_ansi : sig
   val brackets : B.Style.t -> string * string
+  val hyperlink : uri:string -> B.Style.t -> string * string
 end = struct
   open B.Style
 
@@ -55,6 +56,16 @@ end = struct
       Buffer.contents buf, "\x1b[0m"
 
   let brackets s = ansi_l_to_str_ (codes_of_style s)
+
+  let hyperlink ~uri s =
+    let prefix, postfix = brackets s in
+    (* "\x1b]8;;http://example.com\x1b\\This is a link\x1b]8;;\x1b\\\n" *)
+    let buf = Buffer.create 16 in
+    Buffer.add_string buf "\x1b]8;;";
+    Buffer.add_string buf uri;
+    Buffer.add_string buf "\x1b\\";
+    Buffer.add_string buf prefix;
+    Buffer.contents buf, postfix ^ "\x1b]8;;\x1b\\"
 end
 
 module Pos = struct
@@ -272,7 +283,7 @@ end
 module Box_inner : sig
   type t
 
-  val of_box : B.box -> t
+  val of_box : ansi:bool -> B.box -> t
   val render : ansi:bool -> Output.t -> t -> unit
 end = struct
   type 'a shape =
@@ -280,6 +291,7 @@ end = struct
     | Text of {
         l: (string * int * int) list; (* list of lines *)
         style: B.Style.t;
+        link_with_uri: string option;
       }
     | Frame of 'a
     | Pad of position * 'a (* vertical and horizontal padding *)
@@ -459,7 +471,7 @@ end = struct
 
   let size_of_shape = function
     | Empty -> Pos.origin
-    | Text { l; style = _ } ->
+    | Text { l; style = _; link_with_uri = _ } ->
       let width =
         List.fold_left
           (fun acc (s, i, len) -> max acc (str_display_width_ s i len))
@@ -500,7 +512,7 @@ end = struct
       lines_ s2 0 k;
       List.iter (fun s -> lines_ s 0 k) tl
 
-  let rec of_box (b : B.t) : t =
+  let rec of_box ~ansi (b : B.t) : t =
     let shape =
       match B.view b with
       | B.Empty -> Empty
@@ -508,15 +520,33 @@ end = struct
         (* split into lines *)
         let acc = ref [] in
         lines_l_ l (fun s i len -> acc := (s, i, len) :: !acc);
-        Text { l = List.rev !acc; style }
-      | B.Frame t -> Frame (of_box t)
-      | B.Pad (dim, t) -> Pad (dim, of_box t)
-      | B.Align { h; v; inner } -> Align { h; v; inner = of_box inner }
-      | B.Grid (bars, m) -> Grid (bars, B.map_matrix of_box m)
-      | B.Tree (i, b, l) -> Tree (i, of_box b, Array.map of_box l)
+        Text { l = List.rev !acc; style; link_with_uri = None }
+      | B.Frame t -> Frame (of_box ~ansi t)
+      | B.Pad (dim, t) -> Pad (dim, of_box ~ansi t)
+      | B.Align { h; v; inner } -> Align { h; v; inner = of_box ~ansi inner }
+      | B.Grid (bars, m) -> Grid (bars, B.map_matrix (of_box ~ansi) m)
+      | B.Tree (i, b, l) -> Tree (i, of_box ~ansi b, Array.map (of_box ~ansi) l)
+      | B.Link { inner; uri } when ansi ->
+        (match B.view inner with
+          | B.Empty -> Empty
+          | B.Frame t -> Frame (of_box ~ansi (B.link ~uri t))
+          | B.Pad (dim, t) -> Pad (dim, of_box ~ansi (B.link ~uri t))
+          | B.Align { h; v; inner } -> Align { h; v; inner = of_box ~ansi (B.link ~uri inner)}
+          | B.Grid (bars, m) -> Grid (bars, B.map_matrix (of_box ~ansi) m)
+          | B.Tree (i, b, l) ->
+            Tree (i, of_box ~ansi (B.link ~uri b),
+                  Array.map (fun b -> of_box ~ansi @@ B.link ~uri b) l)
+          | B.Link _ ->
+            (* Inner links override outer links. *)
+            (of_box ~ansi inner).shape
+          | B.Text _ ->
+            (match of_box ~ansi inner with
+            | {shape = Text { l; style; link_with_uri = _ }; size = _ } -> 
+              Text { l; style; link_with_uri = Some uri }
+            | _ -> assert false))
       | B.Link { inner; uri } ->
         (* just encode as a record *)
-        let self = of_box (B.v_record [ "uri", B.text uri; "inner", inner ]) in
+        let self = of_box ~ansi (B.v_record [ "uri", B.text uri; "inner", inner ]) in
         self.shape
     in
     { shape; size = lazy (size_of_shape shape) }
@@ -552,12 +582,12 @@ end = struct
     let rec render_rec ~ansi ?(offset = offset) ?expected_size b pos =
       match shape b with
       | Empty -> conn_m.m
-      | Text { l; style } ->
+      | Text { l; style; link_with_uri } ->
         let ansi_prelude, ansi_suffix =
-          if ansi then
-            Style_ansi.brackets style
-          else
-            "", ""
+          match ansi, link_with_uri with
+            | false, _ -> "", ""
+            | true, None -> Style_ansi.brackets style
+            | true, Some uri -> Style_ansi.hyperlink ~uri style
         in
         let has_style = ansi_prelude <> "" || ansi_suffix <> "" in
         List.iteri
@@ -759,20 +789,20 @@ end
 
 let to_string_with ~style b =
   let buf = Output.create () in
-  Box_inner.render ~ansi:style buf (Box_inner.of_box b);
+  Box_inner.render ~ansi:style buf (Box_inner.of_box ~ansi:style b);
   Output.to_string buf
 
 let to_string = to_string_with ~style:true
 
 let output ?(style = true) ?(indent = 0) oc b =
   let buf = Output.create () in
-  Box_inner.render ~ansi:style buf (Box_inner.of_box b);
+  Box_inner.render ~ansi:style buf (Box_inner.of_box ~ansi:style b);
   Output.to_chan ~indent oc buf;
   flush oc
 
 let pp_with ~style out b =
   let buf = Output.create () in
-  Box_inner.render ~ansi:style buf (Box_inner.of_box b);
+  Box_inner.render ~ansi:style buf (Box_inner.of_box ~ansi:style b);
   Output.pp out buf
 
 let pp = pp_with ~style:true
