@@ -62,6 +62,12 @@ let attrs_of_style (s : B.Style.t) : _ list * _ =
   in
   a, bold
 
+let a_class l =
+  if List.exists (fun s -> s <> "") l then
+    [ H.a_class l ]
+  else
+    []
+
 module Config = struct
   type t = {
     cls_table: string list;
@@ -116,7 +122,7 @@ let to_html_rec ~config (b : B.t) =
       else
         []
     in
-    H.span ~a:((H.a_class config.cls_text :: a_border) @ a @ config.a_text) l
+    H.span ~a:(a_class config.cls_text @ a_border @ a @ config.a_text) l
   in
   let v_text_to_html ?(border = false) ~l ~style () =
     let a, bold = attrs_of_style style in
@@ -128,7 +134,7 @@ let to_html_rec ~config (b : B.t) =
     in
     if style.B.Style.preformatted then
       H.pre
-        ~a:((H.a_class config.cls_text :: a_border) @ a @ config.a_text)
+        ~a:(a_class config.cls_text @ a_border @ a @ config.a_text)
         [ H.txt @@ String.concat "\n" l ]
     else (
       (* TODO: remove possible trailing '\r' *)
@@ -151,7 +157,7 @@ let to_html_rec ~config (b : B.t) =
                  []))
              l
       in
-      H.div ~a:((H.a_class config.cls_text :: a_border) @ a @ config.a_text) l
+      H.div ~a:(a_class config.cls_text @ a_border @ a @ config.a_text) l
     )
   in
   let loop
@@ -164,7 +170,8 @@ let to_html_rec ~config (b : B.t) =
     match B.view b with
     | B.Empty ->
       (H.div [] :> [< Html_types.flow5 > `Pre `Span `Div `P `Table `Ul ] html)
-    (* | B.Text {l; style} when style.B.Style.preformatted -> H.pre [h_text_to_html ~l ~style ()] *)
+    | B.Text { l; style } when style.B.Style.preformatted ->
+      H.pre [ h_text_to_html ~l ~style () ]
     | B.Text { l; style } -> v_text_to_html ~l ~style ()
     | B.Pad (_, b) -> fix b
     | B.Frame b -> H.div ~a:[ H.a_style "border:thin solid" ] [ fix b ]
@@ -182,11 +189,11 @@ let to_html_rec ~config (b : B.t) =
       let to_row a =
         Array.to_list a
         |> List.map (fun b ->
-               H.td ~a:(H.a_class config.cls_col :: config.a_col) [ fix b ])
-        |> fun x -> H.tr ~a:(H.a_class config.cls_row :: config.a_row) x
+               H.td ~a:(a_class config.cls_col @ config.a_col) [ fix b ])
+        |> fun x -> H.tr ~a:(a_class config.cls_row @ config.a_row) x
       in
       let rows = Array.to_list a |> List.map to_row in
-      H.table ~a:(H.a_class (class_ :: config.cls_table) :: config.a_table) rows
+      H.table ~a:(a_class (class_ :: config.cls_table) @ config.a_table) rows
     | B.Tree (_, b, l) ->
       let l = Array.to_list l in
       H.div [ fix b; H.ul (List.map (fun x -> H.li [ fix x ]) l) ]

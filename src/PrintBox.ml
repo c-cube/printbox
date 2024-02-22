@@ -65,7 +65,7 @@ let[@inline] view (t : t) : view = t
 let[@inline] line_ s = Text { l = [ s ]; style = Style.default }
 
 let line_with_style style s =
-  if String.contains s '\n' then invalid_arg "PrintBox.line";
+  if String.contains s '\n' then invalid_arg @@ "PrintBox.line: " ^ s;
   Text { l = [ s ]; style }
 
 let line s = line_with_style Style.default s
