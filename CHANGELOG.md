@@ -1,5 +1,12 @@
 # Changes
 
+## 0.10
+
+- Fixes #10: ANSI encoded hyperlinks for printbox-text
+- Fixes #39: more compact markdown output Remove double empty lines after `</details>`.
+- More compact html output: no empty class annotations
+- Provide context for the `line` exception
+
 ## 0.9
 
 - fix `PrintBox.text` will correctly handle newlines
