@@ -132,7 +132,11 @@ Test uniform unfolded:
     - \<returns\>
       - `<nothing>`
     - & \*\*subchild\*\* 4
-- <div><div style="border:thin solid"><div><pre><span style="font-family: monospace">header 5</span></pre><ul><li><pre><span style="font-family: monospace">subchild 5  body 5    subbody 5	one tab end of sub 5end of 5</span></pre></li></ul></div></div></div>
+- <div><div style="border:thin solid"><div><pre style="font-family: monospace">header 5</pre><ul><li><pre style="font-family: monospace">subchild 5
+  body 5
+    subbody 5
+	one tab end of sub 5
+end of 5</pre></li></ul></div></div></div>
   
   
 - <div><div style="border:thin solid"><div style="border:thin solid"><table class="framed"><tr><td><div>a</div></td><td><div>looooooooooooooooooooooooo<br/>oonng</div></td></tr><tr><td><div>bx</div></td><td><div class="center"><div style="border:thin solid"><table class="framed"><tr><td><div>x</div></td><td><div>y</div></td></tr><tr><td><div>1</div></td><td><div>2</div></td></tr></table></div></div></td></tr><tr><td><div>?</div></td><td><div class="center"><table class="framed"><tr><td><div>x</div></td><td><div>y</div></td></tr><tr><td><div>10</div></td><td><div>20</div></td></tr></table></div></td></tr></table></div></div></div>

@@ -105,17 +105,30 @@ module Config = struct
   let tree_summary x c = { c with tree_summary = x }
 end
 
+let br_lines ~bold l =
+  let l =
+    List.map H.txt @@ List.concat @@ List.map (String.split_on_char '\n') l
+  in
+  let len = List.length l in
+  List.concat
+  @@ List.mapi
+       (fun i x ->
+         (if bold then
+            H.b [ x ]
+          else
+            x)
+         ::
+         (if i < len - 1 then
+            [ H.br () ]
+          else
+            []))
+       l
+
 let to_html_rec ~config (b : B.t) =
   let open Config in
-  let h_text_to_html ?(border = false) ~l ~style () =
+  let br_text_to_html ?(border = false) ~l ~style () =
     let a, bold = attrs_of_style style in
-    let l = List.map H.txt l in
-    let l =
-      if bold then
-        List.map (fun x -> H.b [ x ]) l
-      else
-        l
-    in
+    let l = br_lines ~bold l in
     let a_border =
       if border then
         [ H.a_style "border:thin solid" ]
@@ -138,40 +151,22 @@ let to_html_rec ~config (b : B.t) =
         [ H.txt @@ String.concat "\n" l ]
     else (
       (* TODO: remove possible trailing '\r' *)
-      let l =
-        List.map H.txt @@ List.concat @@ List.map (String.split_on_char '\n') l
-      in
-      let len = List.length l in
-      let l =
-        List.concat
-        @@ List.mapi
-             (fun i x ->
-               (if bold then
-                 H.b [ x ]
-               else
-                 x)
-               ::
-               (if i < len - 1 then
-                 [ H.br () ]
-               else
-                 []))
-             l
-      in
+      let l = br_lines ~bold l in
       H.div ~a:(a_class config.cls_text @ a_border @ a @ config.a_text) l
     )
   in
-  let loop
-        : 'tags.
-          (B.t ->
-          ([< Html_types.flow5 > `Pre `Span `Div `Ul `Table `P ] as 'tags) html) ->
-          B.t ->
-          'tags html =
+  let loop :
+        'tags.
+        (B.t ->
+        ([< Html_types.flow5 > `Pre `Span `Div `Ul `Table `P ] as 'tags) html) ->
+        B.t ->
+        'tags html =
    fun fix b ->
     match B.view b with
     | B.Empty ->
       (H.div [] :> [< Html_types.flow5 > `Pre `Span `Div `P `Table `Ul ] html)
     | B.Text { l; style } when style.B.Style.preformatted ->
-      H.pre [ h_text_to_html ~l ~style () ]
+      v_text_to_html ~l ~style ()
     | B.Text { l; style } -> v_text_to_html ~l ~style ()
     | B.Pad (_, b) -> fix b
     | B.Frame b -> H.div ~a:[ H.a_style "border:thin solid" ] [ fix b ]
@@ -206,13 +201,13 @@ let to_html_rec ~config (b : B.t) =
       (match B.view b with
       | B.Text { l = tl; style } ->
         H.details
-          (H.summary [ h_text_to_html ~l:tl ~style () ])
+          (H.summary [ br_text_to_html ~l:tl ~style () ])
           [ H.ul (List.map (fun x -> H.li [ to_html_rec x ]) l) ]
       | B.Frame b ->
         (match B.view b with
         | B.Text { l = tl; style } ->
           H.details
-            (H.summary [ h_text_to_html ~border:true ~l:tl ~style () ])
+            (H.summary [ br_text_to_html ~border:true ~l:tl ~style () ])
             [ H.ul (List.map (fun x -> H.li [ to_html_rec x ]) l) ]
         | _ ->
           H.div

@@ -45,7 +45,7 @@ or if \`Bars are set, |  by the | vertical dash.
 <div>
  <table class="non-framed">
   <tr><td><div>Otherwise, the fallback behavior is as if</div></td>
-   <td><pre><span style="font-family: monospace">`As_table</span></pre></td>
+   <td><pre style="font-family: monospace">`As_table</pre></td>
    <td><div>was used to configure horizontal boxes.</div></td>
   </tr>
  </table>
@@ -143,14 +143,13 @@ Rows  |[must be]|single    |line.
    <td>
     <div style="border:thin solid"><div><b>Markdown's native</b></div></div>
    </td><td><div>restrictions,</div></td><td><div>special cases:</div></td>
-   <td><pre><span style="font-family: monospace">hlistvlist</span></pre></td>
+   <td><pre style="font-family: monospace">hlist
+                                           vlist</pre></td>
   </tr>
   <tr><td><div>End up</div></td><td><div>as either</div></td>
    <td><div>of the fallbacks:</div></td>
-   <td>
-    <pre>
-     <span style="font-family: monospace">printbox-textprintbox-html</span>
-    </pre>
+   <td><pre style="font-family: monospace">printbox-text
+                                           printbox-html</pre>
    </td>
   </tr>
  </table>
