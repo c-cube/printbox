@@ -108,6 +108,7 @@ type t
 
     @since 0.3 added [Align]
     @since 0.5 added [Link]
+    @since 0.11 added [Anchor]
 *)
 type view = private
   | Empty
@@ -126,6 +127,10 @@ type view = private
   | Tree of int * t * t array (* int: indent *)
   | Link of {
       uri: string;
+      inner: t;
+    }
+  | Anchor of {
+      id: string;
       inner: t;
     }
 
@@ -296,6 +301,14 @@ val link : uri:string -> t -> t
     being [inner].
     Will render in HTML as a "<a>" element.
     @since 0.5
+*)
+
+val anchor : id:string -> t -> t
+(** [anchor ~id inner] provides an anchor with the given ID, with the visible hyperlink description
+    being [inner].
+    Will render in HTML as an "<a>" element, and as a link in ANSI stylized text.
+    If [inner] is non-empty, the rendered link URI is ["#" ^ id].
+    @since 0.11
 *)
 
 (** {2 Styling combinators} *)

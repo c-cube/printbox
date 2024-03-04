@@ -28,9 +28,9 @@ end = struct
   let codes_of_style (self : t) : int list =
     let { bold; fg_color; bg_color; preformatted = _ } = self in
     (if bold then
-      [ 1 ]
-    else
-      [])
+       [ 1 ]
+     else
+       [])
     @ (match bg_color with
       | None -> []
       | Some c -> [ 40 + int_of_color_ c ])
@@ -512,6 +512,11 @@ end = struct
       lines_ s2 0 k;
       List.iter (fun s -> lines_ s 0 k) tl
 
+  let is_empty b =
+    match B.view b with
+    | B.Empty -> true
+    | _ -> false
+
   let rec of_box ~ansi (b : B.t) : t =
     let shape =
       match B.view b with
@@ -526,27 +531,48 @@ end = struct
       | B.Align { h; v; inner } -> Align { h; v; inner = of_box ~ansi inner }
       | B.Grid (bars, m) -> Grid (bars, B.map_matrix (of_box ~ansi) m)
       | B.Tree (i, b, l) -> Tree (i, of_box ~ansi b, Array.map (of_box ~ansi) l)
-      | B.Link { inner; uri } when ansi ->
+      | B.Anchor { id; inner } when is_empty inner ->
+        Text
+          { l = []; style = B.Style.default; link_with_uri = Some ("#" ^ id) }
+      | (B.Link { inner; uri } | B.Anchor { inner; id = uri }) as b when ansi ->
+        let uri =
+          match b with
+          | B.Link _ -> uri
+          | B.Anchor _ -> "#" ^ uri
+          | _ -> assert false
+        in
+        let loop = B.link ~uri in
         (match B.view inner with
-          | B.Empty -> Empty
-          | B.Frame t -> Frame (of_box ~ansi (B.link ~uri t))
-          | B.Pad (dim, t) -> Pad (dim, of_box ~ansi (B.link ~uri t))
-          | B.Align { h; v; inner } -> Align { h; v; inner = of_box ~ansi (B.link ~uri inner)}
-          | B.Grid (bars, m) -> Grid (bars, B.map_matrix (of_box ~ansi) m)
-          | B.Tree (i, b, l) ->
-            Tree (i, of_box ~ansi (B.link ~uri b),
-                  Array.map (fun b -> of_box ~ansi @@ B.link ~uri b) l)
-          | B.Link _ ->
-            (* Inner links override outer links. *)
-            (of_box ~ansi inner).shape
-          | B.Text _ ->
-            (match of_box ~ansi inner with
-            | {shape = Text { l; style; link_with_uri = _ }; size = _ } -> 
-              Text { l; style; link_with_uri = Some uri }
-            | _ -> assert false))
+        | B.Empty -> Empty
+        | B.Frame t -> Frame (of_box ~ansi (loop t))
+        | B.Pad (dim, t) -> Pad (dim, of_box ~ansi (loop t))
+        | B.Align { h; v; inner } ->
+          Align { h; v; inner = of_box ~ansi (loop inner) }
+        | B.Grid (bars, m) -> Grid (bars, B.map_matrix (of_box ~ansi) m)
+        | B.Tree (i, b, l) ->
+          Tree
+            ( i,
+              of_box ~ansi (loop b),
+              Array.map (fun b -> of_box ~ansi @@ loop b) l )
+        | B.Link _ | B.Anchor _ ->
+          (* Inner links override outer links. *)
+          (of_box ~ansi inner).shape
+        | B.Text _ ->
+          (match of_box ~ansi inner with
+          | { shape = Text { l; style; link_with_uri = _ }; size = _ } ->
+            Text { l; style; link_with_uri = Some uri }
+          | _ -> assert false))
       | B.Link { inner; uri } ->
         (* just encode as a record *)
-        let self = of_box ~ansi (B.v_record [ "uri", B.text uri; "inner", inner ]) in
+        let self =
+          of_box ~ansi (B.v_record [ "uri", B.text uri; "inner", inner ])
+        in
+        self.shape
+      | B.Anchor { inner; id } ->
+        (* just encode as a tag: {#ID} INNER. *)
+        let self =
+          of_box ~ansi (B.hlist ~bars:false [ B.line ("{#" ^ id ^ "}"); inner ])
+        in
         self.shape
     in
     { shape; size = lazy (size_of_shape shape) }
@@ -585,9 +611,9 @@ end = struct
       | Text { l; style; link_with_uri } ->
         let ansi_prelude, ansi_suffix =
           match ansi, link_with_uri with
-            | false, _ -> "", ""
-            | true, None -> Style_ansi.brackets style
-            | true, Some uri -> Style_ansi.hyperlink ~uri style
+          | false, _ -> "", ""
+          | true, None -> Style_ansi.brackets style
+          | true, Some uri -> Style_ansi.hyperlink ~uri style
         in
         let has_style = ansi_prelude <> "" || ansi_suffix <> "" in
         List.iteri

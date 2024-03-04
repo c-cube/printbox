@@ -57,6 +57,10 @@ type view =
       uri: string;
       inner: t;
     }
+  | Anchor of {
+      id: string;
+      inner: t;
+    }
 
 and t = view
 
@@ -195,6 +199,8 @@ let mk_tree ?indent f root =
   make root
 
 let link ~uri inner : t = Link { uri; inner }
+
+let anchor ~id inner : t = Anchor { id; inner }
 
 (** {2 Simple Structural Interface} *)
 

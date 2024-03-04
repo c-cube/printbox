@@ -197,6 +197,10 @@ let to_html_rec ~config (b : B.t) =
       in
       let rows = Array.to_list a |> List.map to_row in
       H.span @@ sep_spans (H.br ?a:None) rows
+    | B.Anchor { id; inner } ->
+      (match B.view inner with
+      | B.Empty -> H.a ~a:[ H.a_id id ] []
+      | _ -> raise Summary_not_supported)
     | B.Tree _ | B.Link _ -> raise Summary_not_supported
   in
   let loop :
@@ -238,7 +242,7 @@ let to_html_rec ~config (b : B.t) =
     | B.Tree (_, b, l) ->
       let l = Array.to_list l in
       H.div [ fix b; H.ul (List.map (fun x -> H.li [ fix x ]) l) ]
-    | B.Link _ -> assert false
+    | B.Anchor _ | B.Link _ -> assert false
   in
   let rec to_html_rec b =
     match B.view b with
@@ -255,9 +259,17 @@ let to_html_rec ~config (b : B.t) =
            ])
     | B.Link { uri; inner } ->
       H.div [ H.a ~a:[ H.a_href uri ] [ to_html_nondet_rec inner ] ]
+    | B.Anchor { id; inner } ->
+      let opt_link =
+        match B.view b with
+        | B.Empty -> []
+        | _ -> [ H.a_href @@ "#" ^ id ]
+      in
+      H.a ~a:(H.a_id id :: opt_link) [ to_html_nondet_rec inner ]
     | _ -> loop to_html_rec b
   and to_html_nondet_rec b =
     match B.view b with
+    | B.Empty -> H.span []
     | B.Text { l; style } -> v_text_to_html ~l ~style ()
     | B.Link { uri; inner } ->
       H.div [ H.a ~a:[ H.a_href uri ] [ to_html_nondet_rec inner ] ]

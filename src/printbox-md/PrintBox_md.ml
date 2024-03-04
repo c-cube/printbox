@@ -250,7 +250,7 @@ let rec multiline_heuristic c b =
     || Array.exists (Array.exists @@ multiline_heuristic c) rows
   | B.Tree (_, header, children) ->
     Array.length children > 0 || multiline_heuristic c header
-  | B.Link { inner; _ } -> multiline_heuristic c inner
+  | B.Link { inner; _ } | B.Anchor { inner; _ } -> multiline_heuristic c inner
 
 let rec line_of_length_heuristic_exn c b =
   match B.view b with
@@ -296,6 +296,15 @@ let rec line_of_length_heuristic_exn c b =
   | B.Tree _ -> raise Not_found
   | B.Link { inner; uri } ->
     line_of_length_heuristic_exn c inner + String.length uri + 4
+  | B.Anchor { inner; id } ->
+    let link_len =
+      match B.view inner with
+      | B.Empty -> String.length id + 13
+      (* <a id="ID"></a> *)
+      | _ -> (2 * String.length id) + 22
+      (* <a id="ID" href="#ID">INNER</a> *)
+    in
+    line_of_length_heuristic_exn c inner + link_len
 
 let is_native_table c rows =
   let rec header h =
@@ -320,6 +329,7 @@ let rec remove_bold b =
   | B.Tree (_, header, [||]) -> remove_bold header
   | B.Tree _ -> assert false
   | B.Link { inner; uri } -> B.link ~uri @@ remove_bold inner
+  | B.Anchor { inner; id } -> B.anchor ~id @@ remove_bold inner
 
 let pp c out b =
   let open Format in
@@ -502,6 +512,12 @@ let pp c out b =
       pp_print_string out "[";
       loop ~no_block:true ~no_md ~prefix:(prefix ^ " ") inner;
       fprintf out "](%s)" uri
+    | B.Anchor { id; inner } ->
+      (match B.view inner with
+      | B.Empty -> fprintf out {|<a id="%s">|} id
+      | _ -> fprintf out {|<a id="%s" href="#%s">|} id id);
+      loop ~no_block:true ~no_md ~prefix:(prefix ^ " ") inner;
+      pp_print_string out "</a>"
   in
   pp_open_vbox out 0;
   loop ~no_block:false ~no_md:false ~prefix:"" b;
