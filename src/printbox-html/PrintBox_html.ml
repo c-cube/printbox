@@ -113,9 +113,9 @@ let sep_spans sep l =
          x
          ::
          (if i < len - 1 then
-            [ sep () ]
-          else
-            []))
+           [ sep () ]
+         else
+           []))
        l
 
 let br_lines ~bold l =
@@ -203,12 +203,12 @@ let to_html_rec ~config (b : B.t) =
       | _ -> raise Summary_not_supported)
     | B.Tree _ | B.Link _ -> raise Summary_not_supported
   in
-  let loop :
-        'tags.
-        (B.t ->
-        ([< Html_types.flow5 > `Pre `Span `Div `Ul `Table `P ] as 'tags) html) ->
-        B.t ->
-        'tags html =
+  let loop
+        : 'tags.
+          (B.t ->
+          ([< Html_types.flow5 > `Pre `Span `Div `Ul `Table `P ] as 'tags) html) ->
+          B.t ->
+          'tags html =
    fun fix b ->
     match B.view b with
     | B.Empty ->
@@ -248,15 +248,9 @@ let to_html_rec ~config (b : B.t) =
     match B.view b with
     | B.Tree (_, b, l) when config.tree_summary ->
       let l = Array.to_list l in
-      (try
-         H.details
-           (H.summary [ to_html_summary b ])
-           [ H.ul (List.map (fun x -> H.li [ to_html_rec x ]) l) ]
-       with Summary_not_supported ->
-         H.div
-           [
-             to_html_rec b; H.ul (List.map (fun x -> H.li [ to_html_rec x ]) l);
-           ])
+      let body = H.ul (List.map (fun x -> H.li [ to_html_rec x ]) l) in
+      (try H.details (H.summary [ to_html_summary b ]) [ body ]
+       with Summary_not_supported -> H.div [ to_html_rec b; body ])
     | B.Link { uri; inner } ->
       H.div [ H.a ~a:[ H.a_href uri ] [ to_html_nondet_rec inner ] ]
     | B.Anchor { id; inner } ->
