@@ -31,6 +31,7 @@ let b =
            ])
         [ text "child 7" ];
       text "separator after hidden anchor";
+      anchor ~id:"HiddenAnchor2" empty;
       tree
         (vlist ~bars:false [ text "entry 5"; frame @@ text "entry 6" ])
         [ text "child 8" ];

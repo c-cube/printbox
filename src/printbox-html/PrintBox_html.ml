@@ -254,12 +254,10 @@ let to_html_rec ~config (b : B.t) =
     | B.Link { uri; inner } ->
       H.div [ H.a ~a:[ H.a_href uri ] [ to_html_nondet_rec inner ] ]
     | B.Anchor { id; inner } ->
-      let opt_link =
-        match B.view b with
-        | B.Empty -> []
-        | _ -> [ H.a_href @@ "#" ^ id ]
-      in
-      H.a ~a:(H.a_id id :: opt_link) [ to_html_nondet_rec inner ]
+      (match B.view inner with
+      | B.Empty -> H.a ~a:[ H.a_id id ] []
+      | _ ->
+        H.a ~a:[ H.a_id id; H.a_href @@ "#" ^ id ] [ to_html_nondet_rec inner ])
     | _ -> loop to_html_rec b
   and to_html_nondet_rec b =
     match B.view b with
