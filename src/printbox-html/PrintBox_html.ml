@@ -105,24 +105,28 @@ module Config = struct
   let tree_summary x c = { c with tree_summary = x }
 end
 
-let br_lines ~bold l =
-  let l =
-    List.map H.txt @@ List.concat @@ List.map (String.split_on_char '\n') l
-  in
+let sep_spans sep l =
   let len = List.length l in
   List.concat
   @@ List.mapi
        (fun i x ->
-         (if bold then
-            H.b [ x ]
-          else
-            x)
+         x
          ::
          (if i < len - 1 then
-            [ H.br () ]
-          else
-            []))
+           [ sep () ]
+         else
+           []))
        l
+
+let br_lines ~bold l =
+  sep_spans (H.br ?a:None)
+  @@ List.map (fun x ->
+         if bold then
+           H.b [ H.txt x ]
+         else
+           H.txt x)
+  @@ List.concat
+  @@ List.map (String.split_on_char '\n') l
 
 let to_html_rec ~config (b : B.t) =
   let open Config in
@@ -155,12 +159,56 @@ let to_html_rec ~config (b : B.t) =
       H.div ~a:(a_class config.cls_text @ a_border @ a @ config.a_text) l
     )
   in
-  let loop :
-        'tags.
-        (B.t ->
-        ([< Html_types.flow5 > `Pre `Span `Div `Ul `Table `P ] as 'tags) html) ->
-        B.t ->
-        'tags html =
+  let exception Summary_not_supported in
+  let rec to_html_summary b =
+    match B.view b with
+    | B.Empty ->
+      (* Not really a case of unsupported summarization,
+         but rather a request to not summarize. *)
+      raise Summary_not_supported
+    | B.Text { l; style } -> br_text_to_html ~l ~style ()
+    | B.Pad (_, b) ->
+      (* FIXME: not implemented yet *)
+      to_html_summary b
+    | B.Frame b ->
+      H.span ~a:[ H.a_style "border:thin solid" ] [ to_html_summary b ]
+    | B.Align { h = `Right; inner = b; v = _ } ->
+      H.span ~a:[ H.a_class [ "align-right" ] ] [ to_html_summary b ]
+    | B.Align { h = `Center; inner = b; v = _ } ->
+      H.span ~a:[ H.a_class [ "center" ] ] [ to_html_summary b ]
+    | B.Align { inner = b; _ } -> to_html_summary b
+    | B.Grid (bars, a) ->
+      (* TODO: support selected table styles. *)
+      let a_border =
+        if bars = `Bars then
+          [ H.a_style "border:thin dotted" ]
+        else
+          []
+      in
+      let to_row a =
+        let cols =
+          Array.to_list a
+          |> List.map (fun b ->
+                 H.span
+                   ~a:(a_class config.cls_col @ config.a_col @ a_border)
+                   [ to_html_summary b ])
+        in
+        H.span ~a:a_border @@ sep_spans H.space cols
+      in
+      let rows = Array.to_list a |> List.map to_row in
+      H.span @@ sep_spans (H.br ?a:None) rows
+    | B.Anchor { id; inner } ->
+      (match B.view inner with
+      | B.Empty -> H.a ~a:[ H.a_id id ] []
+      | _ -> raise Summary_not_supported)
+    | B.Tree _ | B.Link _ -> raise Summary_not_supported
+  in
+  let loop
+        : 'tags.
+          (B.t ->
+          ([< Html_types.flow5 > `Pre `Span `Div `Ul `Table `P ] as 'tags) html) ->
+          B.t ->
+          'tags html =
    fun fix b ->
     match B.view b with
     | B.Empty ->
@@ -168,7 +216,9 @@ let to_html_rec ~config (b : B.t) =
     | B.Text { l; style } when style.B.Style.preformatted ->
       v_text_to_html ~l ~style ()
     | B.Text { l; style } -> v_text_to_html ~l ~style ()
-    | B.Pad (_, b) -> fix b
+    | B.Pad (_, b) ->
+      (* FIXME: not implemented yet *)
+      fix b
     | B.Frame b -> H.div ~a:[ H.a_style "border:thin solid" ] [ fix b ]
     | B.Align { h = `Right; inner = b; v = _ } ->
       H.div ~a:[ H.a_class [ "align-right" ] ] [ fix b ]
@@ -192,36 +242,26 @@ let to_html_rec ~config (b : B.t) =
     | B.Tree (_, b, l) ->
       let l = Array.to_list l in
       H.div [ fix b; H.ul (List.map (fun x -> H.li [ fix x ]) l) ]
-    | B.Link _ -> assert false
+    | B.Anchor _ | B.Link _ -> assert false
   in
   let rec to_html_rec b =
     match B.view b with
     | B.Tree (_, b, l) when config.tree_summary ->
       let l = Array.to_list l in
-      (match B.view b with
-      | B.Text { l = tl; style } ->
-        H.details
-          (H.summary [ br_text_to_html ~l:tl ~style () ])
-          [ H.ul (List.map (fun x -> H.li [ to_html_rec x ]) l) ]
-      | B.Frame b ->
-        (match B.view b with
-        | B.Text { l = tl; style } ->
-          H.details
-            (H.summary [ br_text_to_html ~border:true ~l:tl ~style () ])
-            [ H.ul (List.map (fun x -> H.li [ to_html_rec x ]) l) ]
-        | _ ->
-          H.div
-            [
-              to_html_rec b; H.ul (List.map (fun x -> H.li [ to_html_rec x ]) l);
-            ])
-      | _ ->
-        H.div
-          [ to_html_rec b; H.ul (List.map (fun x -> H.li [ to_html_rec x ]) l) ])
+      let body = H.ul (List.map (fun x -> H.li [ to_html_rec x ]) l) in
+      (try H.details (H.summary [ to_html_summary b ]) [ body ]
+       with Summary_not_supported -> H.div [ to_html_rec b; body ])
     | B.Link { uri; inner } ->
       H.div [ H.a ~a:[ H.a_href uri ] [ to_html_nondet_rec inner ] ]
+    | B.Anchor { id; inner } ->
+      (match B.view inner with
+      | B.Empty -> H.a ~a:[ H.a_id id ] []
+      | _ ->
+        H.a ~a:[ H.a_id id; H.a_href @@ "#" ^ id ] [ to_html_nondet_rec inner ])
     | _ -> loop to_html_rec b
   and to_html_nondet_rec b =
     match B.view b with
+    | B.Empty -> H.span []
     | B.Text { l; style } -> v_text_to_html ~l ~style ()
     | B.Link { uri; inner } ->
       H.div [ H.a ~a:[ H.a_href uri ] [ to_html_nondet_rec inner ] ]

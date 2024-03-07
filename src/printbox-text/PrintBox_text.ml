@@ -527,26 +527,41 @@ end = struct
       | B.Grid (bars, m) -> Grid (bars, B.map_matrix (of_box ~ansi) m)
       | B.Tree (i, b, l) -> Tree (i, of_box ~ansi b, Array.map (of_box ~ansi) l)
       | B.Link { inner; uri } when ansi ->
+        let loop = B.link ~uri in
         (match B.view inner with
-          | B.Empty -> Empty
-          | B.Frame t -> Frame (of_box ~ansi (B.link ~uri t))
-          | B.Pad (dim, t) -> Pad (dim, of_box ~ansi (B.link ~uri t))
-          | B.Align { h; v; inner } -> Align { h; v; inner = of_box ~ansi (B.link ~uri inner)}
-          | B.Grid (bars, m) -> Grid (bars, B.map_matrix (of_box ~ansi) m)
-          | B.Tree (i, b, l) ->
-            Tree (i, of_box ~ansi (B.link ~uri b),
-                  Array.map (fun b -> of_box ~ansi @@ B.link ~uri b) l)
-          | B.Link _ ->
-            (* Inner links override outer links. *)
-            (of_box ~ansi inner).shape
-          | B.Text _ ->
-            (match of_box ~ansi inner with
-            | {shape = Text { l; style; link_with_uri = _ }; size = _ } -> 
-              Text { l; style; link_with_uri = Some uri }
-            | _ -> assert false))
+        | B.Empty -> Empty
+        | B.Frame t -> Frame (of_box ~ansi (loop t))
+        | B.Pad (dim, t) -> Pad (dim, of_box ~ansi (loop t))
+        | B.Align { h; v; inner } ->
+          Align { h; v; inner = of_box ~ansi (loop inner) }
+        | B.Grid (bars, m) -> Grid (bars, B.map_matrix (of_box ~ansi) m)
+        | B.Tree (i, b, l) ->
+          Tree
+            ( i,
+              of_box ~ansi (loop b),
+              Array.map (fun b -> of_box ~ansi @@ loop b) l )
+        | B.Link _ | B.Anchor _ ->
+          (* Inner links override outer links. *)
+          (of_box ~ansi inner).shape
+        | B.Text { l; style } ->
+          (* split into lines *)
+          let acc = ref [] in
+          lines_l_ l (fun s i len -> acc := (s, i, len) :: !acc);
+          Text { l = List.rev !acc; style; link_with_uri = Some uri })
       | B.Link { inner; uri } ->
         (* just encode as a record *)
-        let self = of_box ~ansi (B.v_record [ "uri", B.text uri; "inner", inner ]) in
+        let self =
+          of_box ~ansi (B.v_record [ "uri", B.text uri; "inner", inner ])
+        in
+        self.shape
+      | B.Anchor { inner; id } ->
+        (* Note: no support for self-links for now; just encode as a tag: {#ID} INNER. *)
+        let uri = "{#" ^ id ^ "}" in
+        let self =
+          match B.view inner with
+          | B.Text { l = [ s ]; _ } when s = uri -> of_box ~ansi @@ B.line uri
+          | _ -> of_box ~ansi (B.hlist ~bars:false [ B.line uri; inner ])
+        in
         self.shape
     in
     { shape; size = lazy (size_of_shape shape) }
@@ -585,9 +600,9 @@ end = struct
       | Text { l; style; link_with_uri } ->
         let ansi_prelude, ansi_suffix =
           match ansi, link_with_uri with
-            | false, _ -> "", ""
-            | true, None -> Style_ansi.brackets style
-            | true, Some uri -> Style_ansi.hyperlink ~uri style
+          | false, _ -> "", ""
+          | true, None -> Style_ansi.brackets style
+          | true, Some uri -> Style_ansi.hyperlink ~uri style
         in
         let has_style = ansi_prelude <> "" || ansi_suffix <> "" in
         List.iteri
