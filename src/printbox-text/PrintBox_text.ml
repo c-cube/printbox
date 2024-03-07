@@ -28,9 +28,9 @@ end = struct
   let codes_of_style (self : t) : int list =
     let { bold; fg_color; bg_color; preformatted = _ } = self in
     (if bold then
-       [ 1 ]
-     else
-       [])
+      [ 1 ]
+    else
+      [])
     @ (match bg_color with
       | None -> []
       | Some c -> [ 40 + int_of_color_ c ])
@@ -512,11 +512,6 @@ end = struct
       lines_ s2 0 k;
       List.iter (fun s -> lines_ s 0 k) tl
 
-  let is_empty b =
-    match B.view b with
-    | B.Empty -> true
-    | _ -> false
-
   let rec of_box ~ansi (b : B.t) : t =
     let shape =
       match B.view b with
@@ -531,10 +526,7 @@ end = struct
       | B.Align { h; v; inner } -> Align { h; v; inner = of_box ~ansi inner }
       | B.Grid (bars, m) -> Grid (bars, B.map_matrix (of_box ~ansi) m)
       | B.Tree (i, b, l) -> Tree (i, of_box ~ansi b, Array.map (of_box ~ansi) l)
-      | B.Anchor { id; inner } when is_empty inner ->
-        Text
-          { l = []; style = B.Style.default; link_with_uri = Some ("#" ^ id) }
-      | (B.Link { inner; uri } | B.Anchor { inner; id = uri }) as b when ansi ->
+      | B.Link { inner; uri } as b when ansi ->
         let uri =
           match b with
           | B.Link _ -> uri
@@ -557,11 +549,11 @@ end = struct
         | B.Link _ | B.Anchor _ ->
           (* Inner links override outer links. *)
           (of_box ~ansi inner).shape
-        | B.Text _ ->
-          (match of_box ~ansi inner with
-          | { shape = Text { l; style; link_with_uri = _ }; size = _ } ->
-            Text { l; style; link_with_uri = Some uri }
-          | _ -> assert false))
+        | B.Text { l; style } ->
+          (* split into lines *)
+          let acc = ref [] in
+          lines_l_ l (fun s i len -> acc := (s, i, len) :: !acc);
+          Text { l = List.rev !acc; style; link_with_uri = Some uri })
       | B.Link { inner; uri } ->
         (* just encode as a record *)
         let self =
@@ -569,9 +561,12 @@ end = struct
         in
         self.shape
       | B.Anchor { inner; id } ->
-        (* just encode as a tag: {#ID} INNER. *)
+        (* Note: no support for self-links for now; just encode as a tag: {#ID} INNER. *)
+        let uri = "{#" ^ id ^ "}" in
         let self =
-          of_box ~ansi (B.hlist ~bars:false [ B.line ("{#" ^ id ^ "}"); inner ])
+          match B.view inner with
+          | B.Text { l = [ s ]; _ } when s = uri -> of_box ~ansi @@ B.line uri
+          | _ -> of_box ~ansi (B.hlist ~bars:false [ B.line uri; inner ])
         in
         self.shape
     in
