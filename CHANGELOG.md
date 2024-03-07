@@ -1,4 +1,9 @@
 
+## 0.11
+
+- Anchors (with self-links if inner is non-empty)
+- Support `hlist` and `vlist` inside summaries Implemented as poor-man's support of arbitrary grids.
+
 ## 0.10
 
 - Fixes #10: ANSI encoded hyperlinks for printbox-text
