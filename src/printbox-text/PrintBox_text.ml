@@ -526,13 +526,7 @@ end = struct
       | B.Align { h; v; inner } -> Align { h; v; inner = of_box ~ansi inner }
       | B.Grid (bars, m) -> Grid (bars, B.map_matrix (of_box ~ansi) m)
       | B.Tree (i, b, l) -> Tree (i, of_box ~ansi b, Array.map (of_box ~ansi) l)
-      | B.Link { inner; uri } as b when ansi ->
-        let uri =
-          match b with
-          | B.Link _ -> uri
-          | B.Anchor _ -> "#" ^ uri
-          | _ -> assert false
-        in
+      | B.Link { inner; uri } when ansi ->
         let loop = B.link ~uri in
         (match B.view inner with
         | B.Empty -> Empty
