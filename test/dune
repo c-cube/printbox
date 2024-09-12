@@ -45,3 +45,9 @@
  (mode promote)
  (action
   (copy %{deps} %{targets})))
+
+(test
+ (name reg_45)
+ (modules reg_45)
+ (package printbox-text)
+ (libraries printbox printbox-text))

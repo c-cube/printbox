@@ -28,9 +28,9 @@ end = struct
   let codes_of_style (self : t) : int list =
     let { bold; fg_color; bg_color; preformatted = _ } = self in
     (if bold then
-      [ 1 ]
-    else
-      [])
+       [ 1 ]
+     else
+       [])
     @ (match bg_color with
       | None -> []
       | Some c -> [ 40 + int_of_color_ c ])
@@ -78,6 +78,9 @@ module Pos = struct
 
   let origin = { x = 0; y = 0 }
   let[@inline] move pos x y = { x = pos.x + x; y = pos.y + y }
+
+  (* let[@inline] min p1 p2 = { x = min p1.x p2.x; y = min p1.y p2.y } *)
+  let[@inline] max p1 p2 = { x = max p1.x p2.x; y = max p1.y p2.y }
   let[@inline] ( + ) pos1 pos2 = move pos1 pos2.x pos2.y
   let[@inline] ( - ) pos1 pos2 = move pos1 (-pos2.x) (-pos2.y)
   let[@inline] ( * ) n pos = { x = n * pos.x; y = n * pos.y }
@@ -293,7 +296,10 @@ end = struct
         style: B.Style.t;
         link_with_uri: string option;
       }
-    | Frame of 'a
+    | Frame of {
+        sub: 'a;
+        stretch: bool;
+      }
     | Pad of position * 'a (* vertical and horizontal padding *)
     | Align of {
         h: [ `Left | `Center | `Right ];
@@ -478,7 +484,7 @@ end = struct
           0 l
       in
       { x = width; y = List.length l }
-    | Frame t -> Pos.move (size t) 2 2
+    | Frame { sub = t; _ } -> Pos.move (size t) 2 2
     | Pad (dim, b') -> Pos.(size b' + (2 * dim))
     | Align { inner = b'; _ } -> size b'
     | Grid (style, m) ->
@@ -521,7 +527,7 @@ end = struct
         let acc = ref [] in
         lines_l_ l (fun s i len -> acc := (s, i, len) :: !acc);
         Text { l = List.rev !acc; style; link_with_uri = None }
-      | B.Frame t -> Frame (of_box ~ansi t)
+      | B.Frame { sub = t; stretch } -> Frame { sub = of_box ~ansi t; stretch }
       | B.Pad (dim, t) -> Pad (dim, of_box ~ansi t)
       | B.Align { h; v; inner } -> Align { h; v; inner = of_box ~ansi inner }
       | B.Grid (bars, m) -> Grid (bars, B.map_matrix (of_box ~ansi) m)
@@ -530,7 +536,8 @@ end = struct
         let loop = B.link ~uri in
         (match B.view inner with
         | B.Empty -> Empty
-        | B.Frame t -> Frame (of_box ~ansi (loop t))
+        | B.Frame { sub = t; stretch } ->
+          Frame { stretch; sub = of_box ~ansi (loop t) }
         | B.Pad (dim, t) -> Pad (dim, of_box ~ansi (loop t))
         | B.Align { h; v; inner } ->
           Align { h; v; inner = of_box ~ansi (loop inner) }
@@ -588,7 +595,7 @@ end = struct
     done;
     conn_map.m <- create_or_update ?ct ~left:true (Pos.move_x pos n) conn_map.m
 
-  (* render given box on the output, starting with upper left corner
+  (** render given box on the output, starting with upper left corner
       at the given position. [expected_size] is the size of the
       available surrounding space. [offset] is the offset of the box
       w.r.t the surrounding box *)
@@ -614,8 +621,23 @@ end = struct
               Output.put_sub_string out (Pos.move_y pos line_idx) s s_i len)
           l;
         conn_m.m
-      | Frame b' ->
-        let { x; y } = size b' in
+      | Frame { sub = b'; stretch } ->
+        let p' = size b' in
+
+        (* do we expand? *)
+        let { x; y }, expected_size' =
+          match expected_size with
+          | Some exp_p when stretch ->
+            (* remove space for bars, but otherwise expand to [exp_p] *)
+            let exp_p' = Pos.move exp_p (-2) (-2) in
+            let p' = Pos.max p' exp_p' in
+            p', Some exp_p'
+          | Some _exp_p ->
+            (* ignore surrounding size (#45) *)
+            p', Some p'
+          | None -> p', None
+        in
+
         conn_m.m <- create_or_update ~right:true ~bottom:true pos conn_m.m;
         conn_m.m <-
           create_or_update ~left:true ~top:true
@@ -633,12 +655,7 @@ end = struct
         write_hline_ conn_m (Pos.move pos 1 (y + 1)) x;
         write_vline_ conn_m (Pos.move_y pos 1) y;
         write_vline_ conn_m (Pos.move pos (x + 1) 1) y;
-        let expected_size =
-          match expected_size with
-          | Some p -> Some (Pos.move p (-2) (-2)) (* remove space for bars *)
-          | None -> None
-        in
-        render_rec ~ansi ?expected_size b' (Pos.move pos 1 1)
+        render_rec ~ansi ?expected_size:expected_size' b' (Pos.move pos 1 1)
       | Pad (dim, b') ->
         let expected_size =
           match expected_size with
