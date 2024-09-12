@@ -6,6 +6,8 @@ build:
 
 test:
 	@dune runtest --no-buffer --force
+test-autopromote:
+	@dune runtest --no-buffer --force --auto-promote
 
 install: build
 	@dune install
@@ -22,7 +24,8 @@ update_next_tag:
 	sed -i "s/NEXT_RELEASE/$(VERSION)/g" $(wildcard src/**/*.ml) $(wildcard src/**/*.mli)
 	sed -i "s/NEXT_RELEASE/$(VERSION)/g" $(wildcard src/*.ml) $(wildcard src/*.mli)
 
+WATCH?="@all"
 watch:
-	@dune build @all -w
+	@dune build $(WATCH) -w
 
 .PHONY: all build test clean doc watch
