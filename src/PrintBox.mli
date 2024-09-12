@@ -109,6 +109,7 @@ type t
     @since 0.3 added [Align]
     @since 0.5 added [Link]
     @since 0.11 added [Anchor]
+    @since NEXT_RELEASE added [Stretch]
 *)
 type view = private
   | Empty
@@ -116,7 +117,10 @@ type view = private
       l: string list;
       style: Style.t;
     }
-  | Frame of t
+  | Frame of {
+      sub: t;
+      stretch: bool;
+    }
   | Pad of position * t (* vertical and horizontal padding *)
   | Align of {
       h: [ `Left | `Center | `Right ];
@@ -175,8 +179,10 @@ val bool : bool -> t
 val float : float -> t
 (** @since 0.2 *)
 
-val frame : t -> t
-(** Put a single frame around the box *)
+val frame : ?stretch:bool -> t -> t
+(** Put a single frame around the box.
+    @param stretch if true (default false), the frame expands to
+    fill the available space. Present since NEXT_RELEASE *)
 
 val pad : t -> t
 (** Pad the given box with some free space *)

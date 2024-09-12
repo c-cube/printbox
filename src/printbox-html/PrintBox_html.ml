@@ -113,9 +113,9 @@ let sep_spans sep l =
          x
          ::
          (if i < len - 1 then
-           [ sep () ]
-         else
-           []))
+            [ sep () ]
+          else
+            []))
        l
 
 let br_lines ~bold l =
@@ -170,7 +170,7 @@ let to_html_rec ~config (b : B.t) =
     | B.Pad (_, b) ->
       (* FIXME: not implemented yet *)
       to_html_summary b
-    | B.Frame b ->
+    | B.Frame { sub = b; stretch = _ } ->
       H.span ~a:[ H.a_style "border:thin solid" ] [ to_html_summary b ]
     | B.Align { h = `Right; inner = b; v = _ } ->
       H.span ~a:[ H.a_class [ "align-right" ] ] [ to_html_summary b ]
@@ -203,12 +203,12 @@ let to_html_rec ~config (b : B.t) =
       | _ -> raise Summary_not_supported)
     | B.Tree _ | B.Link _ -> raise Summary_not_supported
   in
-  let loop
-        : 'tags.
-          (B.t ->
-          ([< Html_types.flow5 > `Pre `Span `Div `Ul `Table `P ] as 'tags) html) ->
-          B.t ->
-          'tags html =
+  let loop :
+        'tags.
+        (B.t ->
+        ([< Html_types.flow5 > `Pre `Span `Div `Ul `Table `P ] as 'tags) html) ->
+        B.t ->
+        'tags html =
    fun fix b ->
     match B.view b with
     | B.Empty ->
@@ -219,7 +219,8 @@ let to_html_rec ~config (b : B.t) =
     | B.Pad (_, b) ->
       (* FIXME: not implemented yet *)
       fix b
-    | B.Frame b -> H.div ~a:[ H.a_style "border:thin solid" ] [ fix b ]
+    | B.Frame { sub = b; _ } ->
+      H.div ~a:[ H.a_style "border:thin solid" ] [ fix b ]
     | B.Align { h = `Right; inner = b; v = _ } ->
       H.div ~a:[ H.a_class [ "align-right" ] ] [ fix b ]
     | B.Align { h = `Center; inner = b; v = _ } ->

@@ -44,7 +44,10 @@ type view =
       l: string list;
       style: Style.t;
     }
-  | Frame of t
+  | Frame of {
+      sub: t;
+      stretch: bool;
+    }
   | Pad of position * t (* vertical and horizontal padding *)
   | Align of {
       h: [ `Left | `Center | `Right ];
@@ -103,7 +106,7 @@ let bool x = line_ (string_of_bool x)
 let int_ = int
 let float_ = float
 let bool_ = bool
-let[@inline] frame b = Frame b
+let[@inline] frame ?(stretch = false) b = Frame { sub = b; stretch }
 
 let pad' ~col ~lines b =
   assert (col >= 0 || lines >= 0);
@@ -128,9 +131,9 @@ let grid ?(pad = fun b -> b) ?(bars = true) m =
   let m = map_matrix pad m in
   Grid
     ( (if bars then
-        `Bars
-      else
-        `None),
+         `Bars
+       else
+         `None),
       m )
 
 let grid_l ?pad ?bars l =
@@ -199,7 +202,6 @@ let mk_tree ?indent f root =
   make root
 
 let link ~uri inner : t = Link { uri; inner }
-
 let anchor ~id inner : t = Anchor { id; inner }
 
 (** {2 Simple Structural Interface} *)

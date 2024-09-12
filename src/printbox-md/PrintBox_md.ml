@@ -241,7 +241,7 @@ let rec multiline_heuristic c b =
   | B.Text { l = [ s ]; _ } -> String.contains s '\n'
   | B.Text _ -> true
   | B.Frame _ when c.Config.frames = `As_table -> true
-  | B.Frame b -> multiline_heuristic c b
+  | B.Frame { sub = b; _ } -> multiline_heuristic c b
   | B.Pad (_, _) -> true
   | B.Align { inner; _ } -> multiline_heuristic c inner
   | B.Grid (_, [| _ |]) when c.Config.hlists = `As_table -> true
@@ -277,7 +277,7 @@ let rec line_of_length_heuristic_exn c b =
       String.length s + from_bold + from_code
   | B.Text _ -> raise Not_found
   | B.Frame _ when c.Config.frames = `As_table -> raise Not_found
-  | B.Frame b ->
+  | B.Frame { sub = b; _ } ->
     (* "> " or "[]" *)
     line_of_length_heuristic_exn c b + 2
   | B.Pad (_, _) -> raise Not_found
@@ -310,7 +310,7 @@ let is_native_table c rows =
   let rec header h =
     match B.view h with
     | B.Text { l = [ _ ]; style = { B.Style.bold = true; _ } } -> true
-    | B.Frame b -> header b
+    | B.Frame { sub = b; _ } -> header b
     | _ -> false
   in
   Array.for_all header rows.(0)
@@ -322,7 +322,7 @@ let rec remove_bold b =
   match B.view b with
   | B.Empty | B.Text { l = []; _ } -> B.empty
   | B.Text { l; style } -> B.lines_with_style (B.Style.set_bold false style) l
-  | B.Frame b -> B.frame @@ remove_bold b
+  | B.Frame { sub = b; stretch } -> B.frame ~stretch @@ remove_bold b
   | B.Pad (pos, b) -> B.pad' ~col:pos.B.x ~lines:pos.B.y @@ remove_bold b
   | B.Align { h; v; inner } -> B.align ~h ~v @@ remove_bold inner
   | B.Grid _ -> assert false
@@ -362,7 +362,7 @@ let pp c out b =
         preformat out l;
       if code_block then fprintf out "@,%s```@,%s" prefix prefix;
       pp_print_string out sty_post
-    | B.Frame fb ->
+    | B.Frame { sub = fb; _ } ->
       (match c.Config.frames, c.Config.tables, no_block with
       | `As_table, `Html, _ ->
         (* Don't indent in case there's an embedded multiline preformatted text. *)
