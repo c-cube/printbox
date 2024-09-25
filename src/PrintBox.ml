@@ -38,6 +38,8 @@ module Style = struct
   let fg_color c : t = set_fg_color c default
 end
 
+type ext = ..
+
 type view =
   | Empty
   | Text of {
@@ -64,10 +66,19 @@ type view =
       id: string;
       inner: t;
     }
+  | Ext of {
+      key: string;
+      ext: ext;
+    }
 
 and t = view
 
 let empty = Empty
+
+let is_empty = function
+  | Empty -> true
+  | _ -> false
+
 let[@inline] view (t : t) : view = t
 let[@inline] line_ s = Text { l = [ s ]; style = Style.default }
 
@@ -203,6 +214,87 @@ let mk_tree ?indent f root =
 
 let link ~uri inner : t = Link { uri; inner }
 let anchor ~id inner : t = Anchor { id; inner }
+let extension_to_key : ((ext -> bool) * string) list ref = ref []
+let extension_keys = Hashtbl.create 4
+
+let register_extension ~key ~domain =
+  if Hashtbl.mem extension_keys key then
+    invalid_arg @@ "PrintBox.register_extension: key " ^ key
+    ^ " is already registered";
+  Hashtbl.add extension_keys key domain;
+  extension_to_key := (domain, key) :: !extension_to_key
+
+let get_extension_key ext =
+  let rec loop = function
+    | [] -> invalid_arg "PrintBox.get_extension_key: unregistered extension"
+    | (domain, key) :: tl ->
+      if domain ext then
+        key
+      else
+        loop tl
+  in
+  loop !extension_to_key
+
+let extension ext = Ext { key = get_extension_key ext; ext }
+
+type ext_backend_result = ..
+type ext_backend_result += Unrecognized_extension | Same_as of t
+
+let extension_backends = Hashtbl.create 3
+
+let register_extension_backend ~backend_name =
+  if Hashtbl.mem extension_backends backend_name then
+    invalid_arg
+    @@ "PrintBox.register_extension_backend: backend already registered: "
+    ^ backend_name;
+  Hashtbl.add extension_backends backend_name (Hashtbl.create 4)
+
+let register_extension_handler ~backend_name ~example ~handler =
+  if not @@ Hashtbl.mem extension_backends backend_name then
+    invalid_arg @@ "PrintBox.register_extension_handler: unregistered backend "
+    ^ backend_name;
+  let handlers = Hashtbl.find extension_backends backend_name in
+  let key = get_extension_key example in
+  (match handler example ~nested:(fun _ -> Same_as Empty) with
+  | Unrecognized_extension ->
+    invalid_arg
+      "PrintBox.register_extension_handler: example outside of handler domain"
+  | _ -> ());
+  Hashtbl.add handlers key handler
+
+let get_extension_handler ~backend_name =
+  if not @@ Hashtbl.mem extension_backends backend_name then
+    invalid_arg @@ "PrintBox.get_extension_handler: unregistered backend "
+    ^ backend_name;
+  let handlers = Hashtbl.find extension_backends backend_name in
+  fun ~key -> Hashtbl.find handlers key
+
+let expand_extensions_same_as_only ~backend_name =
+  let get_handler = get_extension_handler ~backend_name in
+  let rec loop = function
+    | Empty -> Text { l = []; style = Style.default }
+    | Text _ as b -> b
+    | Frame { sub; stretch } -> Frame { sub = loop sub; stretch }
+    | Pad (p, b) -> Pad (p, loop b)
+    | Align { h; v; inner } -> Align { h; v; inner = loop inner }
+    | Grid (bars, grid) -> Grid (bars, map_matrix loop grid)
+    | Tree (indent, node, children) ->
+      Tree (indent, loop node, Array.map loop children)
+    | Link { uri; inner } -> Link { uri; inner = loop inner }
+    | Anchor { id; inner } -> Anchor { id; inner = loop inner }
+    | Ext { key; ext } ->
+      let nested b = Same_as (loop b) in
+      (match get_handler ~key ext ~nested with
+      | Same_as b -> b
+      | Unrecognized_extension ->
+        failwith
+        @@ "PrintBox.expand_extensions_same_as_only: unrecognized extension "
+        ^ key ^ " for backend " ^ backend_name
+      | _ ->
+        invalid_arg @@ "PrintBox.expand_extensions_same_as_only: extension "
+        ^ key ^ " is not `Same_as`-only for backend " ^ backend_name)
+  in
+  loop
 
 (** {2 Simple Structural Interface} *)
 
@@ -219,6 +311,7 @@ module Simple = struct
     | `Table of t array array
     | `Tree of t * t list
     ]
+  (** The simple interface does not support extensions. *)
 
   let rec to_box = function
     | `Empty -> empty

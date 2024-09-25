@@ -12,6 +12,8 @@ including:
 
 See https://c-cube.github.io/printbox/
 
+See the [test/](test/) and [examples/](examples/) directories for illustrations of potential usage.
+
 ## License
 
 BSD-2-clauses

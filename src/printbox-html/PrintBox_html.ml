@@ -7,6 +7,10 @@ module B = PrintBox
 module H = Html
 
 type 'a html = 'a Html.elt
+type toplevel_html = Html_types.li_content_fun html
+type PrintBox.ext_backend_result += Render_html of toplevel_html
+
+let () = B.register_extension_backend ~backend_name:"html"
 
 let prelude =
   let l =
@@ -128,6 +132,8 @@ let br_lines ~bold l =
   @@ List.concat
   @@ List.map (String.split_on_char '\n') l
 
+let get_handler = PrintBox.get_extension_handler ~backend_name:"html"
+
 let to_html_rec ~config (b : B.t) =
   let open Config in
   let br_text_to_html ?(border = false) ~l ~style () =
@@ -201,7 +207,7 @@ let to_html_rec ~config (b : B.t) =
       (match B.view inner with
       | B.Empty -> H.a ~a:[ H.a_id id ] []
       | _ -> raise Summary_not_supported)
-    | B.Tree _ | B.Link _ -> raise Summary_not_supported
+    | B.Tree _ | B.Link _ | B.Ext _ -> raise Summary_not_supported
   in
   let loop :
         'tags.
@@ -243,8 +249,9 @@ let to_html_rec ~config (b : B.t) =
     | B.Tree (_, b, l) ->
       let l = Array.to_list l in
       H.div [ fix b; H.ul (List.map (fun x -> H.li [ fix x ]) l) ]
-    | B.Anchor _ | B.Link _ -> assert false
+    | B.Anchor _ | B.Link _ | B.Ext _ -> assert false
   in
+
   let rec to_html_rec b =
     match B.view b with
     | B.Tree (_, b, l) when config.tree_summary ->
@@ -259,6 +266,14 @@ let to_html_rec ~config (b : B.t) =
       | B.Empty -> H.a ~a:[ H.a_id id ] []
       | _ ->
         H.a ~a:[ H.a_id id; H.a_href @@ "#" ^ id ] [ to_html_nondet_rec inner ])
+    | B.Ext {key; ext} ->
+      let nested b = Render_html (to_html_rec b) in
+      (match get_handler ~key ext ~nested with
+      | PrintBox.Unrecognized_extension -> assert false
+      | PrintBox.Same_as b -> to_html_rec b
+      | Render_html result -> result
+      | _ ->
+        failwith "PrintBox_html.to_html: unrecognized extension handler result")
     | _ -> loop to_html_rec b
   and to_html_nondet_rec b =
     match B.view b with

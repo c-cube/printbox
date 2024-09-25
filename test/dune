@@ -51,3 +51,15 @@
  (modules reg_45)
  (package printbox-text)
  (libraries printbox printbox-text))
+
+(test
+ (name same_as_only)
+ (modules same_as_only)
+ (package printbox-md)
+ (libraries printbox printbox-text printbox-html printbox-md))
+
+(test
+ (name extend_html_specific)
+ (modules extend_html_specific)
+ (package printbox-html)
+ (libraries printbox tyxml printbox-text printbox-html))

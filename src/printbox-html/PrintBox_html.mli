@@ -5,6 +5,8 @@
 open Tyxml
 
 type 'a html = 'a Html.elt
+type toplevel_html = Html_types.li_content_fun html
+type PrintBox.ext_backend_result += Render_html of toplevel_html
 
 val prelude : [> Html_types.style ] html
 (** HTML text to embed in the "<head>", defining the style for tables *)

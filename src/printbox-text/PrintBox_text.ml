@@ -4,6 +4,8 @@
 
 module B = PrintBox
 
+let () = B.register_extension_backend ~backend_name:"text"
+
 type position = PrintBox.position = {
   x: int;
   y: int;
@@ -554,7 +556,8 @@ end = struct
           (* split into lines *)
           let acc = ref [] in
           lines_l_ l (fun s i len -> acc := (s, i, len) :: !acc);
-          Text { l = List.rev !acc; style; link_with_uri = Some uri })
+          Text { l = List.rev !acc; style; link_with_uri = Some uri }
+        | B.Ext _ -> assert false)
       | B.Link { inner; uri } ->
         (* just encode as a record *)
         let self =
@@ -570,6 +573,7 @@ end = struct
           | _ -> of_box ~ansi (B.hlist ~bars:false [ B.line uri; inner ])
         in
         self.shape
+      | B.Ext _ -> assert false
     in
     { shape; size = lazy (size_of_shape shape) }
 
@@ -819,22 +823,27 @@ end = struct
   let render ~ansi out b = post_render ~out (pre_render ~ansi ~out b Pos.origin)
 end
 
+let expand_exts = B.expand_extensions_same_as_only ~backend_name:"text"
+
 let to_string_with ~style b =
   let buf = Output.create () in
-  Box_inner.render ~ansi:style buf (Box_inner.of_box ~ansi:style b);
+  Box_inner.render ~ansi:style buf
+    (Box_inner.of_box ~ansi:style @@ expand_exts b);
   Output.to_string buf
 
 let to_string = to_string_with ~style:true
 
 let output ?(style = true) ?(indent = 0) oc b =
   let buf = Output.create () in
-  Box_inner.render ~ansi:style buf (Box_inner.of_box ~ansi:style b);
+  Box_inner.render ~ansi:style buf
+    (Box_inner.of_box ~ansi:style @@ expand_exts b);
   Output.to_chan ~indent oc buf;
   flush oc
 
 let pp_with ~style out b =
   let buf = Output.create () in
-  Box_inner.render ~ansi:style buf (Box_inner.of_box ~ansi:style b);
+  Box_inner.render ~ansi:style buf
+    (Box_inner.of_box ~ansi:style @@ expand_exts b);
   Output.pp out buf
 
 let pp = pp_with ~style:true

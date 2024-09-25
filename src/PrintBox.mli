@@ -103,6 +103,12 @@ type t
 (** Main type for a document composed of nested boxes.
     @since 0.2 the type [t] is opaque *)
 
+type ext = ..
+(** Extensions of the representation.
+
+    @since NEXT_RELEASE
+*)
+
 (** The type [view] can be used to observe the inside of the box,
     now that [t] is opaque.
 
@@ -136,6 +142,10 @@ type view = private
   | Anchor of {
       id: string;
       inner: t;
+    }
+  | Ext of {
+      key: string;
+      ext: ext;
     }
 
 val view : t -> view
@@ -317,6 +327,12 @@ val anchor : id:string -> t -> t
     @since 0.11
 *)
 
+val extension : ext -> t
+(** [extension ext] embeds an extended representation [ext] as a box. [ext] must be recognized
+    as a registered extension by one of the [to_key] arguments passed to {!register_extension}.
+    @since NEXT_RELEASE
+*)
+
 (** {2 Styling combinators} *)
 
 val line_with_style : Style.t -> string -> t
@@ -339,6 +355,56 @@ val asprintf_with_style :
   Style.t -> ('a, Format.formatter, unit, t) format4 -> 'a
 (** Formatting for {!text}, with style.
     @since 0.3 *)
+
+(** {2 Managing Representation Extensions} *)
+
+val is_empty : t -> bool
+(** [is_empty b] is equivalent to [match view b with Empty -> true | _ -> false]. *)
+
+val register_extension : key:string -> domain:(ext -> bool) -> unit
+(** Registers a new representation extension, where [key] is a unique identifier for
+    the scope of the extension values, and [domain] delineates that scope.
+    Intended for extension writers.
+    @since NEXT_RELEASE *)
+
+type ext_backend_result = ..
+(** The type packaging backend-dependent results of handling a representation extension. *)
+
+type ext_backend_result +=
+  | Unrecognized_extension  (** This is an error condition. *)
+  | Same_as of t
+        (** The result of rendering is the same as for the given box. *)
+
+val register_extension_backend : backend_name:string -> unit
+(** Enables for a PrintBox backend (such as printbox-text, printbox-html, printbox-md)
+    the handling of representation extensions via {!register_extension_handler}.
+    Intended for backend writers.
+    @since NEXT_RELEASE *)
+
+val register_extension_handler :
+  backend_name:string ->
+  example:ext ->
+  handler:(ext -> nested:(t -> ext_backend_result) -> ext_backend_result) ->
+  unit
+(** Registers a [handler] for the backend [backend_name] of extensions of the same domain
+    as [example]. Intended for extension writers.
+    @since NEXT_RELEASE *)
+
+val get_extension_handler :
+  backend_name:string ->
+  key:string ->
+  ext ->
+  nested:(t -> ext_backend_result) ->
+  ext_backend_result
+(** [get_extension_handler ~backend_name] returns a getter function for extension handlers.
+    Intended for backend writers.
+    @since NEXT_RELEASE *)
+
+val expand_extensions_same_as_only : backend_name:string -> t -> t
+(** [expand_extensions_same_as_only ~backend_name] expands extensions for the given backend,
+    as long as the backend's extension handlers only use the [Same_as] variant
+    of {!ext_backend_result}.
+    @since NEXT_RELEASE *)
 
 (** {2 Simple Structural Interface} *)
 
