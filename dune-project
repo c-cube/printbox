@@ -47,3 +47,17 @@ Printbox allows to print nested boxes, lists, arrays, tables in several formats"
            (printbox-html (and (= :version)))
            (odoc :with-test)
            (mdx (and (>= 1.4) :with-test))))
+
+(package
+  (name printbox-ext-plot)
+(synopsis "Printbox extension for plotting")
+(description "
+Extends Printbox with the ability to print scatter plots, line plots, decision boundaries.
+Printbox allows to print nested boxes, lists, arrays, tables in several formats")
+  (depends (printbox (= :version))
+           (printbox-text (and (= :version)))
+           (printbox-html (and (= :version)))
+           (printbox-md (and (= :version)))
+           (tyxml (>= 4.3))
+           (odoc :with-test)
+           (mdx (and (>= 1.4) :with-test))))

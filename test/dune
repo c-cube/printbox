@@ -63,3 +63,9 @@
  (modules extend_html_specific)
  (package printbox-html)
  (libraries printbox tyxml printbox-text printbox-html))
+
+(test
+ (name plotting)
+ (modules plotting)
+ (package printbox-ext-plot)
+ (libraries printbox printbox-ext-plot printbox-text printbox-html))
