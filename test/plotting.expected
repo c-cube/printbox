@@ -46,5 +46,5 @@ Text output:
 └──┴────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 
 HTML output:
-<div><h2>NOT IMPLEMENTED YET</h2></div>
+<div><div style="border:thin solid"><table class="framed"><tr><td><table class="non-framed"><tr><td><div>y</div></td><td><table class="non-framed"><tr><td><div>1</div></td></tr><tr><td><div>0</div></td></tr></table></td></tr></table></td><td><div style="border:thin dotted;position:relative;width:800;height:800"><span style="position:absolute;top:0px;left:0px">#</span><span style="position:absolute;top:200px;left:599px">#</span><span style="position:absolute;top:799px;left:799px">#</span></div></td></tr><tr><td><div></div></td><td><table class="non-framed"><tr><td><table class="non-framed"><tr><td><div>0</div></td><td><div class="align-right"><div>1</div></div></td></tr></table></td></tr><tr><td><div class="center"><div>x</div></div></td></tr></table></td></tr></table></div></div>
 

@@ -3,12 +3,13 @@ module BPlot = PrintBox_ext_plot
 
 (* This tests the printbox-ext-plot extension. *)
 
-let test =
+let test ~size =
   B.extension
   @@ BPlot.(
        Plot
          {
            default_config with
+           size;
            specs =
              [
                Scatterplot
@@ -18,6 +19,7 @@ let test =
 
 let () =
   print_endline "Text output:";
-  print_endline @@ PrintBox_text.to_string test;
+  print_endline @@ PrintBox_text.to_string
+  @@ test ~size:BPlot.default_config.size;
   print_endline "\nHTML output:";
-  print_endline @@ PrintBox_html.to_string test
+  print_endline @@ PrintBox_html.to_string @@ test ~size:(800, 800)

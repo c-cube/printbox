@@ -210,14 +210,14 @@ let plot_canvas ?canvas ?(size : (int * int) option) (specs : plot_spec list) :
 let concise_float = ref (fun ~prec -> Printf.sprintf "%.*g" prec)
 
 let plot ?(prec = 3) ?(no_axes = false) ?canvas ?size ?(x_label = "x")
-    ?(y_label = "y") specs =
+    ?(y_label = "y") embed_canvas specs =
   let minx, miny, maxx, maxy, canvas = plot_canvas ?canvas ?size specs in
   let open PrintBox in
   let y_label_l =
     List.map Char.escaped @@ List.of_seq @@ String.to_seq y_label
   in
   if no_axes then
-    grid_text ~bars:false canvas
+    embed_canvas canvas
   else
     grid_l
       [
@@ -231,7 +231,7 @@ let plot ?(prec = 3) ?(no_axes = false) ?canvas ?size ?(x_label = "x")
                   align_bottom @@ line @@ !concise_float ~prec miny;
                 ];
             ];
-          grid_text ~bars:false canvas;
+          embed_canvas canvas;
         ];
         [
           empty;
@@ -252,14 +252,53 @@ let example = Plot default_config
 let text_handler ext ~nested:_ =
   match ext with
   | Plot { specs; x_label; y_label; size; no_axes; prec } ->
-    B.Same_as (B.frame @@ plot ~prec ~no_axes ~size ~x_label ~y_label specs)
+    B.Same_as
+      (B.frame
+      @@ plot ~prec ~no_axes ~size ~x_label ~y_label
+           (B.grid_text ?pad:None ~bars:false)
+           specs)
   | _ -> B.Unrecognized_extension
+
+let embed_canvas_html canvas =
+  let size_y = Array.length canvas in
+  let size_x = Array.length canvas.(0) in
+  let cells =
+    canvas
+    |> Array.mapi (fun y row ->
+           row
+           |> Array.mapi (fun x cell -> x, cell)
+           |> Array.to_list
+           |> List.filter_map (fun (x, cell) ->
+                  if String.trim cell = "" then
+                    None
+                  else
+                    Some
+                      (H.span
+                         ~a:
+                           [
+                             H.a_style
+                               ("position:absolute;top:" ^ Int.to_string y
+                              ^ "px;left:" ^ Int.to_string x ^ "px");
+                           ]
+                         [ H.txt cell ])))
+  in
+  let result =
+    Array.to_list cells |> List.concat
+    |> H.div
+         ~a:
+           [
+             H.a_style @@ "border:thin dotted;position:relative;width:" ^ Int.to_string size_x
+             ^ ";height:" ^ Int.to_string size_y;
+           ]
+  in
+  B.embed_rendering @@ PrintBox_html.Render_html result
 
 let html_handler ext ~nested:_ =
   match ext with
-  | Plot _ ->
-    let result = H.h2 [ H.txt "NOT IMPLEMENTED YET" ] in
-    PrintBox_html.Render_html result
+  | Plot { specs; x_label; y_label; size; no_axes; prec } ->
+    B.Same_as
+      (B.frame
+      @@ plot ~prec ~no_axes ~size ~x_label ~y_label embed_canvas_html specs)
   | _ -> B.Unrecognized_extension
 
 let () =
