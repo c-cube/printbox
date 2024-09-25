@@ -375,12 +375,6 @@ type ext_backend_result +=
   | Same_as of t
         (** The result of rendering is the same as for the given box. *)
 
-val register_extension_backend : backend_name:string -> unit
-(** Enables for a PrintBox backend (such as printbox-text, printbox-html, printbox-md)
-    the handling of representation extensions via {!register_extension_handler}.
-    Intended for backend writers.
-    @since NEXT_RELEASE *)
-
 val register_extension_handler :
   backend_name:string ->
   example:ext ->
@@ -401,9 +395,9 @@ val get_extension_handler :
     @since NEXT_RELEASE *)
 
 val expand_extensions_same_as_only : backend_name:string -> t -> t
-(** [expand_extensions_same_as_only ~backend_name] expands extensions for the given backend,
-    as long as the backend's extension handlers only use the [Same_as] variant
-    of {!ext_backend_result}.
+(** [expand_extensions_same_as_only ~backend_name b] expands extensions in [b] for the backend,
+    as long as the backend's extension handlers (for extensions in [b]) only use
+    the [Same_as] variant of {!ext_backend_result}.
     @since NEXT_RELEASE *)
 
 (** {2 Simple Structural Interface} *)

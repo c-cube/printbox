@@ -2,8 +2,6 @@
 
 module B = PrintBox
 
-let () = B.register_extension_backend ~backend_name:"md"
-
 module Config = struct
   type preformatted =
     | Code_block
@@ -529,6 +527,7 @@ let pp_impl c out b =
   loop ~no_block:false ~no_md:false ~prefix:"" b;
   pp_close_box out ()
 
-let expand_exts = B.expand_extensions_same_as_only ~backend_name:"md"
-let pp c out b = pp_impl c out @@ expand_exts b
+let pp c out b =
+  pp_impl c out @@ B.expand_extensions_same_as_only ~backend_name:"md" b
+
 let to_string c b = Format.asprintf "%a@." (pp c) b

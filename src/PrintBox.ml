@@ -242,17 +242,9 @@ type ext_backend_result += Unrecognized_extension | Same_as of t
 
 let extension_backends = Hashtbl.create 3
 
-let register_extension_backend ~backend_name =
-  if Hashtbl.mem extension_backends backend_name then
-    invalid_arg
-    @@ "PrintBox.register_extension_backend: backend already registered: "
-    ^ backend_name;
-  Hashtbl.add extension_backends backend_name (Hashtbl.create 4)
-
 let register_extension_handler ~backend_name ~example ~handler =
   if not @@ Hashtbl.mem extension_backends backend_name then
-    invalid_arg @@ "PrintBox.register_extension_handler: unregistered backend "
-    ^ backend_name;
+    Hashtbl.add extension_backends backend_name (Hashtbl.create 4);
   let handlers = Hashtbl.find extension_backends backend_name in
   let key = get_extension_key example in
   (match handler example ~nested:(fun _ -> Same_as Empty) with
@@ -262,12 +254,15 @@ let register_extension_handler ~backend_name ~example ~handler =
   | _ -> ());
   Hashtbl.add handlers key handler
 
-let get_extension_handler ~backend_name =
+let get_extension_handler ~backend_name ~key =
+  (* Note: we do not cache handlers to not depend on the module loading order. *)
   if not @@ Hashtbl.mem extension_backends backend_name then
-    invalid_arg @@ "PrintBox.get_extension_handler: unregistered backend "
-    ^ backend_name;
-  let handlers = Hashtbl.find extension_backends backend_name in
-  fun ~key -> Hashtbl.find handlers key
+    fun _ext ~nested:_ ->
+  Unrecognized_extension
+  else (
+    let handlers = Hashtbl.find extension_backends backend_name in
+    Hashtbl.find handlers key
+  )
 
 let expand_extensions_same_as_only ~backend_name =
   let get_handler = get_extension_handler ~backend_name in

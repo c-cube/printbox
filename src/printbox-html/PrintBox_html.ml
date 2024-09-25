@@ -10,8 +10,6 @@ type 'a html = 'a Html.elt
 type toplevel_html = Html_types.li_content_fun html
 type PrintBox.ext_backend_result += Render_html of toplevel_html
 
-let () = B.register_extension_backend ~backend_name:"html"
-
 let prelude =
   let l =
     [
@@ -266,7 +264,7 @@ let to_html_rec ~config (b : B.t) =
       | B.Empty -> H.a ~a:[ H.a_id id ] []
       | _ ->
         H.a ~a:[ H.a_id id; H.a_href @@ "#" ^ id ] [ to_html_nondet_rec inner ])
-    | B.Ext {key; ext} ->
+    | B.Ext { key; ext } ->
       let nested b = Render_html (to_html_rec b) in
       (match get_handler ~key ext ~nested with
       | PrintBox.Unrecognized_extension -> assert false

@@ -4,8 +4,6 @@
 
 module B = PrintBox
 
-let () = B.register_extension_backend ~backend_name:"text"
-
 type position = PrintBox.position = {
   x: int;
   y: int;
