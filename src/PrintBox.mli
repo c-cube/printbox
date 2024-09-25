@@ -375,6 +375,15 @@ type ext_backend_result +=
   | Same_as of t
         (** The result of rendering is the same as for the given box. *)
 
+type ext +=
+  | Embed_rendering of ext_backend_result
+        (** Lets extensions stage rendering by embedding partial results inside boxes. *)
+
+val embed_rendering : ext_backend_result -> t
+(** Embeds the given rendering result in a box. Only backends that can handle the result
+    will be able to render the returned box!
+    @since NEXT_RELEASE *)
+
 val register_extension_handler :
   backend_name:string ->
   example:ext ->

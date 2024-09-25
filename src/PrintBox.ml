@@ -239,8 +239,10 @@ let extension ext = Ext { key = get_extension_key ext; ext }
 
 type ext_backend_result = ..
 type ext_backend_result += Unrecognized_extension | Same_as of t
+type ext += Embed_rendering of ext_backend_result
 
 let extension_backends = Hashtbl.create 3
+let embed_rendering result = Ext { key = ""; ext = Embed_rendering result }
 
 let register_extension_handler ~backend_name ~example ~handler =
   if not @@ Hashtbl.mem extension_backends backend_name then
@@ -254,15 +256,18 @@ let register_extension_handler ~backend_name ~example ~handler =
   | _ -> ());
   Hashtbl.add handlers key handler
 
-let get_extension_handler ~backend_name ~key =
+let get_extension_handler ~backend_name ~key ext =
   (* Note: we do not cache handlers to not depend on the module loading order. *)
-  if not @@ Hashtbl.mem extension_backends backend_name then
-    fun _ext ~nested:_ ->
-  Unrecognized_extension
-  else (
-    let handlers = Hashtbl.find extension_backends backend_name in
-    Hashtbl.find handlers key
-  )
+  match ext with
+  | Embed_rendering result -> fun ~nested:_ -> result
+  | _ ->
+    if not @@ Hashtbl.mem extension_backends backend_name then
+      fun ~nested:_ ->
+    Unrecognized_extension
+    else (
+      let handlers = Hashtbl.find extension_backends backend_name in
+      Hashtbl.find handlers key ext
+    )
 
 let expand_extensions_same_as_only ~backend_name =
   let get_handler = get_extension_handler ~backend_name in

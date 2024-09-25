@@ -1,8 +1,18 @@
-Text output:
+Text output simple:
 ┌────────────┐
 │Hello world!│
 └────────────┘
 
-HTML output:
-<div><h2>Hello world!</h2></div>
+HTML output simple:
+<div><button>Hello world!</button></div>
+
+
+Text output with header:
+Greetings!
+└─┬─────────────────┐
+  │Hello wide world!│
+  └─────────────────┘
+
+HTML output with header:
+<div><details><summary><span>Greetings!</span></summary><ul><li><button>Hello wide world!</button></li></ul></details></div>
 
