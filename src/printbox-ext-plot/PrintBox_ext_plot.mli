@@ -35,3 +35,5 @@ type graph = {
 val default_config : graph
 
 type PrintBox.ext += Plot of graph
+
+val concise_float : (prec:int -> float -> string) ref
