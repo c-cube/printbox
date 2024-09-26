@@ -367,9 +367,7 @@ let embed_canvas_html ~nested canvas =
     canvas
     |> Array.mapi (fun y row ->
            row
-           |> Array.mapi (fun x cell -> x, cell)
-           |> Array.to_list
-           |> List.concat_map (fun (x, cell) ->
+           |> Array.mapi (fun x cell ->
                   List.map
                     (fun (_prio, cell) ->
                       let cell =
@@ -388,7 +386,8 @@ let embed_canvas_html ~nested canvas =
                              ^ "px;left:" ^ Int.to_string x ^ "px");
                           ]
                         [ cell ])
-                    cell))
+                    cell)
+           |> Array.to_list |> List.concat)
   in
   let result =
     Array.to_list cells |> List.concat
