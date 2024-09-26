@@ -5,23 +5,23 @@
 type plot_spec =
   | Scatterplot of {
       points: (float * float) array;
-      pixel: string;
+      content: PrintBox.t;
     }
-  | Scatterbag of { points: ((float * float) * string) array }
+  | Scatterbag of { points: ((float * float) * PrintBox.t) array }
   | Line_plot of {
       points: float array;
-      pixel: string;
+      content: PrintBox.t;
     }
   | Boundary_map of {
       callback: float * float -> bool;
-      pixel_true: string;
-      pixel_false: string;
+      content_true: PrintBox.t;
+      content_false: PrintBox.t;
     }
-  | Map of { callback: float * float -> string }
+  | Map of { callback: float * float -> PrintBox.t }
   | Line_plot_adaptive of {
       callback: float -> float;
       cache: (float, float) Hashtbl.t;
-      pixel: string;
+      content: PrintBox.t;
     }
 [@@deriving sexp_of]
 

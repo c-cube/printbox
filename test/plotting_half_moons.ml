@@ -42,9 +42,14 @@ let test =
            default_config with
            specs =
              [
-               Scatterplot { points = points1; pixel = "#" };
-               Scatterplot { points = points2; pixel = "%" };
-               Boundary_map { pixel_false = "."; pixel_true = ","; callback };
+               Scatterplot { points = points1; content = B.line "#" };
+               Scatterplot { points = points2; content = B.line "%" };
+               Boundary_map
+                 {
+                   content_false = B.line ".";
+                   content_true = B.line ",";
+                   callback;
+                 };
              ];
          })
 

@@ -5,23 +5,23 @@ module H = Html
 type plot_spec =
   | Scatterplot of {
       points: (float * float) array;
-      pixel: string;
+      content: B.t;
     }
-  | Scatterbag of { points: ((float * float) * string) array }
+  | Scatterbag of { points: ((float * float) * B.t) array }
   | Line_plot of {
       points: float array;
-      pixel: string;
+      content: B.t;
     }
   | Boundary_map of {
       callback: float * float -> bool;
-      pixel_true: string;
-      pixel_false: string;
+      content_true: B.t;
+      content_false: B.t;
     }
-  | Map of { callback: float * float -> string }
+  | Map of { callback: float * float -> B.t }
   | Line_plot_adaptive of {
       callback: float -> float;
       cache: (float, float) Hashtbl.t;
-      pixel: string;
+      content: B.t;
     }
 [@@deriving sexp_of]
 
@@ -52,13 +52,13 @@ let () =
     | _ -> false)
 
 let plot_canvas ?canvas ?(size : (int * int) option) ?(sparse = false)
-    (specs : plot_spec list) : float * float * float * float * _ =
+    (specs : plot_spec list) =
   (* Unfortunately "x" and "y" of a "matrix" are opposite to how we want them displayed --
      the first dimension (i.e. "x") as the horizontal axis. *)
-  let (dimx, dimy, canvas) : int * int * _ =
+  let (dimx, dimy, canvas) : int * int * B.t option array array =
     match canvas, size with
     | None, None -> invalid_arg "PrintBox_utils.plot: provide ~canvas or ~size"
-    | None, Some (dimx, dimy) -> dimx, dimy, Array.make_matrix dimy dimx " "
+    | None, Some (dimx, dimy) -> dimx, dimy, Array.make_matrix dimy dimx None
     | Some canvas, None ->
       let dimy = Array.length canvas in
       let dimx = Array.length canvas.(0) in
@@ -177,18 +177,18 @@ let plot_canvas ?canvas ?(size : (int * int) option) ?(sparse = false)
   let update ~i ~dmj px =
     if
       i >= 0 && dmj >= 0 && i < dimx && dmj < dimy
-      && String.trim canvas.(dmj).(i) = ""
+      && Option.is_none canvas.(dmj).(i)
     then (
-      canvas.(dmj).(i) <- px;
+      canvas.(dmj).(i) <- Some px;
       true
     ) else
       false
   in
   let prerender_scatter points =
     Array.iter
-      (fun (p, pixel) ->
+      (fun (p, content) ->
         match scale_2d p with
-        | Some (i, j) -> ignore @@ update ~i ~dmj:(dimy - 1 - j) pixel
+        | Some (i, j) -> ignore @@ update ~i ~dmj:(dimy - 1 - j) content
         | None -> ())
       points
   in
@@ -197,7 +197,7 @@ let plot_canvas ?canvas ?(size : (int * int) option) ?(sparse = false)
     canvas
     |> Array.iteri (fun dmj ->
            Array.iteri (fun i pix ->
-               if String.trim pix = "" && spread ~i ~dmj !updated then (
+               if Option.is_none pix && spread ~i ~dmj !updated then (
                  let x =
                    Float.(of_int i *. spanx /. of_int (dimx - 1)) +. minx
                  in
@@ -210,10 +210,10 @@ let plot_canvas ?canvas ?(size : (int * int) option) ?(sparse = false)
   in
   specs
   |> List.iter (function
-       | Scatterplot { points; pixel } ->
-         prerender_scatter (Array.map (fun p -> p, pixel) points)
+       | Scatterplot { points; content } ->
+         prerender_scatter (Array.map (fun p -> p, content) points)
        | Scatterbag { points } -> prerender_scatter points
-       | Line_plot { points; pixel } ->
+       | Line_plot { points; content } ->
          let points = Array.map scale_1d points in
          let npoints = Float.of_int (Array.length points) in
          let rescale_x i =
@@ -223,15 +223,16 @@ let plot_canvas ?canvas ?(size : (int * int) option) ?(sparse = false)
          points
          |> Array.iteri (fun i ->
                 Option.iter (fun j ->
-                    ignore @@ update ~i:(rescale_x i) ~dmj:(dimy - 1 - j) pixel))
-       | Boundary_map { callback; pixel_true; pixel_false } ->
+                    ignore
+                    @@ update ~i:(rescale_x i) ~dmj:(dimy - 1 - j) content))
+       | Boundary_map { callback; content_true; content_false } ->
          prerender_map (fun point ->
              if callback point then
-               pixel_true
+               content_true
              else
-               pixel_false)
+               content_false)
        | Map { callback } -> prerender_map callback
-       | Line_plot_adaptive { callback; cache; pixel } ->
+       | Line_plot_adaptive { callback; cache; content } ->
          let updated = ref true in
          canvas.(0)
          |> Array.iteri (fun i _ ->
@@ -248,7 +249,7 @@ let plot_canvas ?canvas ?(size : (int * int) option) ?(sparse = false)
                   in
                   scale_1d y
                   |> Option.iter (fun j ->
-                         updated := update ~i ~dmj:(dimy - 1 - j) pixel)
+                         updated := update ~i ~dmj:(dimy - 1 - j) content)
                 )));
   minx, miny, maxx, maxy, canvas
 
@@ -297,6 +298,51 @@ let plot ?(prec = 3) ?(no_axes = false) ?canvas ?size ?(x_label = "x")
 let example = Plot default_config
 let scale_size_for_text = ref (0.125, 0.05)
 
+let flatten_text_canvas canvas =
+  let outputs =
+    B.map_matrix
+      (function
+        | Some b ->
+          (* Fortunately, PrintBox_text does not insert \r by itself. *)
+          String.split_on_char '\n' @@ PrintBox_text.to_string b
+        | None -> [])
+      canvas
+  in
+  let dimj = Array.length canvas in
+  let dimi = Array.length canvas.(0) in
+  (* A [None] on the canvas means that the cell is occupied by a cell to the left of it. *)
+  let canvas = Array.make_matrix dimj dimi (Some " ") in
+  let update ~i ~j line =
+    if i >= 0 && i < dimi && j >= 0 && j < dimj then (
+      let visible_len =
+        min
+          (dimi - i)
+          (PrintBox_text.str_display_width line 0 (String.length line))
+      in
+      if visible_len > 0 then (
+        let actual_len = ref @@ String.length line in
+        let cur_len () = PrintBox_text.str_display_width line 0 !actual_len in
+        while !actual_len > 0 && (cur_len () = 0 || cur_len () > visible_len) do
+          decr actual_len
+        done;
+        canvas.(j).(i) <- Some (String.sub line 0 !actual_len)
+      );
+      for di = 1 to visible_len - 1 do
+        canvas.(j).(i + di) <- None
+      done
+    )
+  in
+  Array.iteri
+    (fun j row ->
+      Array.iteri
+        (fun i lines ->
+          List.iteri (fun dj line -> update ~i ~j:(j + dj) line) lines)
+        row)
+    outputs;
+  Array.map
+    (fun row -> String.concat "" @@ List.filter_map Fun.id @@ Array.to_list row)
+    canvas
+
 let text_handler ext ~nested:_ =
   match ext with
   | Plot { specs; x_label; y_label; size = sx, sy; no_axes; prec } ->
@@ -307,11 +353,12 @@ let text_handler ext ~nested:_ =
     B.Same_as
       (B.frame
       @@ plot ~prec ~no_axes ~size ~x_label ~y_label ~sparse:false
-           (B.grid_text ?pad:None ~bars:false)
+           (fun canvas ->
+             B.lines @@ Array.to_list @@ flatten_text_canvas canvas)
            specs)
   | _ -> B.Unrecognized_extension
 
-let embed_canvas_html canvas =
+let embed_canvas_html ~nested canvas =
   let size_y = Array.length canvas in
   let size_x = Array.length canvas.(0) in
   let cells =
@@ -321,18 +368,25 @@ let embed_canvas_html canvas =
            |> Array.mapi (fun x cell -> x, cell)
            |> Array.to_list
            |> List.filter_map (fun (x, cell) ->
-                  if String.trim cell = "" then
-                    None
-                  else
-                    Some
-                      (H.span
-                         ~a:
-                           [
-                             H.a_style
-                               ("position:absolute;top:" ^ Int.to_string y
-                              ^ "px;left:" ^ Int.to_string x ^ "px");
-                           ]
-                         [ H.txt cell ])))
+                  Option.map
+                    (fun cell ->
+                      let cell =
+                        match nested cell with
+                        | PrintBox_html.Render_html html -> html
+                        | _ ->
+                          invalid_arg
+                            "PrintBox_ext_plot.embed_canvas_html: unrecognized \
+                             rendering backend"
+                      in
+                      H.div
+                        ~a:
+                          [
+                            H.a_style
+                              ("position:absolute;top:" ^ Int.to_string y
+                             ^ "px;left:" ^ Int.to_string x ^ "px");
+                          ]
+                        [ cell ])
+                    cell))
   in
   let result =
     Array.to_list cells |> List.concat
@@ -345,13 +399,14 @@ let embed_canvas_html canvas =
   in
   B.embed_rendering @@ PrintBox_html.Render_html result
 
-let html_handler ext ~nested:_ =
+let html_handler ext ~nested =
   match ext with
   | Plot { specs; x_label; y_label; size; no_axes; prec } ->
     B.Same_as
       (B.frame
       @@ plot ~prec ~no_axes ~size ~x_label ~y_label ~sparse:true
-           embed_canvas_html specs)
+           (embed_canvas_html ~nested)
+           specs)
   | _ -> B.Unrecognized_extension
 
 let () =

@@ -14,19 +14,19 @@ let test =
                Line_plot_adaptive
                  {
                    callback = (fun x -> sin x);
-                   pixel = "#";
+                   content = B.line "#";
                    cache = Hashtbl.create 20;
                  };
                Line_plot_adaptive
                  {
                    callback = (fun x -> x ** 2.);
-                   pixel = "%";
+                   content = B.line "%";
                    cache = Hashtbl.create 20;
                  };
                Boundary_map
                  {
-                   pixel_false = ".";
-                   pixel_true = ",";
+                   content_false = B.line ".";
+                   content_true = B.line ",";
                    callback = (fun (x, y) -> x > y);
                  };
              ];

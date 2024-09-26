@@ -102,7 +102,7 @@ let str_display_len_ =
         0 s)
 
 let[@inline] set_string_len f = str_display_len_ := f
-let[@inline] str_display_width_ s i len : int = !str_display_len_ s i len
+let[@inline] str_display_width s i len : int = !str_display_len_ s i len
 
 (** {2 Output: where to print to} *)
 
@@ -216,7 +216,7 @@ end = struct
         Pos.move_x start_pos l
       | Str_slice { s; i; len } ->
         O.output_substring out s i len;
-        let l = str_display_width_ s i len in
+        let l = str_display_width s i len in
         Pos.move_x start_pos l
       | Str_slice_bracket { pre; s; i; len; post } ->
         O.output_string out pre;
@@ -225,7 +225,7 @@ end = struct
            does not try to mutate the string (which it should have no
            reason to do), but just to be safe... *)
         O.output_string out post;
-        let l = str_display_width_ s i len in
+        let l = str_display_width s i len in
         Pos.move_x start_pos l
 
     let render ?(indent = 0) (out : O.t) (self : t) : unit =
@@ -480,7 +480,7 @@ end = struct
     | Text { l; style = _; link_with_uri = _ } ->
       let width =
         List.fold_left
-          (fun acc (s, i, len) -> max acc (str_display_width_ s i len))
+          (fun acc (s, i, len) -> max acc (str_display_width s i len))
           0 l
       in
       { x = width; y = List.length l }
@@ -795,7 +795,7 @@ end = struct
                 write_vline_ ~ct:`Tree conn_m (Pos.move_y pos' 1)
                   ((size b).y - 1);
               let child_pos =
-                Pos.move_x pos' (str_display_width_ s 0 (String.length s))
+                Pos.move_x pos' (str_display_width s 0 (String.length s))
               in
               conn_m.m <- render_rec ~ansi b child_pos;
               if (size b).x > 0 && has_border child_pos conn_m.m then

@@ -81,3 +81,9 @@
  (modules plotting_linear)
  (package printbox-ext-plot)
  (libraries printbox printbox-ext-plot printbox-text printbox-html))
+
+(test
+ (name plotting_nested)
+ (modules plotting_nested)
+ (package printbox-ext-plot)
+ (libraries printbox printbox-ext-plot printbox-text printbox-html))

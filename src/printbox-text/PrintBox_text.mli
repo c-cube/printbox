@@ -45,3 +45,12 @@ val pp_with : style:bool -> Format.formatter -> PrintBox.t -> unit
     @param style if true, emit ANSI codes for styling
     @since 0.3
 *)
+
+(** {2 Support for Representation Extensions} *)
+
+val str_display_width : String.t -> int -> int -> int
+(** [str_display_width s pos len] computes the width in visible characters
+    of the string [s] starting at string position [pos] and stopping right before [pos + len].
+    See {!set_string_len}.
+    @since NEXT_RELEASE
+*)
