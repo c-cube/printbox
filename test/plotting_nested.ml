@@ -61,7 +61,7 @@ let test ~size =
                        (0.75, 0.75), nice_unicode;
                      |];
                  };
-               (* Map
+               Map
                  {
                    callback =
                      (fun (x, y) ->
@@ -78,7 +78,7 @@ let test ~size =
                          ":"
                        else
                          ";");
-                 }; *)
+                 };
              ];
          })
 

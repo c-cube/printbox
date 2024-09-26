@@ -315,8 +315,7 @@ let flatten_text_canvas canvas =
   let update ~i ~j line =
     if i >= 0 && i < dimi && j >= 0 && j < dimj then (
       let visible_len =
-        min
-          (dimi - i)
+        min (dimi - i)
           (PrintBox_text.str_display_width line 0 (String.length line))
       in
       if visible_len > 0 then (
@@ -332,13 +331,20 @@ let flatten_text_canvas canvas =
       done
     )
   in
-  Array.iteri
-    (fun j row ->
-      Array.iteri
-        (fun i lines ->
-          List.iteri (fun dj line -> update ~i ~j:(j + dj) line) lines)
-        row)
-    outputs;
+  (* Traverse in reverse order, so that space-making changes do not get undone. *)
+  let _ : int =
+    Array.fold_right
+      (fun row j ->
+        let _ : int =
+          Array.fold_right
+            (fun lines i ->
+              List.iteri (fun dj line -> update ~i ~j:(j + dj) line) lines;
+              i - 1)
+            row (dimi - 1)
+        in
+        j - 1)
+      outputs (dimj - 1)
+  in
   Array.map
     (fun row -> String.concat "" @@ List.filter_map Fun.id @@ Array.to_list row)
     canvas
