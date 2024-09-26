@@ -86,43 +86,19 @@ let plot_canvas ?canvas ?(size : (int * int) option) ?(sparse = false)
          | Line_plot_adaptive _ -> [||])
     |> Array.concat
   in
-  let extra_y_points =
-    specs
-    |> List.map (function
-         | Line_plot_adaptive { callback; cache; _ } ->
-           Array.iter
-             (fun x ->
-               if not (Hashtbl.mem cache x) then
-                 Hashtbl.add cache x (callback x))
-             all_x_points;
-           Array.of_seq @@ Hashtbl.to_seq_values cache
-         | _ -> [||])
-    |> Array.concat
-  in
-  let all_y_points = Array.append given_y_points extra_y_points in
   let minx =
     if all_x_points = [||] then
       0.
     else
       Array.fold_left min all_x_points.(0) all_x_points
   in
-  let miny =
-    if all_y_points = [||] then
-      0.
-    else
-      Array.fold_left min all_y_points.(0) all_y_points
-  in
   let maxx =
-    if all_x_points = [||] then
-      Float.of_int (Array.length all_y_points - 1)
+    if given_y_points = [||] then
+      1.
+    else if all_x_points = [||] then
+      Float.of_int (Array.length given_y_points - 1)
     else
       Array.fold_left max all_x_points.(0) all_x_points
-  in
-  let maxy =
-    if all_y_points = [||] then
-      maxx -. minx
-    else
-      Array.fold_left max all_y_points.(0) all_y_points
   in
   let spanx = maxx -. minx in
   let spanx =
@@ -130,6 +106,48 @@ let plot_canvas ?canvas ?(size : (int * int) option) ?(sparse = false)
       1.0
     else
       spanx
+  in
+  let scale_x x = Float.(to_int (of_int (dimx - 1) *. (x -. minx) /. spanx)) in
+  let unscale_x i = Float.(of_int i *. spanx /. of_int (dimx - 1)) +. minx in
+  let extra_y_points =
+    specs
+    |> List.map (function
+         | Line_plot_adaptive { callback; cache; _ } ->
+           Array.init
+             (if sparse then
+                dimx / 5
+              else
+                dimx)
+             (fun i ->
+               let x =
+                 unscale_x
+                   (if sparse then
+                      i * 5
+                    else
+                      i)
+               in
+               let y =
+                 match Hashtbl.find_opt cache x with
+                 | Some y -> y
+                 | None -> callback x
+               in
+               if not (Hashtbl.mem cache x) then Hashtbl.add cache x y;
+               y)
+         | _ -> [||])
+    |> Array.concat
+  in
+  let all_y_points = Array.append given_y_points extra_y_points in
+  let miny =
+    if all_y_points = [||] then
+      0.
+    else
+      Array.fold_left min all_y_points.(0) all_y_points
+  in
+  let maxy =
+    if all_y_points = [||] then
+      maxx -. minx
+    else
+      Array.fold_left max all_y_points.(0) all_y_points
   in
   let spany = maxy -. miny in
   let spany =
@@ -144,10 +162,7 @@ let plot_canvas ?canvas ?(size : (int * int) option) ?(sparse = false)
   in
   let scale_2d (x, y) =
     try
-      Some
-        Float.(
-          ( to_int @@ (of_int (dimx - 1) *. (x -. minx) /. spanx),
-            to_int @@ (of_int (dimy - 1) *. (y -. miny) /. spany) ))
+      Some Float.(scale_x x, to_int (of_int (dimy - 1) *. (y -. miny) /. spany))
     with Invalid_argument _ -> None
   in
   let spread ~i ~dmj px1 px2 =
@@ -220,9 +235,7 @@ let plot_canvas ?canvas ?(size : (int * int) option) ?(sparse = false)
          |> Array.iteri (fun i _ ->
                 if (not sparse) || i mod 5 = 0 || ((not !updated) && i mod 5 = 2)
                 then (
-                  let x =
-                    Float.(of_int i *. spanx /. of_int (dimx - 1)) +. minx
-                  in
+                  let x = unscale_x i in
                   let y =
                     match Hashtbl.find_opt cache x with
                     | Some y -> y
