@@ -25,11 +25,15 @@ type plot_spec =
 
 type graph = {
   specs: plot_spec list;
-  x_label: string;
-  y_label: string;
+      (** Earlier plots in the list take precedence over later plots. *)
+  x_label: string;  (** Horizontal axis label. *)
+  y_label: string;  (** Vertical axis label. *)
   size: int * int;
+      (** Size of the graphing area in pixels. Scale for characters is configured by
+          {!scale_size_for_text}. *)
   no_axes: bool;
-  prec: int;
+      (** If true, only the graphing area is output (skipping the axes box). *)
+  prec: int;  (** Precision for numerical labels on axes. *)
 }
 
 val default_config : graph
@@ -37,7 +41,10 @@ val default_config : graph
    [Plot {default_config with specs = ...; ...}]. The default values are:
    [{ specs = []; x_label = "x"; y_label = "y"; size = 800, 800; no_axes = false; prec = 3 }] *)
 
-type PrintBox.ext += Plot of graph
+type PrintBox.ext +=
+  | Plot of graph
+        (** PrintBox extension for plotting: scatterplots, linear graphs, decision boundaries...
+    See {!graph} and {!plot_spec} for details. *)
 
 val concise_float : (prec:int -> float -> string) ref
 (** The conversion function for labeling axes. Defaults to [sprintf "%.*g"]. *)

@@ -150,26 +150,36 @@ let plot_canvas ?canvas ?(size : (int * int) option) ?(sparse = false)
             to_int @@ (of_int (dimy - 1) *. (y -. miny) /. spany) ))
     with Invalid_argument _ -> None
   in
-  let spread i j px1 px2 =
+  let spread ~i ~dmj px1 px2 =
     if sparse then
-      (i mod 10 = 0 && j mod 10 = 0)
+      (i mod 10 = 0 && dmj mod 10 = 0)
       || i mod 10 = 5
-         && j mod 10 = 0
-         && canvas.(j).(i - 5) <> px1
-         && canvas.(j).(i - 5) <> px2
+         && dmj mod 10 = 0
+         && canvas.(dmj).(i - 5) <> px1
+         && canvas.(dmj).(i - 5) <> px2
       || i mod 10 = 0
-         && j mod 10 = 5
-         && canvas.(j - 5).(i) <> px1
-         && canvas.(j - 5).(i) <> px2
+         && dmj mod 10 = 5
+         && canvas.(dmj - 5).(i) <> px1
+         && canvas.(dmj - 5).(i) <> px2
     else
       true
+  in
+  let update ~i ~dmj px =
+    if
+      i >= 0 && dmj >= 0 && i < dimx && dmj < dimy
+      && String.trim canvas.(dmj).(i) = ""
+    then (
+      canvas.(dmj).(i) <- px;
+      true
+    ) else
+      false
   in
   specs
   |> List.iter (function
        | Scatterplot { points; pixel } ->
          Array.map scale_2d points
          |> Array.iter (function
-              | Some (i, j) -> canvas.(dimy - 1 - j).(i) <- pixel
+              | Some (i, j) -> ignore @@ update ~i ~dmj:(dimy - 1 - j) pixel
               | None -> ())
        | Line_plot { points; pixel } ->
          let points = Array.map scale_1d points in
@@ -181,14 +191,14 @@ let plot_canvas ?canvas ?(size : (int * int) option) ?(sparse = false)
          points
          |> Array.iteri (fun i ->
                 Option.iter (fun j ->
-                    canvas.(dimy - 1 - j).(rescale_x i) <- pixel))
+                    ignore @@ update ~i:(rescale_x i) ~dmj:(dimy - 1 - j) pixel))
        | Boundary_map { callback; pixel_true; pixel_false } ->
          canvas
          |> Array.iteri (fun dmj ->
                 Array.iteri (fun i pix ->
                     if
                       String.trim pix = ""
-                      && spread i dmj pixel_true pixel_false
+                      && spread ~i ~dmj pixel_true pixel_false
                     then (
                       let x =
                         Float.(of_int i *. spanx /. of_int (dimx - 1)) +. minx
@@ -205,9 +215,11 @@ let plot_canvas ?canvas ?(size : (int * int) option) ?(sparse = false)
                            pixel_false)
                     )))
        | Line_plot_adaptive { callback; cache; pixel } ->
+         let updated = ref true in
          canvas.(0)
-         |> Array.iteri (fun i pix ->
-                if String.trim pix = "" then (
+         |> Array.iteri (fun i _ ->
+                if (not sparse) || i mod 5 = 0 || ((not !updated) && i mod 5 = 2)
+                then (
                   let x =
                     Float.(of_int i *. spanx /. of_int (dimx - 1)) +. minx
                   in
@@ -220,7 +232,8 @@ let plot_canvas ?canvas ?(size : (int * int) option) ?(sparse = false)
                       y
                   in
                   scale_1d y
-                  |> Option.iter (fun j -> canvas.(dimy - 1 - j).(i) <- pixel)
+                  |> Option.iter (fun j ->
+                         updated := update ~i ~dmj:(dimy - 1 - j) pixel)
                 )));
   minx, miny, maxx, maxy, canvas
 

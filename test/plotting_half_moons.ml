@@ -34,13 +34,12 @@ let moons data_len =
 let points1, points2 = moons 1024
 let callback (x, y) = Float.compare x y > 0
 
-let test ~size =
+let test =
   B.extension
   @@ BPlot.(
        Plot
          {
            default_config with
-           size;
            specs =
              [
                Scatterplot { points = points1; pixel = "#" };
@@ -51,7 +50,6 @@ let test ~size =
 
 let () =
   print_endline "Text output:";
-  print_endline @@ PrintBox_text.to_string
-  @@ test ~size:BPlot.default_config.size;
+  print_endline @@ PrintBox_text.to_string test;
   print_endline "\nHTML output:";
-  print_endline @@ PrintBox_html.to_string @@ test ~size:(800, 800)
+  print_endline @@ PrintBox_html.to_string test

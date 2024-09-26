@@ -75,3 +75,9 @@
  (modules plotting_half_moons)
  (package printbox-ext-plot)
  (libraries printbox printbox-ext-plot printbox-text printbox-html))
+
+(test
+ (name plotting_linear)
+ (modules plotting_linear)
+ (package printbox-ext-plot)
+ (libraries printbox printbox-ext-plot printbox-text printbox-html))
