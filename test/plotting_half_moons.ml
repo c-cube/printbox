@@ -20,10 +20,23 @@ end
 
 let noise () = Rand.float_range (-0.1) 0.1
 
+(* [Array.split] only available since OCaml 4.12. *)
+let array_split x =
+  let a0, b0 = x.(0) in
+  let n = Array.length x in
+  let a = Array.make n a0 in
+  let b = Array.make n b0 in
+  for i = 1 to n - 1 do
+    let ai, bi = x.(i) in
+    a.(i) <- ai;
+    b.(i) <- bi
+  done;
+  a, b
+
 (* This tests the printbox-ext-plot extension. *)
 let moons data_len =
   let npairs = data_len / 2 in
-  Array.split
+  array_split
     (Array.init npairs (fun _pos ->
          let i = Rand.int npairs in
          let v = Float.(of_int (i / 2) *. pi /. of_int npairs) in
