@@ -7,6 +7,7 @@ type plot_spec =
       points: (float * float) array;
       pixel: string;
     }
+  | Scatterbag of { points: ((float * float) * string) array }
   | Line_plot of {
       points: float array;
       pixel: string;
@@ -16,6 +17,7 @@ type plot_spec =
       pixel_true: string;
       pixel_false: string;
     }
+  | Map of { callback: float * float -> string }
   | Line_plot_adaptive of {
       callback: float -> float;
       cache: (float, float) Hashtbl.t;

@@ -12,8 +12,27 @@ let test ~size =
            size;
            specs =
              [
-               Scatterplot
-                 { points = [| 0., 1.; 1., 0.; 0.75, 0.75 |]; pixel = "#" };
+               Scatterbag
+                 {
+                   points =
+                     [| (0., 1.), "Y"; (1., 0.), "X"; (0.75, 0.75), "M" |];
+                 };
+               Map
+                 {
+                   callback =
+                     (fun (x, y) ->
+                       let s = (x ** 2. +. y ** 2.) ** 0.5 in
+                       if s < 0.3 then
+                         ""
+                       else if s < 0.6 then
+                         "."
+                       else if s < 0.9 then
+                         ","
+                       else if s < 1.2 then
+                         ":"
+                       else
+                         ";");
+                 };
              ];
          })
 

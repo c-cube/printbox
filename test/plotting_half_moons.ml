@@ -44,7 +44,7 @@ let test =
              [
                Scatterplot { points = points1; pixel = "#" };
                Scatterplot { points = points2; pixel = "%" };
-               Boundary_map { pixel_false = "."; pixel_true = "*"; callback };
+               Boundary_map { pixel_false = "."; pixel_true = ","; callback };
              ];
          })
 

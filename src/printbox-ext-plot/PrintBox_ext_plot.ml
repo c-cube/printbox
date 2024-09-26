@@ -2,13 +2,12 @@ open Tyxml
 module B = PrintBox
 module H = Html
 
-(* This tests extensions with HTML-specific support (as well as text backend support). *)
-
 type plot_spec =
   | Scatterplot of {
       points: (float * float) array;
       pixel: string;
     }
+  | Scatterbag of { points: ((float * float) * string) array }
   | Line_plot of {
       points: float array;
       pixel: string;
@@ -18,6 +17,7 @@ type plot_spec =
       pixel_true: string;
       pixel_false: string;
     }
+  | Map of { callback: float * float -> string }
   | Line_plot_adaptive of {
       callback: float -> float;
       cache: (float, float) Hashtbl.t;
@@ -72,8 +72,9 @@ let plot_canvas ?canvas ?(size : (int * int) option) ?(sparse = false)
     specs
     |> List.map (function
          | Scatterplot { points; _ } -> Array.map fst points
+         | Scatterbag { points } -> Array.map (fun ((x, _), _) -> x) points
          | Line_plot _ -> [||]
-         | Boundary_map _ -> [||]
+         | Map _ | Boundary_map _ -> [||]
          | Line_plot_adaptive _ -> [||])
     |> Array.concat
   in
@@ -81,8 +82,9 @@ let plot_canvas ?canvas ?(size : (int * int) option) ?(sparse = false)
     specs
     |> List.map (function
          | Scatterplot { points; _ } -> Array.map snd points
+         | Scatterbag { points } -> Array.map (fun ((_, y), _) -> y) points
          | Line_plot { points; _ } -> points
-         | Boundary_map _ -> [||]
+         | Map _ | Boundary_map _ -> [||]
          | Line_plot_adaptive _ -> [||])
     |> Array.concat
   in
@@ -165,17 +167,10 @@ let plot_canvas ?canvas ?(size : (int * int) option) ?(sparse = false)
       Some Float.(scale_x x, to_int (of_int (dimy - 1) *. (y -. miny) /. spany))
     with Invalid_argument _ -> None
   in
-  let spread ~i ~dmj px1 px2 =
+  let spread ~i ~dmj updated =
     if sparse then
       (i mod 10 = 0 && dmj mod 10 = 0)
-      || i mod 10 = 5
-         && dmj mod 10 = 0
-         && canvas.(dmj).(i - 5) <> px1
-         && canvas.(dmj).(i - 5) <> px2
-      || i mod 10 = 0
-         && dmj mod 10 = 5
-         && canvas.(dmj - 5).(i) <> px1
-         && canvas.(dmj - 5).(i) <> px2
+      || (i mod 10 = 5 && dmj mod 10 = 0 && not updated)
     else
       true
   in
@@ -189,13 +184,35 @@ let plot_canvas ?canvas ?(size : (int * int) option) ?(sparse = false)
     ) else
       false
   in
+  let prerender_scatter points =
+    Array.iter
+      (fun (p, pixel) ->
+        match scale_2d p with
+        | Some (i, j) -> ignore @@ update ~i ~dmj:(dimy - 1 - j) pixel
+        | None -> ())
+      points
+  in
+  let prerender_map callback =
+    let updated = ref true in
+    canvas
+    |> Array.iteri (fun dmj ->
+           Array.iteri (fun i pix ->
+               if String.trim pix = "" && spread ~i ~dmj !updated then (
+                 let x =
+                   Float.(of_int i *. spanx /. of_int (dimx - 1)) +. minx
+                 in
+                 let y =
+                   Float.(of_int (dimy - 1 - dmj) *. spany /. of_int (dimy - 1))
+                   +. miny
+                 in
+                 updated := update ~i ~dmj (callback (x, y))
+               )))
+  in
   specs
   |> List.iter (function
        | Scatterplot { points; pixel } ->
-         Array.map scale_2d points
-         |> Array.iter (function
-              | Some (i, j) -> ignore @@ update ~i ~dmj:(dimy - 1 - j) pixel
-              | None -> ())
+         prerender_scatter (Array.map (fun p -> p, pixel) points)
+       | Scatterbag { points } -> prerender_scatter points
        | Line_plot { points; pixel } ->
          let points = Array.map scale_1d points in
          let npoints = Float.of_int (Array.length points) in
@@ -208,27 +225,12 @@ let plot_canvas ?canvas ?(size : (int * int) option) ?(sparse = false)
                 Option.iter (fun j ->
                     ignore @@ update ~i:(rescale_x i) ~dmj:(dimy - 1 - j) pixel))
        | Boundary_map { callback; pixel_true; pixel_false } ->
-         canvas
-         |> Array.iteri (fun dmj ->
-                Array.iteri (fun i pix ->
-                    if
-                      String.trim pix = ""
-                      && spread ~i ~dmj pixel_true pixel_false
-                    then (
-                      let x =
-                        Float.(of_int i *. spanx /. of_int (dimx - 1)) +. minx
-                      in
-                      let y =
-                        Float.(
-                          of_int (dimy - 1 - dmj) *. spany /. of_int (dimy - 1))
-                        +. miny
-                      in
-                      canvas.(dmj).(i) <-
-                        (if callback (x, y) then
-                           pixel_true
-                         else
-                           pixel_false)
-                    )))
+         prerender_map (fun point ->
+             if callback point then
+               pixel_true
+             else
+               pixel_false)
+       | Map { callback } -> prerender_map callback
        | Line_plot_adaptive { callback; cache; pixel } ->
          let updated = ref true in
          canvas.(0)
