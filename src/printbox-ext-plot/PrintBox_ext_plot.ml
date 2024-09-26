@@ -39,7 +39,7 @@ let default_config =
     specs = [];
     x_label = "x";
     y_label = "y";
-    size = 120, 40;
+    size = 800, 800;
     no_axes = false;
     prec = 3;
   }
@@ -267,10 +267,15 @@ let plot ?(prec = 3) ?(no_axes = false) ?canvas ?size ?(x_label = "x")
       ]
 
 let example = Plot default_config
+let scale_size_for_text = ref (0.125, 0.05)
 
 let text_handler ext ~nested:_ =
   match ext with
-  | Plot { specs; x_label; y_label; size; no_axes; prec } ->
+  | Plot { specs; x_label; y_label; size = sx, sy; no_axes; prec } ->
+    let cx, cy = !scale_size_for_text in
+    let size =
+      Float.(to_int @@ (cx *. of_int sx), to_int @@ (cy *. of_int sy))
+    in
     B.Same_as
       (B.frame
       @@ plot ~prec ~no_axes ~size ~x_label ~y_label ~sparse:false
