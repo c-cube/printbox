@@ -51,8 +51,8 @@ let () =
     | Plot _ -> true
     | _ -> false)
 
-let plot_canvas ?canvas ?(size : (int * int) option) (specs : plot_spec list) :
-    float * float * float * float * _ =
+let plot_canvas ?canvas ?(size : (int * int) option) ?(sparse = false)
+    (specs : plot_spec list) : float * float * float * float * _ =
   (* Unfortunately "x" and "y" of a "matrix" are opposite to how we want them displayed --
      the first dimension (i.e. "x") as the horizontal axis. *)
   let (dimx, dimy, canvas) : int * int * _ =
@@ -150,6 +150,20 @@ let plot_canvas ?canvas ?(size : (int * int) option) (specs : plot_spec list) :
             to_int @@ (of_int (dimy - 1) *. (y -. miny) /. spany) ))
     with Invalid_argument _ -> None
   in
+  let spread i j px1 px2 =
+    if sparse then
+      (i mod 10 = 0 && j mod 10 = 0)
+      || i mod 10 = 5
+         && j mod 10 = 0
+         && canvas.(j).(i - 5) <> px1
+         && canvas.(j).(i - 5) <> px2
+      || i mod 10 = 0
+         && j mod 10 = 5
+         && canvas.(j - 5).(i) <> px1
+         && canvas.(j - 5).(i) <> px2
+    else
+      true
+  in
   specs
   |> List.iter (function
        | Scatterplot { points; pixel } ->
@@ -172,7 +186,10 @@ let plot_canvas ?canvas ?(size : (int * int) option) (specs : plot_spec list) :
          canvas
          |> Array.iteri (fun dmj ->
                 Array.iteri (fun i pix ->
-                    if String.trim pix = "" then (
+                    if
+                      String.trim pix = ""
+                      && spread i dmj pixel_true pixel_false
+                    then (
                       let x =
                         Float.(of_int i *. spanx /. of_int (dimx - 1)) +. minx
                       in
@@ -210,8 +227,10 @@ let plot_canvas ?canvas ?(size : (int * int) option) (specs : plot_spec list) :
 let concise_float = ref (fun ~prec -> Printf.sprintf "%.*g" prec)
 
 let plot ?(prec = 3) ?(no_axes = false) ?canvas ?size ?(x_label = "x")
-    ?(y_label = "y") embed_canvas specs =
-  let minx, miny, maxx, maxy, canvas = plot_canvas ?canvas ?size specs in
+    ?(y_label = "y") ~sparse embed_canvas specs =
+  let minx, miny, maxx, maxy, canvas =
+    plot_canvas ?canvas ?size ~sparse specs
+  in
   let open PrintBox in
   let y_label_l =
     List.map Char.escaped @@ List.of_seq @@ String.to_seq y_label
@@ -254,7 +273,7 @@ let text_handler ext ~nested:_ =
   | Plot { specs; x_label; y_label; size; no_axes; prec } ->
     B.Same_as
       (B.frame
-      @@ plot ~prec ~no_axes ~size ~x_label ~y_label
+      @@ plot ~prec ~no_axes ~size ~x_label ~y_label ~sparse:false
            (B.grid_text ?pad:None ~bars:false)
            specs)
   | _ -> B.Unrecognized_extension
@@ -287,8 +306,8 @@ let embed_canvas_html canvas =
     |> H.div
          ~a:
            [
-             H.a_style @@ "border:thin dotted;position:relative;width:" ^ Int.to_string size_x
-             ^ ";height:" ^ Int.to_string size_y;
+             H.a_style @@ "border:thin dotted;position:relative;width:"
+             ^ Int.to_string size_x ^ ";height:" ^ Int.to_string size_y;
            ]
   in
   B.embed_rendering @@ PrintBox_html.Render_html result
@@ -298,7 +317,8 @@ let html_handler ext ~nested:_ =
   | Plot { specs; x_label; y_label; size; no_axes; prec } ->
     B.Same_as
       (B.frame
-      @@ plot ~prec ~no_axes ~size ~x_label ~y_label embed_canvas_html specs)
+      @@ plot ~prec ~no_axes ~size ~x_label ~y_label ~sparse:true
+           embed_canvas_html specs)
   | _ -> B.Unrecognized_extension
 
 let () =
