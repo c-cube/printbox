@@ -55,10 +55,11 @@ let plot_canvas ?canvas ?(size : (int * int) option) ?(sparse = false)
     (specs : plot_spec list) =
   (* Unfortunately "x" and "y" of a "matrix" are opposite to how we want them displayed --
      the first dimension (i.e. "x") as the horizontal axis. *)
-  let (dimx, dimy, canvas) : int * int * B.t option array array =
+  let (dimx, dimy, canvas) : int * int * (int * B.t) list array array =
+    (* The integer in the cells is the priority number: lower number = more visible. *)
     match canvas, size with
     | None, None -> invalid_arg "PrintBox_utils.plot: provide ~canvas or ~size"
-    | None, Some (dimx, dimy) -> dimx, dimy, Array.make_matrix dimy dimx None
+    | None, Some (dimx, dimy) -> dimx, dimy, Array.make_matrix dimy dimx []
     | Some canvas, None ->
       let dimy = Array.length canvas in
       let dimx = Array.length canvas.(0) in
@@ -167,37 +168,29 @@ let plot_canvas ?canvas ?(size : (int * int) option) ?(sparse = false)
       Some Float.(scale_x x, to_int (of_int (dimy - 1) *. (y -. miny) /. spany))
     with Invalid_argument _ -> None
   in
-  let spread ~i ~dmj updated =
+  let spread ~i ~dmj =
     if sparse then
-      (i mod 10 = 0 && dmj mod 10 = 0)
-      || (i mod 10 = 5 && dmj mod 10 = 0 && not updated)
+      i mod 10 = 0 && dmj mod 10 = 0
     else
       true
   in
   let update ~i ~dmj px =
-    if
-      i >= 0 && dmj >= 0 && i < dimx && dmj < dimy
-      && Option.is_none canvas.(dmj).(i)
-    then (
-      canvas.(dmj).(i) <- Some px;
-      true
-    ) else
-      false
+    if i >= 0 && dmj >= 0 && i < dimx && dmj < dimy then
+      canvas.(dmj).(i) <- px :: canvas.(dmj).(i)
   in
-  let prerender_scatter points =
+  let prerender_scatter ~priority points =
     Array.iter
       (fun (p, content) ->
         match scale_2d p with
-        | Some (i, j) -> ignore @@ update ~i ~dmj:(dimy - 1 - j) content
+        | Some (i, j) -> update ~i ~dmj:(dimy - 1 - j) (priority, content)
         | None -> ())
       points
   in
-  let prerender_map callback =
-    let updated = ref true in
+  let prerender_map ~priority callback =
     canvas
     |> Array.iteri (fun dmj ->
-           Array.iteri (fun i pix ->
-               if Option.is_none pix && spread ~i ~dmj !updated then (
+           Array.iteri (fun i _ ->
+               if spread ~i ~dmj then (
                  let x =
                    Float.(of_int i *. spanx /. of_int (dimx - 1)) +. minx
                  in
@@ -205,14 +198,14 @@ let plot_canvas ?canvas ?(size : (int * int) option) ?(sparse = false)
                    Float.(of_int (dimy - 1 - dmj) *. spany /. of_int (dimy - 1))
                    +. miny
                  in
-                 updated := update ~i ~dmj (callback (x, y))
+                 update ~i ~dmj (priority, callback (x, y))
                )))
   in
   specs
-  |> List.iter (function
+  |> List.iteri (fun priority -> function
        | Scatterplot { points; content } ->
-         prerender_scatter (Array.map (fun p -> p, content) points)
-       | Scatterbag { points } -> prerender_scatter points
+         prerender_scatter ~priority (Array.map (fun p -> p, content) points)
+       | Scatterbag { points } -> prerender_scatter ~priority points
        | Line_plot { points; content } ->
          let points = Array.map scale_1d points in
          let npoints = Float.of_int (Array.length points) in
@@ -223,21 +216,20 @@ let plot_canvas ?canvas ?(size : (int * int) option) ?(sparse = false)
          points
          |> Array.iteri (fun i ->
                 Option.iter (fun j ->
-                    ignore
-                    @@ update ~i:(rescale_x i) ~dmj:(dimy - 1 - j) content))
+                    update ~i:(rescale_x i)
+                      ~dmj:(dimy - 1 - j)
+                      (priority, content)))
        | Boundary_map { callback; content_true; content_false } ->
-         prerender_map (fun point ->
+         prerender_map ~priority (fun point ->
              if callback point then
                content_true
              else
                content_false)
-       | Map { callback } -> prerender_map callback
+       | Map { callback } -> prerender_map ~priority callback
        | Line_plot_adaptive { callback; cache; content } ->
-         let updated = ref true in
          canvas.(0)
          |> Array.iteri (fun i _ ->
-                if (not sparse) || i mod 5 = 0 || ((not !updated) && i mod 5 = 2)
-                then (
+                if (not sparse) || i mod 5 = 0 then (
                   let x = unscale_x i in
                   let y =
                     match Hashtbl.find_opt cache x with
@@ -249,7 +241,7 @@ let plot_canvas ?canvas ?(size : (int * int) option) ?(sparse = false)
                   in
                   scale_1d y
                   |> Option.iter (fun j ->
-                         updated := update ~i ~dmj:(dimy - 1 - j) content)
+                         update ~i ~dmj:(dimy - 1 - j) (priority, content))
                 )));
   minx, miny, maxx, maxy, canvas
 
@@ -298,55 +290,58 @@ let plot ?(prec = 3) ?(no_axes = false) ?canvas ?size ?(x_label = "x")
 let example = Plot default_config
 let scale_size_for_text = ref (0.125, 0.05)
 
-let flatten_text_canvas canvas =
+let explode s =
+  let s_len = String.length s in
+  let rec loop pos =
+    let char_len = ref 1 in
+    let cur_len () = PrintBox_text.str_display_width s pos !char_len in
+    while pos + !char_len <= s_len && cur_len () = 0 do
+      incr char_len
+    done;
+    if cur_len () > 0 then
+      String.sub s pos !char_len :: loop (pos + !char_len)
+    else
+      []
+  in
+  loop 0
+
+let flatten_text_canvas ~num_specs canvas =
   let outputs =
     B.map_matrix
-      (function
-        | Some b ->
-          (* Fortunately, PrintBox_text does not insert \r by itself. *)
-          String.split_on_char '\n' @@ PrintBox_text.to_string b
-        | None -> [])
+      (fun bs ->
+        (* Fortunately, PrintBox_text does not insert \r by itself. *)
+        List.map
+          (fun (prio, b) ->
+            let lines =
+              String.split_on_char '\n' @@ PrintBox_text.to_string b
+            in
+            prio, List.map explode lines)
+          bs)
       canvas
   in
   let dimj = Array.length canvas in
   let dimi = Array.length canvas.(0) in
-  (* A [None] on the canvas means that the cell is occupied by a cell to the left of it. *)
-  let canvas = Array.make_matrix dimj dimi (Some " ") in
-  let update ~i ~j line =
-    if i >= 0 && i < dimi && j >= 0 && j < dimj then (
-      let visible_len =
-        min (dimi - i)
-          (PrintBox_text.str_display_width line 0 (String.length line))
-      in
-      if visible_len > 0 then (
-        let actual_len = ref @@ String.length line in
-        let cur_len () = PrintBox_text.str_display_width line 0 !actual_len in
-        while !actual_len > 0 && (cur_len () = 0 || cur_len () > visible_len) do
-          decr actual_len
-        done;
-        canvas.(j).(i) <- Some (String.sub line 0 !actual_len)
-      );
-      for di = 1 to visible_len - 1 do
-        canvas.(j).(i + di) <- None
-      done
-    )
+  let canvas = Array.make_matrix dimj dimi (num_specs, " ") in
+  let update ~i ~j (prio, box) =
+    if i >= 0 && i < dimi && j >= 0 && j < dimj then
+      List.iteri
+        (fun dj ->
+          List.iteri (fun di char ->
+              let j' = j + dj and i' = i + di in
+              if i' >= 0 && i' < dimi && j' >= 0 && j' < dimj then (
+                let old_prio, _ = canvas.(j').(i') in
+                if prio <= old_prio then canvas.(j').(i') <- prio, char
+              )))
+        box
   in
-  (* Traverse in reverse order, so that space-making changes do not get undone. *)
-  let _ : int =
-    Array.fold_right
-      (fun row j ->
-        let _ : int =
-          Array.fold_right
-            (fun lines i ->
-              List.iteri (fun dj line -> update ~i ~j:(j + dj) line) lines;
-              i - 1)
-            row (dimi - 1)
-        in
-        j - 1)
-      outputs (dimj - 1)
-  in
+  Array.iteri
+    (fun j row ->
+      Array.iteri
+        (fun i boxes -> List.iter (fun box -> update ~i ~j box) boxes)
+        row)
+    outputs;
   Array.map
-    (fun row -> String.concat "" @@ List.filter_map Fun.id @@ Array.to_list row)
+    (fun row -> String.concat "" @@ List.map snd @@ Array.to_list row)
     canvas
 
 let text_handler ext ~nested:_ =
@@ -360,7 +355,8 @@ let text_handler ext ~nested:_ =
       (B.frame
       @@ plot ~prec ~no_axes ~size ~x_label ~y_label ~sparse:false
            (fun canvas ->
-             B.lines @@ Array.to_list @@ flatten_text_canvas canvas)
+             B.lines @@ Array.to_list
+             @@ flatten_text_canvas ~num_specs:(List.length specs) canvas)
            specs)
   | _ -> B.Unrecognized_extension
 
@@ -373,9 +369,9 @@ let embed_canvas_html ~nested canvas =
            row
            |> Array.mapi (fun x cell -> x, cell)
            |> Array.to_list
-           |> List.filter_map (fun (x, cell) ->
-                  Option.map
-                    (fun cell ->
+           |> List.concat_map (fun (x, cell) ->
+                  List.map
+                    (fun (_prio, cell) ->
                       let cell =
                         match nested cell with
                         | PrintBox_html.Render_html html -> html

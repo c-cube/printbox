@@ -56,9 +56,20 @@ let test ~size =
                  {
                    points =
                      [|
-                       (0., 1.), reg_45;
+                       (0.06, 0.95), reg_45;
+                       (0.3, 0.3), reg_45;
+                     |];
+                 };
+               Scatterbag
+                 {
+                   points =
+                     [|
+                       (0., 1.), nice_unicode;
+                       (0.08, 0.9), nice_unicode;
                        (1., 0.), for_3;
+                       (0.3, 0.3), nice_unicode;
                        (0.75, 0.75), nice_unicode;
+                       (0.8, 0.8), nice_unicode;
                      |];
                  };
                Map

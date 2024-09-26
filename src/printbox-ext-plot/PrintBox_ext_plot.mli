@@ -27,7 +27,8 @@ type plot_spec =
 
 type graph = {
   specs: plot_spec list;
-      (** Earlier plots in the list take precedence over later plots. *)
+      (** Earlier plots in the list take precedence in text rendering: in case of overlap,
+          their boxes are on top. *)
   x_label: string;  (** Horizontal axis label. *)
   y_label: string;  (** Vertical axis label. *)
   size: int * int;
@@ -46,7 +47,7 @@ val default_config : graph
 type PrintBox.ext +=
   | Plot of graph
         (** PrintBox extension for plotting: scatterplots, linear graphs, decision boundaries...
-    See {!graph} and {!plot_spec} for details. *)
+            See {!graph} and {!plot_spec} for details. *)
 
 val concise_float : (prec:int -> float -> string) ref
 (** The conversion function for labeling axes. Defaults to [sprintf "%.*g"]. *)
