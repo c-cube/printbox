@@ -360,7 +360,7 @@ let text_handler ext ~nested:_ =
            specs)
   | _ -> B.Unrecognized_extension
 
-let embed_canvas_html ~nested canvas =
+let embed_canvas_html ~num_specs ~nested canvas =
   let size_y = Array.length canvas in
   let size_x = Array.length canvas.(0) in
   let cells =
@@ -369,7 +369,21 @@ let embed_canvas_html ~nested canvas =
            row
            |> Array.mapi (fun x cell ->
                   List.map
-                    (fun (_prio, cell) ->
+                    (fun (priority, cell) ->
+                      let is_framed =
+                        match PrintBox.view cell with
+                        | B.Frame _ | B.Grid (`Bars, _) -> true
+                        | _ -> false
+                      in
+                      let frame =
+                        if is_framed then
+                          ";background-color:rgba(255,255,255,1)"
+                        else
+                          ""
+                      in
+                      let z_index =
+                        ";z-index:" ^ Int.to_string (num_specs - priority)
+                      in
                       let cell =
                         match nested cell with
                         | PrintBox_html.Render_html html -> html
@@ -383,7 +397,8 @@ let embed_canvas_html ~nested canvas =
                           [
                             H.a_style
                               ("position:absolute;top:" ^ Int.to_string y
-                             ^ "px;left:" ^ Int.to_string x ^ "px");
+                             ^ "px;left:" ^ Int.to_string x ^ "px" ^ z_index
+                             ^ frame);
                           ]
                         [ cell ])
                     cell)
@@ -406,7 +421,7 @@ let html_handler ext ~nested =
     B.Same_as
       (B.frame
       @@ plot ~prec ~no_axes ~size ~x_label ~y_label ~sparse:true
-           (embed_canvas_html ~nested)
+           (embed_canvas_html ~num_specs:(List.length specs) ~nested)
            specs)
   | _ -> B.Unrecognized_extension
 

@@ -27,8 +27,8 @@ type plot_spec =
 
 type graph = {
   specs: plot_spec list;
-      (** Earlier plots in the list take precedence in text rendering: in case of overlap,
-          their boxes are on top. *)
+      (** Earlier plots in the list take precedence: in case of overlap, their contents
+          are on top. For HTML, we ensure that framed boxes and grids with bars are opaque. *)
   x_label: string;  (** Horizontal axis label. *)
   y_label: string;  (** Vertical axis label. *)
   size: int * int;
