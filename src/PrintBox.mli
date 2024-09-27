@@ -329,7 +329,7 @@ val anchor : id:string -> t -> t
 
 val extension : ext -> t
 (** [extension ext] embeds an extended representation [ext] as a box. [ext] must be recognized
-    as a registered extension by one of the [to_key] arguments passed to {!register_extension}.
+    as a registered extension by one of the [domain] arguments passed to {!register_extension}.
     @since NEXT_RELEASE
 *)
 

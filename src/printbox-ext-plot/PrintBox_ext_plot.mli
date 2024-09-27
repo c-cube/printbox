@@ -1,6 +1,6 @@
 (* This file is free software. See file "license" for more details. *)
 
-(** {1 Extend [PrintBox.t] with plots of scatter graphs and line graphs} *)
+(** {1 Extend {!PrintBox.t} with plots of scatter graphs and line graphs} *)
 
 type plot_spec =
   | Scatterplot of {
