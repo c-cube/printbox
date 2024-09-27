@@ -74,7 +74,6 @@ type view =
 and t = view
 
 let empty = Empty
-
 let[@inline] view (t : t) : view = t
 let[@inline] line_ s = Text { l = [ s ]; style = Style.default }
 
@@ -252,18 +251,13 @@ let register_extension_handler ~backend_name ~example ~handler =
   | _ -> ());
   Hashtbl.add handlers key handler
 
-let get_extension_handler ~backend_name ~key ext =
-  (* Note: we do not cache handlers to not depend on the module loading order. *)
-  match ext with
-  | Embed_rendering result -> fun ~nested:_ -> result
-  | _ ->
-    if not @@ Hashtbl.mem extension_backends backend_name then
-      fun ~nested:_ ->
-    Unrecognized_extension
-    else (
-      let handlers = Hashtbl.find extension_backends backend_name in
-      Hashtbl.find handlers key ext
-    )
+let get_extension_handler ~backend_name =
+  if not @@ Hashtbl.mem extension_backends backend_name then
+    Hashtbl.add extension_backends backend_name (Hashtbl.create 4);
+  let handlers = Hashtbl.find extension_backends backend_name in
+  fun ~key -> function
+    | Embed_rendering result -> fun ~nested:_ -> result
+    | ext -> Hashtbl.find handlers key ext
 
 let expand_extensions_same_as_only ~backend_name =
   let get_handler = get_extension_handler ~backend_name in
