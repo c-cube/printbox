@@ -75,10 +75,6 @@ and t = view
 
 let empty = Empty
 
-let is_empty = function
-  | Empty -> true
-  | _ -> false
-
 let[@inline] view (t : t) : view = t
 let[@inline] line_ s = Text { l = [ s ]; style = Style.default }
 

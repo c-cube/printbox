@@ -358,9 +358,6 @@ val asprintf_with_style :
 
 (** {2 Managing Representation Extensions} *)
 
-val is_empty : t -> bool
-(** [is_empty b] is equivalent to [match view b with Empty -> true | _ -> false]. *)
-
 val register_extension : key:string -> domain:(ext -> bool) -> unit
 (** Registers a new representation extension, where [key] is a unique identifier for
     the scope of the extension values, and [domain] delineates that scope.
