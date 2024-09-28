@@ -4,6 +4,13 @@
 
 module B = PrintBox
 
+let extensions = Hashtbl.create 4
+
+let register_extension ~key handler =
+  if Hashtbl.mem extensions key then
+    invalid_arg @@ "PrintBox_text.register_extension: already registered " ^ key;
+  Hashtbl.add extensions key handler
+
 type position = PrintBox.position = {
   x: int;
   y: int;
@@ -555,7 +562,12 @@ end = struct
           let acc = ref [] in
           lines_l_ l (fun s i len -> acc := (s, i, len) :: !acc);
           Text { l = List.rev !acc; style; link_with_uri = Some uri }
-        | B.Ext _ -> assert false)
+        | B.Ext { key; ext } ->
+          (match Hashtbl.find_opt extensions key with
+          | Some handler -> (of_box ~ansi @@ B.text @@ handler ext).shape
+          | None ->
+            failwith @@ "PrintBox_html.to_html: missing extension handler for "
+            ^ key))
       | B.Link { inner; uri } ->
         (* just encode as a record *)
         let self =
@@ -571,7 +583,12 @@ end = struct
           | _ -> of_box ~ansi (B.hlist ~bars:false [ B.line uri; inner ])
         in
         self.shape
-      | B.Ext _ -> assert false
+      | B.Ext { key; ext } ->
+        (match Hashtbl.find_opt extensions key with
+        | Some handler -> (of_box ~ansi @@ B.text @@ handler ext).shape
+        | None ->
+          failwith @@ "PrintBox_html.to_html: missing extension handler for "
+          ^ key)
     in
     { shape; size = lazy (size_of_shape shape) }
 
@@ -821,27 +838,22 @@ end = struct
   let render ~ansi out b = post_render ~out (pre_render ~ansi ~out b Pos.origin)
 end
 
-let expand_exts = B.expand_extensions_same_as_only ~backend_name:"text"
-
 let to_string_with ~style b =
   let buf = Output.create () in
-  Box_inner.render ~ansi:style buf
-    (Box_inner.of_box ~ansi:style @@ expand_exts b);
+  Box_inner.render ~ansi:style buf (Box_inner.of_box ~ansi:style b);
   Output.to_string buf
 
 let to_string = to_string_with ~style:true
 
 let output ?(style = true) ?(indent = 0) oc b =
   let buf = Output.create () in
-  Box_inner.render ~ansi:style buf
-    (Box_inner.of_box ~ansi:style @@ expand_exts b);
+  Box_inner.render ~ansi:style buf (Box_inner.of_box ~ansi:style b);
   Output.to_chan ~indent oc buf;
   flush oc
 
 let pp_with ~style out b =
   let buf = Output.create () in
-  Box_inner.render ~ansi:style buf
-    (Box_inner.of_box ~ansi:style @@ expand_exts b);
+  Box_inner.render ~ansi:style buf (Box_inner.of_box ~ansi:style b);
   Output.pp out buf
 
 let pp = pp_with ~style:true

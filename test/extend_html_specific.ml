@@ -6,41 +6,33 @@ module H = Html
 
 type B.ext += Hello_html of string | Hello_with_header of string
 
-let () =
-  B.register_extension ~key:"hello_html" ~domain:(function
-    | Hello_html _ | Hello_with_header _ -> true
-    | _ -> false)
-
-let example = Hello_html ""
-
-let text_handler ext ~nested:_ =
+let text_handler ext =
   match ext with
-  | Hello_html txt -> B.Same_as B.(frame @@ text txt)
+  | Hello_html txt -> PrintBox_text.to_string B.(frame @@ text txt)
   | Hello_with_header txt ->
-    B.Same_as B.(tree (text "Greetings!") [ frame @@ text txt ])
-  | _ -> B.Unrecognized_extension
+    PrintBox_text.to_string B.(tree (text "Greetings!") [ frame @@ text txt ])
+  | _ -> invalid_arg "text_handler: unrecognized extension"
 
-let html_handler ext ~nested =
+let html_handler config ext =
   match ext with
-  | Hello_html txt ->
-    let result = H.button [ H.txt txt ] in
-    PrintBox_html.Render_html result
+  | Hello_html txt -> (H.button [ H.txt txt ] :> PrintBox_html.toplevel_html)
   | Hello_with_header txt ->
     let result = H.button [ H.txt txt ] in
-    nested
-      B.(
-        tree (text "Greetings!")
-          [ embed_rendering @@ PrintBox_html.Render_html result ])
-  | _ -> B.Unrecognized_extension
+    (PrintBox_html.to_html ~config
+       B.(
+         tree (text "Greetings!")
+           [ B.extension ~key:"Embed_html" (PrintBox_html.Embed_html result) ])
+      :> PrintBox_html.toplevel_html)
+  | _ -> invalid_arg "html_handler: unknown extension"
 
 let () =
-  B.register_extension_handler ~backend_name:"text" ~example
-    ~handler:text_handler;
-  B.register_extension_handler ~backend_name:"html" ~example
-    ~handler:html_handler
+  PrintBox_text.register_extension ~key:"Hello_world" text_handler;
+  PrintBox_html.register_extension ~key:"Hello_world" html_handler
 
-let test1 = B.extension @@ Hello_html "Hello world!"
-let test2 = B.extension @@ Hello_with_header "Hello wide world!"
+let test1 = B.extension ~key:"Hello_world" @@ Hello_html "Hello world!"
+
+let test2 =
+  B.extension ~key:"Hello_world" @@ Hello_with_header "Hello wide world!"
 
 let () =
   print_endline "Text output simple:";

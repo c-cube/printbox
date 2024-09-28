@@ -5,6 +5,10 @@
     This module should be used to output boxes directly to a terminal, or
     another  area of monospace text *)
 
+val register_extension : key:string -> (PrintBox.ext -> string) -> unit
+(** Add support for the extension with the given key to this rendering backend.
+    Note: the string returned by the handler can have line breaks. *)
+
 val set_string_len : (String.t -> int -> int -> int) -> unit
 (** Set which function is used to compute string length. Typically
     to be used with a unicode-sensitive length function.

@@ -53,8 +53,8 @@
  (libraries printbox printbox-text))
 
 (test
- (name same_as_only)
- (modules same_as_only)
+ (name extend)
+ (modules extend)
  (package printbox-md)
  (libraries printbox printbox-text printbox-html printbox-md))
 

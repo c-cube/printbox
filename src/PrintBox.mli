@@ -327,9 +327,9 @@ val anchor : id:string -> t -> t
     @since 0.11
 *)
 
-val extension : ext -> t
-(** [extension ext] embeds an extended representation [ext] as a box. [ext] must be recognized
-    as a registered extension by one of the [domain] arguments passed to {!register_extension}.
+val extension : key:string -> ext -> t
+(** [extension ~key ext] embeds an extended representation [ext] as a box. [ext] must be
+    recognized by the used backends as an extension registered under [key].
     @since NEXT_RELEASE
 *)
 
@@ -355,56 +355,6 @@ val asprintf_with_style :
   Style.t -> ('a, Format.formatter, unit, t) format4 -> 'a
 (** Formatting for {!text}, with style.
     @since 0.3 *)
-
-(** {2 Managing Representation Extensions} *)
-
-val register_extension : key:string -> domain:(ext -> bool) -> unit
-(** Registers a new representation extension, where [key] is a unique identifier for
-    the scope of the extension values, and [domain] delineates that scope.
-    Intended for extension writers.
-    @since NEXT_RELEASE *)
-
-type ext_backend_result = ..
-(** The type packaging backend-dependent results of handling a representation extension. *)
-
-type ext_backend_result +=
-  | Unrecognized_extension  (** This is an error condition. *)
-  | Same_as of t
-        (** The result of rendering is the same as for the given box. *)
-
-type ext +=
-  | Embed_rendering of ext_backend_result
-        (** Lets extensions stage rendering by embedding partial results inside boxes. *)
-
-val embed_rendering : ext_backend_result -> t
-(** Embeds the given rendering result in a box. Only backends that can handle the result
-    will be able to render the returned box!
-    @since NEXT_RELEASE *)
-
-val register_extension_handler :
-  backend_name:string ->
-  example:ext ->
-  handler:(ext -> nested:(t -> ext_backend_result) -> ext_backend_result) ->
-  unit
-(** Registers a [handler] for the backend [backend_name] of extensions of the same domain
-    as [example]. Intended for extension writers.
-    @since NEXT_RELEASE *)
-
-val get_extension_handler :
-  backend_name:string ->
-  key:string ->
-  ext ->
-  nested:(t -> ext_backend_result) ->
-  ext_backend_result
-(** [get_extension_handler ~backend_name] returns a getter function for extension handlers.
-    Intended for backend writers.
-    @since NEXT_RELEASE *)
-
-val expand_extensions_same_as_only : backend_name:string -> t -> t
-(** [expand_extensions_same_as_only ~backend_name b] expands extensions in [b] for the backend,
-    as long as the backend's extension handlers (for extensions in [b]) only use
-    the [Same_as] variant of {!ext_backend_result}.
-    @since NEXT_RELEASE *)
 
 (** {2 Simple Structural Interface} *)
 

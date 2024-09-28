@@ -44,54 +44,47 @@ let nice_unicode =
          ])
 
 let test ~size =
-  B.extension
-  @@ BPlot.(
-       Plot
-         {
-           default_config with
-           size;
-           specs =
-             [
-               Scatterbag
-                 {
-                   points =
-                     [|
-                       (0.06, 0.95), reg_45;
-                       (0.3, 0.3), reg_45;
-                     |];
-                 };
-               Scatterbag
-                 {
-                   points =
-                     [|
-                       (0., 1.), nice_unicode;
-                       (0.08, 0.9), nice_unicode;
-                       (1., 0.), for_3;
-                       (0.3, 0.3), nice_unicode;
-                       (0.75, 0.75), nice_unicode;
-                       (0.8, 0.8), nice_unicode;
-                     |];
-                 };
-               Map
-                 {
-                   callback =
-                     (fun (x, y) ->
-                       let s = ((x ** 2.) +. (y ** 2.)) ** 0.5 in
-                       B.line
-                       @@
-                       if s < 0.3 then
-                         " "
-                       else if s < 0.6 then
-                         "."
-                       else if s < 0.9 then
-                         ","
-                       else if s < 1.2 then
-                         ":"
-                       else
-                         ";");
-                 };
-             ];
-         })
+  BPlot.(
+    box
+      {
+        default_config with
+        size;
+        specs =
+          [
+            Scatterbag
+              { points = [| (0.06, 0.95), reg_45; (0.3, 0.3), reg_45 |] };
+            Scatterbag
+              {
+                points =
+                  [|
+                    (0., 1.), nice_unicode;
+                    (0.08, 0.9), nice_unicode;
+                    (1., 0.), for_3;
+                    (0.3, 0.3), nice_unicode;
+                    (0.75, 0.75), nice_unicode;
+                    (0.8, 0.8), nice_unicode;
+                  |];
+              };
+            Map
+              {
+                callback =
+                  (fun (x, y) ->
+                    let s = ((x ** 2.) +. (y ** 2.)) ** 0.5 in
+                    B.line
+                    @@
+                    if s < 0.3 then
+                      " "
+                    else if s < 0.6 then
+                      "."
+                    else if s < 0.9 then
+                      ","
+                    else if s < 1.2 then
+                      ":"
+                    else
+                      ";");
+              };
+          ];
+      })
 
 let () =
   print_endline "Text output:";

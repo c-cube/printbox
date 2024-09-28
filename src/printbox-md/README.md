@@ -113,7 +113,7 @@ to separate the entries (here with style \`Line_break).
 - > followed by
 - a list of the child elements.
 
-<details><summary><a id="FoldableTreeAnchor" href="#FoldableTreeAnchor"></a> &nbsp; Trees can be made foldable:</summary>
+<details><summary><a id="FoldableTreeAnchor"></a> &nbsp; Trees can be made foldable:</summary>
 
 - The head element
 - > is the summary

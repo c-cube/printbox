@@ -46,10 +46,7 @@ let default_config =
 
 type PrintBox.ext += Plot of graph
 
-let () =
-  B.register_extension ~key:"plot" ~domain:(function
-    | Plot _ -> true
-    | _ -> false)
+let box graph = B.extension ~key:"Plot" (Plot graph)
 
 let plot_canvas ?canvas ?(size : (int * int) option) ?(sparse = false)
     (specs : plot_spec list) =
@@ -287,7 +284,6 @@ let plot ?(prec = 3) ?(no_axes = false) ?canvas ?size ?(x_label = "x")
         ];
       ]
 
-let example = Plot default_config
 let scale_size_for_text = ref (0.125, 0.05)
 
 let explode s =
@@ -344,23 +340,28 @@ let flatten_text_canvas ~num_specs canvas =
     (fun row -> String.concat "" @@ List.map snd @@ Array.to_list row)
     canvas
 
-let text_handler ext ~nested:_ =
+let text_based_handler ~render ext =
   match ext with
   | Plot { specs; x_label; y_label; size = sx, sy; no_axes; prec } ->
     let cx, cy = !scale_size_for_text in
     let size =
       Float.(to_int @@ (cx *. of_int sx), to_int @@ (cy *. of_int sy))
     in
-    B.Same_as
+    render
       (B.frame
       @@ plot ~prec ~no_axes ~size ~x_label ~y_label ~sparse:false
            (fun canvas ->
              B.lines @@ Array.to_list
              @@ flatten_text_canvas ~num_specs:(List.length specs) canvas)
            specs)
-  | _ -> B.Unrecognized_extension
+  | _ -> invalid_arg "PrintBox_ext_plot.text_handler: unrecognized extension"
 
-let embed_canvas_html ~num_specs ~nested canvas =
+let text_handler = text_based_handler ~render:PrintBox_text.to_string
+
+let md_handler config =
+  text_based_handler ~render:(PrintBox_md.to_string config)
+
+let embed_canvas_html ~num_specs canvas =
   let size_y = Array.length canvas in
   let size_x = Array.length canvas.(0) in
   let cells =
@@ -385,12 +386,7 @@ let embed_canvas_html ~num_specs ~nested canvas =
                         ";z-index:" ^ Int.to_string (num_specs - priority)
                       in
                       let cell =
-                        match nested cell with
-                        | PrintBox_html.Render_html html -> html
-                        | _ ->
-                          invalid_arg
-                            "PrintBox_ext_plot.embed_canvas_html: unrecognized \
-                             rendering backend"
+                        PrintBox_html.((to_html cell :> toplevel_html))
                       in
                       H.div
                         ~a:
@@ -413,21 +409,20 @@ let embed_canvas_html ~num_specs ~nested canvas =
              ^ Int.to_string size_x ^ ";height:" ^ Int.to_string size_y;
            ]
   in
-  B.embed_rendering @@ PrintBox_html.Render_html result
+  PrintBox_html.embed_html result
 
-let html_handler ext ~nested =
+let html_handler config ext =
   match ext with
   | Plot { specs; x_label; y_label; size; no_axes; prec } ->
-    B.Same_as
-      (B.frame
-      @@ plot ~prec ~no_axes ~size ~x_label ~y_label ~sparse:true
-           (embed_canvas_html ~num_specs:(List.length specs) ~nested)
-           specs)
-  | _ -> B.Unrecognized_extension
+    (PrintBox_html.to_html ~config
+       (B.frame
+       @@ plot ~prec ~no_axes ~size ~x_label ~y_label ~sparse:true
+            (embed_canvas_html ~num_specs:(List.length specs))
+            specs)
+      :> PrintBox_html.toplevel_html)
+  | _ -> invalid_arg "PrintBox_ext_plot.html_handler: unrecognized extension"
 
 let () =
-  B.register_extension_handler ~backend_name:"text" ~example
-    ~handler:text_handler;
-  B.register_extension_handler ~backend_name:"md" ~example ~handler:text_handler;
-  B.register_extension_handler ~backend_name:"html" ~example
-    ~handler:html_handler
+  PrintBox_text.register_extension ~key:"Plot" text_handler;
+  PrintBox_md.register_extension ~key:"Plot" md_handler;
+  PrintBox_html.register_extension ~key:"Plot" html_handler

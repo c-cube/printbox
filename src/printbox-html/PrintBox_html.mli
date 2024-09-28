@@ -6,7 +6,14 @@ open Tyxml
 
 type 'a html = 'a Html.elt
 type toplevel_html = Html_types.li_content_fun html
-type PrintBox.ext_backend_result += Render_html of toplevel_html
+
+type PrintBox.ext +=
+  | Embed_html of toplevel_html
+        (** Injects HTML into a box. It is handled natively by [PrintBox_html].
+            NOTE: this extension is unlikely to be supported by other backends! *)
+
+val embed_html : toplevel_html -> PrintBox.t
+(** Injects HTML into a box. NOTE: this is unlikely to be supported by other backends! *)
 
 val prelude : [> Html_types.style ] html
 (** HTML text to embed in the "<head>", defining the style for tables *)
@@ -35,6 +42,10 @@ module Config : sig
   (** When set to true, the trees are rendered collapsed
       using the [<detalis>] HTML5 element. *)
 end
+
+val register_extension :
+  key:string -> (Config.t -> PrintBox.ext -> toplevel_html) -> unit
+(** Add support for the extension with the given key to this rendering backend. *)
 
 val to_html : ?config:Config.t -> PrintBox.t -> [ `Div ] html
 (** HTML for one box *)

@@ -8,7 +8,7 @@ module H = Html
 
 type 'a html = 'a Html.elt
 type toplevel_html = Html_types.li_content_fun html
-type PrintBox.ext_backend_result += Render_html of toplevel_html
+type PrintBox.ext += Embed_html of toplevel_html
 
 let prelude =
   let l =
@@ -107,6 +107,16 @@ module Config = struct
   let tree_summary x c = { c with tree_summary = x }
 end
 
+let extensions : (string, Config.t -> PrintBox.ext -> toplevel_html) Hashtbl.t =
+  Hashtbl.create 4
+
+let register_extension ~key handler =
+  if Hashtbl.mem extensions key then
+    invalid_arg @@ "PrintBox_html.register_extension: already registered " ^ key;
+  Hashtbl.add extensions key handler
+
+let embed_html html = B.extension ~key:"Embed_html" (Embed_html html)
+
 let sep_spans sep l =
   let len = List.length l in
   List.concat
@@ -129,8 +139,6 @@ let br_lines ~bold l =
            H.txt x)
   @@ List.concat
   @@ List.map (String.split_on_char '\n') l
-
-let get_handler = PrintBox.get_extension_handler ~backend_name:"html"
 
 let to_html_rec ~config (b : B.t) =
   let open Config in
@@ -264,14 +272,13 @@ let to_html_rec ~config (b : B.t) =
       | B.Empty -> H.a ~a:[ H.a_id id ] []
       | _ ->
         H.a ~a:[ H.a_id id; H.a_href @@ "#" ^ id ] [ to_html_nondet_rec inner ])
+    | B.Ext { key = _; ext = Embed_html result } -> result
     | B.Ext { key; ext } ->
-      let nested b = Render_html (to_html_rec b) in
-      (match get_handler ~key ext ~nested with
-      | PrintBox.Unrecognized_extension -> assert false
-      | PrintBox.Same_as b -> to_html_rec b
-      | Render_html result -> result
-      | _ ->
-        failwith "PrintBox_html.to_html: unrecognized extension handler result")
+      (match Hashtbl.find_opt extensions key with
+      | Some handler -> handler config ext
+      | None ->
+        failwith @@ "PrintBox_html.to_html: missing extension handler for "
+        ^ key)
     | _ -> loop to_html_rec b
   and to_html_nondet_rec b =
     match B.view b with

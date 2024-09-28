@@ -14,5 +14,5 @@ Greetings!
   └─────────────────┘
 
 HTML output with header:
-<div><details><summary><span>Greetings!</span></summary><ul><li><button>Hello wide world!</button></li></ul></details></div>
+<div><div><details><summary><span>Greetings!</span></summary><ul><li><button>Hello wide world!</button></li></ul></details></div></div>
 

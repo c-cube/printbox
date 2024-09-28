@@ -48,23 +48,22 @@ let points1, points2 = moons 1024
 let callback (x, y) = Float.compare x y > 0
 
 let test =
-  B.extension
-  @@ BPlot.(
-       Plot
-         {
-           default_config with
-           specs =
-             [
-               Scatterplot { points = points1; content = B.line "#" };
-               Scatterplot { points = points2; content = B.line "%" };
-               Boundary_map
-                 {
-                   content_false = B.line ".";
-                   content_true = B.line ",";
-                   callback;
-                 };
-             ];
-         })
+  BPlot.(
+    box
+      {
+        default_config with
+        specs =
+          [
+            Scatterplot { points = points1; content = B.line "#" };
+            Scatterplot { points = points2; content = B.line "%" };
+            Boundary_map
+              {
+                content_false = B.line ".";
+                content_true = B.line ",";
+                callback;
+              };
+          ];
+      })
 
 let () =
   print_endline "Text output:";

@@ -49,6 +49,9 @@ type PrintBox.ext +=
         (** PrintBox extension for plotting: scatterplots, linear graphs, decision boundaries...
             See {!graph} and {!plot_spec} for details. *)
 
+val box : graph -> PrintBox.t
+(** [box graph] is the same as [PrintBox.extension ~key:"Plot" (Plot graph)]. *)
+
 val concise_float : (prec:int -> float -> string) ref
 (** The conversion function for labeling axes. Defaults to [sprintf "%.*g"]. *)
 

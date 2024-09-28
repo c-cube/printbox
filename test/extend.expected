@@ -3,10 +3,10 @@ Text output:
 │Hello world!│
 └────────────┘
 
-HTML output:
-<div><div style="border:thin solid"><div>Hello world!</div></div></div>
-
-
 Markdown output:
 > Hello world!
+
+
+HTML output:
+<div><div><div style="border:thin solid"><div>Hello world!</div></div></div></div>
 
