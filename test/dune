@@ -62,7 +62,7 @@
  (name extend_html_specific)
  (modules extend_html_specific)
  (package printbox-html)
- (libraries printbox tyxml printbox-text printbox-html))
+ (libraries printbox tyxml printbox-html))
 
 (test
  (name plotting)
