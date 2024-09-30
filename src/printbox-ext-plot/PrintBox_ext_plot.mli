@@ -2,27 +2,39 @@
 
 (** {1 Extend {!PrintBox.t} with plots of scatter graphs and line graphs} *)
 
+(** Specifies a layer of plotting to be rendered on a graph, where all layers share
+    the same coordinate space. A coordinate pair has the horizontal position first. *)
 type plot_spec =
   | Scatterplot of {
       points: (float * float) array;
       content: PrintBox.t;
-    }
+    }  (** Places the [content] box at each of the [points] coordinates. *)
   | Scatterbag of { points: ((float * float) * PrintBox.t) array }
+      (** For each element of [points], places the given box at the given coordinates. *)
   | Line_plot of {
       points: float array;
       content: PrintBox.t;
     }
+      (** Places the [content] box at vertical coordinates [points],
+          evenly horizontally spread. *)
   | Boundary_map of {
       callback: float * float -> bool;
       content_true: PrintBox.t;
       content_false: PrintBox.t;
     }
+      (** At evenly and densely spread coordinates across the graph, places either
+          [content_true] or [content_false], depending on the result of [callback]. *)
   | Map of { callback: float * float -> PrintBox.t }
+      (** At evenly and densely spread coordinates across the graph, places the box
+          returned by [callback]. *)
   | Line_plot_adaptive of {
       callback: float -> float;
       cache: (float, float) Hashtbl.t;
       content: PrintBox.t;
     }
+      (** At evenly and densely spread horizontal coordinates, places the [content] box
+          at the vertical coordinate returned by [callback] for the horizontal coordinate
+          of the placement position. *)
 [@@deriving sexp_of]
 
 type graph = {
@@ -38,6 +50,8 @@ type graph = {
       (** If true, only the graphing area is output (skipping the axes box). *)
   prec: int;  (** Precision for numerical labels on axes. *)
 }
+(** A graph of plot layers, with a fixed rendering size but a coordinate window
+    that adapts to the specified points. *)
 
 val default_config : graph
 (** A suggested configuration for plotting, with intended use:
