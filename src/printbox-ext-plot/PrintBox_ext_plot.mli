@@ -46,8 +46,8 @@ type graph = {
   size: int * int;
       (** Size of the graphing area in pixels. Scale for characters is configured by
           {!scale_size_for_text}. *)
-  no_axes: bool;
-      (** If true, only the graphing area is output (skipping the axes box). *)
+  axes: bool;
+      (** If false, only the graphing area is output (skipping the axes box). *)
   prec: int;  (** Precision for numerical labels on axes. *)
 }
 (** A graph of plot layers, with a fixed rendering size but a coordinate window
@@ -56,7 +56,7 @@ type graph = {
 val default_config : graph
 (** A suggested configuration for plotting, with intended use:
    [Plot {default_config with specs = ...; ...}]. The default values are:
-   [{ specs = []; x_label = "x"; y_label = "y"; size = 800, 800; no_axes = false; prec = 3 }] *)
+   [{ specs = []; x_label = "x"; y_label = "y"; size = 800, 800; axes = true; prec = 3 }] *)
 
 type PrintBox.ext +=
   | Plot of graph

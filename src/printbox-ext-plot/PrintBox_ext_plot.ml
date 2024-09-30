@@ -30,7 +30,7 @@ type graph = {
   x_label: string;
   y_label: string;
   size: int * int;
-  no_axes: bool;
+  axes: bool;
   prec: int;
 }
 
@@ -40,7 +40,7 @@ let default_config =
     x_label = "x";
     y_label = "y";
     size = 800, 800;
-    no_axes = false;
+    axes = true;
     prec = 3;
   }
 
@@ -55,7 +55,7 @@ let plot_canvas ?canvas ?(size : (int * int) option) ?(sparse = false)
   let (dimx, dimy, canvas) : int * int * (int * B.t) list array array =
     (* The integer in the cells is the priority number: lower number = more visible. *)
     match canvas, size with
-    | None, None -> invalid_arg "PrintBox_utils.plot: provide ~canvas or ~size"
+    | None, None -> invalid_arg "PrintBox_ext_plot.plot: provide ~canvas or ~size"
     | None, Some (dimx, dimy) -> dimx, dimy, Array.make_matrix dimy dimx []
     | Some canvas, None ->
       let dimy = Array.length canvas in
@@ -244,8 +244,8 @@ let plot_canvas ?canvas ?(size : (int * int) option) ?(sparse = false)
 
 let concise_float = ref (fun ~prec -> Printf.sprintf "%.*g" prec)
 
-let plot ?(prec = 3) ?(no_axes = false) ?canvas ?size ?(x_label = "x")
-    ?(y_label = "y") ~sparse embed_canvas specs =
+let plot ~prec ~axes ?canvas ?size ~x_label
+    ~y_label ~sparse embed_canvas specs =
   let minx, miny, maxx, maxy, canvas =
     plot_canvas ?canvas ?size ~sparse specs
   in
@@ -253,7 +253,7 @@ let plot ?(prec = 3) ?(no_axes = false) ?canvas ?size ?(x_label = "x")
   let y_label_l =
     List.map Char.escaped @@ List.of_seq @@ String.to_seq y_label
   in
-  if no_axes then
+  if not axes then
     embed_canvas canvas
   else
     grid_l
@@ -342,14 +342,14 @@ let flatten_text_canvas ~num_specs canvas =
 
 let text_based_handler ~render ext =
   match ext with
-  | Plot { specs; x_label; y_label; size = sx, sy; no_axes; prec } ->
+  | Plot { specs; x_label; y_label; size = sx, sy; axes; prec } ->
     let cx, cy = !scale_size_for_text in
     let size =
       Float.(to_int @@ (cx *. of_int sx), to_int @@ (cy *. of_int sy))
     in
     render
       (B.frame
-      @@ plot ~prec ~no_axes ~size ~x_label ~y_label ~sparse:false
+      @@ plot ~prec ~axes ~size ~x_label ~y_label ~sparse:false
            (fun canvas ->
              B.lines @@ Array.to_list
              @@ flatten_text_canvas ~num_specs:(List.length specs) canvas)
@@ -413,10 +413,10 @@ let embed_canvas_html ~num_specs canvas =
 
 let html_handler config ext =
   match ext with
-  | Plot { specs; x_label; y_label; size; no_axes; prec } ->
+  | Plot { specs; x_label; y_label; size; axes; prec } ->
     (PrintBox_html.to_html ~config
        (B.frame
-       @@ plot ~prec ~no_axes ~size ~x_label ~y_label ~sparse:true
+       @@ plot ~prec ~axes ~size ~x_label ~y_label ~sparse:true
             (embed_canvas_html ~num_specs:(List.length specs))
             specs)
       :> PrintBox_html.toplevel_html)
