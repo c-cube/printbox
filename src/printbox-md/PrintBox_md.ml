@@ -55,6 +55,14 @@ module Config = struct
   let table_frames c = { c with frames = `As_table }
 end
 
+let extensions : (string, Config.t -> PrintBox.ext -> string) Hashtbl.t =
+  Hashtbl.create 4
+
+let register_extension ~key handler =
+  if Hashtbl.mem extensions key then
+    invalid_arg @@ "PrintBox_text.register_extension: already registered " ^ key;
+  Hashtbl.add extensions key handler
+
 let style_format c ~no_md ~multiline (s : B.Style.t) =
   let open B.Style in
   (* Colors require support for styles: see issue #37 *)
@@ -251,6 +259,11 @@ let rec multiline_heuristic c b =
   | B.Tree (_, header, children) ->
     Array.length children > 0 || multiline_heuristic c header
   | B.Link { inner; _ } | B.Anchor { inner; _ } -> multiline_heuristic c inner
+  | B.Ext { key; ext } ->
+    (match Hashtbl.find_opt extensions key with
+    | Some handler -> String.contains (handler c ext) '\n'
+    | None ->
+      failwith @@ "PrintBox_html.to_html: missing extension handler for " ^ key)
 
 let rec line_of_length_heuristic_exn c b =
   match B.view b with
@@ -305,6 +318,15 @@ let rec line_of_length_heuristic_exn c b =
       (* <a id="ID" href="#ID">INNER</a> *)
     in
     line_of_length_heuristic_exn c inner + link_len
+  | B.Ext { key; ext } ->
+    (match Hashtbl.find_opt extensions key with
+    | Some handler ->
+      let s = handler c ext in
+      if String.contains s '\n' then
+        raise Not_found
+      else
+        String.length s
+    | None -> failwith @@ "PrintBox_md: missing extension handler for " ^ key)
 
 let is_native_table c rows =
   let rec header h =
@@ -330,6 +352,7 @@ let rec remove_bold b =
   | B.Tree _ -> assert false
   | B.Link { inner; uri } -> B.link ~uri @@ remove_bold inner
   | B.Anchor { inner; id } -> B.anchor ~id @@ remove_bold inner
+  | B.Ext _ -> (* TODO: non-ideal but avoid complexity for now. *) b
 
 let pp c out b =
   let open Format in
@@ -518,6 +541,12 @@ let pp c out b =
       | _ -> fprintf out {|<a id="%s" href="#%s">|} id id);
       loop ~no_block:true ~no_md ~prefix:(prefix ^ " ") inner;
       pp_print_string out "</a>"
+    | B.Ext { key; ext } ->
+      (match Hashtbl.find_opt extensions key with
+      | Some handler -> pp_print_string out @@ handler c ext
+      | None ->
+        failwith @@ "PrintBox_html.to_html: missing extension handler for "
+        ^ key)
   in
   pp_open_vbox out 0;
   loop ~no_block:false ~no_md:false ~prefix:"" b;

@@ -103,6 +103,12 @@ type t
 (** Main type for a document composed of nested boxes.
     @since 0.2 the type [t] is opaque *)
 
+type ext = ..
+(** Extensions of the representation.
+
+    @since NEXT_RELEASE
+*)
+
 (** The type [view] can be used to observe the inside of the box,
     now that [t] is opaque.
 
@@ -136,6 +142,10 @@ type view = private
   | Anchor of {
       id: string;
       inner: t;
+    }
+  | Ext of {
+      key: string;
+      ext: ext;
     }
 
 val view : t -> view
@@ -315,6 +325,12 @@ val anchor : id:string -> t -> t
     Will render in HTML as an "<a>" element, and as a link in ANSI stylized text.
     If [inner] is non-empty, the rendered link URI is ["#" ^ id].
     @since 0.11
+*)
+
+val extension : key:string -> ext -> t
+(** [extension ~key ext] embeds an extended representation [ext] as a box. [ext] must be
+    recognized by the used backends as an extension registered under [key].
+    @since NEXT_RELEASE
 *)
 
 (** {2 Styling combinators} *)

@@ -51,3 +51,39 @@
  (modules reg_45)
  (package printbox-text)
  (libraries printbox printbox-text))
+
+(test
+ (name extend_md)
+ (modules extend_md)
+ (package printbox-md)
+ (libraries printbox printbox-md))
+
+(test
+ (name extend_html_specific)
+ (modules extend_html_specific)
+ (package printbox-html)
+ (libraries printbox tyxml printbox-html))
+
+(test
+ (name plotting)
+ (modules plotting)
+ (package printbox-ext-plot)
+ (libraries printbox printbox-ext-plot printbox-text printbox-html))
+
+(test
+ (name plotting_half_moons)
+ (modules plotting_half_moons)
+ (package printbox-ext-plot)
+ (libraries printbox printbox-ext-plot printbox-text printbox-html))
+
+(test
+ (name plotting_linear)
+ (modules plotting_linear)
+ (package printbox-ext-plot)
+ (libraries printbox printbox-ext-plot printbox-text printbox-html))
+
+(test
+ (name plotting_nested)
+ (modules plotting_nested)
+ (package printbox-ext-plot)
+ (libraries printbox printbox-ext-plot printbox-text printbox-html))

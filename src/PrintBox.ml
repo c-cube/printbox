@@ -38,6 +38,8 @@ module Style = struct
   let fg_color c : t = set_fg_color c default
 end
 
+type ext = ..
+
 type view =
   | Empty
   | Text of {
@@ -63,6 +65,10 @@ type view =
   | Anchor of {
       id: string;
       inner: t;
+    }
+  | Ext of {
+      key: string;
+      ext: ext;
     }
 
 and t = view
@@ -203,6 +209,7 @@ let mk_tree ?indent f root =
 
 let link ~uri inner : t = Link { uri; inner }
 let anchor ~id inner : t = Anchor { id; inner }
+let extension ~key ext = Ext { key; ext }
 
 (** {2 Simple Structural Interface} *)
 
@@ -219,6 +226,7 @@ module Simple = struct
     | `Table of t array array
     | `Tree of t * t list
     ]
+  (** The simple interface does not support extensions. *)
 
   let rec to_box = function
     | `Empty -> empty

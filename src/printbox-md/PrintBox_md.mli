@@ -72,6 +72,11 @@ module Config : sig
       Already the case for the {!uniform} config. *)
 end
 
+val register_extension :
+  key:string -> (Config.t -> PrintBox.ext -> string) -> unit
+(** Add support for the extension with the given key to this rendering backend.
+    Note: the string returned by the handler can have line breaks. *)
+
 val pp : Config.t -> Format.formatter -> PrintBox.t -> unit
 (** Pretty-print the Markdown source code into this formatter. *)
 

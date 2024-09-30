@@ -1,0 +1,8 @@
+
+HTML output simple:
+<div><button>Hello world!</button></div>
+
+
+HTML output with header:
+<div><div><details><summary><span>Greetings!</span></summary><ul><li><button>Hello wide world!</button></li></ul></details></div></div>
+
