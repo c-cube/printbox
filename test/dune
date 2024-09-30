@@ -53,10 +53,10 @@
  (libraries printbox printbox-text))
 
 (test
- (name extend)
- (modules extend)
+ (name extend_md)
+ (modules extend_md)
  (package printbox-md)
- (libraries printbox printbox-text printbox-html printbox-md))
+ (libraries printbox printbox-md))
 
 (test
  (name extend_html_specific)
