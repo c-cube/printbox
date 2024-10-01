@@ -15,7 +15,6 @@ depends: [
   "dune" {>= "3.0"}
   "printbox" {= version}
   "printbox-text" {= version}
-  "printbox-html" {= version}
   "odoc" {with-test}
   "mdx" {>= "1.4" & with-test}
   "odoc" {with-doc}

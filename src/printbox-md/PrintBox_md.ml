@@ -8,7 +8,6 @@ module Config = struct
     | Code_quote
 
   type t = {
-    tables: [ `Text | `Html ];
     vlists: [ `Line_break | `List | `As_table ];
     hlists: [ `Minimal | `As_table ];
     foldable_trees: bool;
@@ -20,7 +19,6 @@ module Config = struct
 
   let default =
     {
-      tables = `Text;
       vlists = `List;
       hlists = `Minimal;
       foldable_trees = false;
@@ -32,7 +30,6 @@ module Config = struct
 
   let uniform =
     {
-      tables = `Html;
       vlists = `Line_break;
       hlists = `As_table;
       foldable_trees = true;
@@ -42,8 +39,6 @@ module Config = struct
       tab_width = 4;
     }
 
-  let html_tables c = { c with tables = `Html }
-  let text_tables c = { c with tables = `Text }
   let vlists x c = { c with vlists = x }
   let hlists x c = { c with hlists = x }
   let foldable_trees c = { c with foldable_trees = true }
@@ -386,16 +381,12 @@ let pp c out b =
       if code_block then fprintf out "@,%s```@,%s" prefix prefix;
       pp_print_string out sty_post
     | B.Frame { sub = fb; _ } ->
-      (match c.Config.frames, c.Config.tables, no_block with
-      | `As_table, `Html, _ ->
-        (* Don't indent in case there's an embedded multiline preformatted text. *)
-        PrintBox_html.pp ~flush:false ~indent:false () out b;
-        if not no_md then fprintf out "@,%s@,%s" prefix prefix
-      | `As_table, `Text, _ ->
+      (match c.Config.frames, no_block with
+      | `As_table, _ ->
         let style = B.Style.preformatted in
         let l = break_lines [ PrintBox_text.to_string_with ~style:false b ] in
         loop ~no_block ~no_md ~prefix (B.lines_with_style style l)
-      | _, _, true ->
+      | _, true ->
         (* E.g. in a first Markdown table cell, "> " would mess up rendering. *)
         fprintf out "[%a]"
           (fun _out -> loop ~no_block ~no_md ~prefix:(prefix ^ " "))
@@ -487,28 +478,10 @@ let pp c out b =
               row;
           if i < n_rows - 1 then fprintf out "@,%s" prefix)
         rows
-    | B.Grid (_, _) when c.Config.tables = `Html && String.length prefix = 0 ->
-      PrintBox_html.pp ~flush:false ~indent:(not no_block) () out b;
-      if not no_md then fprintf out "@,%s@,%s" prefix prefix
     | B.Grid (_, _) ->
-      (match c.Config.tables with
-      | `Text ->
-        let style = B.Style.preformatted in
-        let l = break_lines [ PrintBox_text.to_string_with ~style:false b ] in
-        loop ~no_block ~no_md ~prefix (B.lines_with_style style l)
-      | `Html ->
-        let table =
-          PrintBox_html.(
-            if no_block then
-              to_string
-            else
-              to_string_indent)
-            b
-        in
-        let lines = break_lines [ table ] in
-        pp_print_list
-          ~pp_sep:(fun out () -> if not no_block then fprintf out "@,%s" prefix)
-          pp_print_string out lines);
+      let style = B.Style.preformatted in
+      let l = break_lines [ PrintBox_text.to_string_with ~style:false b ] in
+      loop ~no_block ~no_md ~prefix (B.lines_with_style style l);
       if not no_md then fprintf out "@,%s@,%s" prefix prefix
     | B.Tree (_extra_indent, header, [||]) ->
       loop ~no_block ~no_md ~prefix header

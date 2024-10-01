@@ -101,7 +101,7 @@ let () =
 let () =
   print_endline
     MD.(
-      to_string Config.(html_tables default)
+      to_string Config.default
       @@ B.(
            hlist ~bars:true
              [
@@ -113,7 +113,7 @@ let () =
 let () =
   print_endline
     MD.(
-      to_string Config.(html_tables @@ hlists `As_table default)
+      to_string Config.(hlists `As_table default)
       @@ B.(
            hlist ~bars:false
              [
@@ -217,23 +217,6 @@ let () =
                line "inside Markdown.";
              ]))
 
-let () =
-  print_endline
-    MD.(
-      to_string Config.(html_tables @@ table_frames @@ vlists `List default)
-      @@ B.(
-           vlist ~bars:false
-             [
-               line "And suprisingly it works even better";
-               vlist ~bars:false
-                 [
-                   line "when tables are configured";
-                   frame @@ line "to fallback on";
-                   line "HTML -- but it doesn't work on GitHub Preview.";
-                 ];
-               line "(GitHub ignores styles on <div> and <span> tags.)";
-             ]))
-
 let () = print_endline {|### Trees
 |}
 
@@ -311,7 +294,7 @@ let () =
 let () =
   print_endline
     MD.(
-      to_string Config.(html_tables default)
+      to_string Config.default
       @@ B.(
            let bold = text_with_style Style.bold in
            let code = text_with_style Style.preformatted in
@@ -331,8 +314,8 @@ let () =
                ];
                [
                  line "End up";
-                 line "as either";
-                 line "of the fallbacks:";
-                 code "printbox-text\nprintbox-html";
+                 line "as";
+                 line "the fallback:";
+                 code "printbox-text";
                ];
              ]))

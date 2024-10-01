@@ -23,12 +23,6 @@ module Config : sig
   val uniform : t
   (** The configuration that leads to more lightweight and uniform rendering. *)
 
-  val html_tables : t -> t
-  (** Output tables via {!PrintBox_html}. Already the case for the {!uniform} config. *)
-
-  val text_tables : t -> t
-  (** Output tables via {!PrintBox_text}. Already the case for the {!default} config. *)
-
   val vlists : [ `Line_break | `List | `As_table ] -> t -> t
   (** How to output {!PrintBox.vlist} boxes, i.e. single-column grids.
       - [`Line_break]: when the {!PrintBox.vlist} has bars, it puts a quoted horizontal rule

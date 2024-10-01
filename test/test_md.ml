@@ -99,21 +99,15 @@ let () = print_endline "Test foldable:"
 let () =
   print_endline @@ PrintBox_md.(to_string Config.(foldable_trees default)) b
 
-let () = print_endline "Test uniform tab=2, text tables:"
-
-let () =
-  print_endline
-  @@ PrintBox_md.(to_string Config.(text_tables @@ tab_width 2 uniform)) b
-
-let () = print_endline "Test single quote tab=2, text tables:"
+let () = print_endline "Test uniform tab=2:"
+let () = print_endline @@ PrintBox_md.(to_string Config.(tab_width 2 uniform)) b
+let () = print_endline "Test single quote tab=2:"
 
 let () =
   print_endline
   @@ PrintBox_md.(
        to_string
-         Config.(
-           text_tables @@ tab_width 2
-           @@ multiline_preformatted Code_quote uniform))
+         Config.(tab_width 2 @@ multiline_preformatted Code_quote uniform))
        b
 
 let () = print_endline "The end."
