@@ -32,25 +32,16 @@ The &nbsp; `` `Minimal `` &nbsp; style for horizontal boxes simply puts all entr
 
 or if \`Bars are set, |  by the | vertical dash.
 
-<div>
- <table class="framed">
-  <tr><td><div>It only works when<br/>all the elements fit</div></td>
-   <td><div>logically speaking,</div></td>
-   <td><div><b>on a single line.</b></div></td>
-  </tr>
- </table>
-</div>
+
+```
+It only works when  │logically speaking,│on a single line.
+all the elements fit│                   │
+```
 
 
 
-<div>
- <table class="non-framed">
-  <tr><td><div>Otherwise, the fallback behavior is as if</div></td>
-   <td><pre style="font-family: monospace">`As_table</pre></td>
-   <td><div>was used to configure horizontal boxes.</div></td>
-  </tr>
- </table>
-</div>
+
+`` Otherwise, the fallback behavior is as if`As_tablewas used to configure horizontal boxes. ``
 
 
 
@@ -98,14 +89,6 @@ to separate the entries (here with style \`Line_break).
   
 - inside Markdown.
 
-- And suprisingly it works even better
-- - when tables are configured
-  - <div><div style="border:thin solid"><div>to fallback on</div></div></div>
-    
-    
-  - HTML -- but it doesn't work on GitHub Preview.
-- (GitHub ignores styles on \<div\> and \<span\> tags.)
-
 ### Trees
 
 <a id="TreeAnchor" href="#TreeAnchor">Trees</a> &nbsp; are rendered as:
@@ -134,27 +117,19 @@ Header|cells    |[must be] |bold.
 Rows  |[must be]|single    |line.
 [Only]|then     |**we get**|a Markdown table.
 
-<div>
- <table class="framed">
-  <tr><td><div><b>Tables</b></div></td><td><div><b>that meet</b></div></td>
-   <td><div style="border:thin solid"><div><b>neither</b></div></div></td>
-   <td><div><b>of:</b></div></td>
-  </tr>
-  <tr>
-   <td>
-    <div style="border:thin solid"><div><b>Markdown's native</b></div></div>
-   </td><td><div>restrictions,</div></td><td><div>special cases:</div></td>
-   <td><pre style="font-family: monospace">hlist
-                                           vlist</pre></td>
-  </tr>
-  <tr><td><div>End up</div></td><td><div>as either</div></td>
-   <td><div>of the fallbacks:</div></td>
-   <td><pre style="font-family: monospace">printbox-text
-                                           printbox-html</pre>
-   </td>
-  </tr>
- </table>
-</div>
+
+```
+Tables             │that meet    │┌───────┐     │of:
+                   │             ││neither│     │
+                   │             │└───────┘     │
+───────────────────┼─────────────┼──────────────┼─────────────
+┌─────────────────┐│restrictions,│special cases:│hlist
+│Markdown's native││             │              │vlist
+└─────────────────┘│             │              │
+───────────────────┼─────────────┼──────────────┼─────────────
+End up             │as           │the fallback: │printbox-text
+```
+
 
 
 
