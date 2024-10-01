@@ -564,7 +564,7 @@ end = struct
           Text { l = List.rev !acc; style; link_with_uri = Some uri }
         | B.Ext { key; ext } ->
           (match Hashtbl.find_opt extensions key with
-          | Some handler -> (of_box ~ansi @@ B.text @@ handler ext).shape
+          | Some handler -> (of_box ~ansi @@ B.text @@ handler ~style:ansi ext).shape
           | None ->
             failwith @@ "PrintBox_html.to_html: missing extension handler for "
             ^ key))
@@ -585,7 +585,7 @@ end = struct
         self.shape
       | B.Ext { key; ext } ->
         (match Hashtbl.find_opt extensions key with
-        | Some handler -> (of_box ~ansi @@ B.text @@ handler ext).shape
+        | Some handler -> (of_box ~ansi @@ B.text @@ handler ~style:ansi ext).shape
         | None ->
           failwith @@ "PrintBox_html.to_html: missing extension handler for "
           ^ key)

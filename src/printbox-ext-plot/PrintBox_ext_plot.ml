@@ -55,7 +55,8 @@ let plot_canvas ?canvas ?(size : (int * int) option) ?(sparse = false)
   let (dimx, dimy, canvas) : int * int * (int * B.t) list array array =
     (* The integer in the cells is the priority number: lower number = more visible. *)
     match canvas, size with
-    | None, None -> invalid_arg "PrintBox_ext_plot.plot: provide ~canvas or ~size"
+    | None, None ->
+      invalid_arg "PrintBox_ext_plot.plot: provide ~canvas or ~size"
     | None, Some (dimx, dimy) -> dimx, dimy, Array.make_matrix dimy dimx []
     | Some canvas, None ->
       let dimy = Array.length canvas in
@@ -244,8 +245,8 @@ let plot_canvas ?canvas ?(size : (int * int) option) ?(sparse = false)
 
 let concise_float = ref (fun ~prec -> Printf.sprintf "%.*g" prec)
 
-let plot ~prec ~axes ?canvas ?size ~x_label
-    ~y_label ~sparse embed_canvas specs =
+let plot ~prec ~axes ?canvas ?size ~x_label ~y_label ~sparse embed_canvas specs
+    =
   let minx, miny, maxx, maxy, canvas =
     plot_canvas ?canvas ?size ~sparse specs
   in
@@ -356,7 +357,8 @@ let text_based_handler ~render ext =
            specs)
   | _ -> invalid_arg "PrintBox_ext_plot.text_handler: unrecognized extension"
 
-let text_handler = text_based_handler ~render:PrintBox_text.to_string
+let text_handler ~style =
+  text_based_handler ~render:(PrintBox_text.to_string_with ~style)
 
 let md_handler config =
   text_based_handler ~render:(PrintBox_md.to_string config)
