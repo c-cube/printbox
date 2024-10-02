@@ -106,7 +106,7 @@ type t
 type ext = ..
 (** Extensions of the representation.
 
-    @since NEXT_RELEASE
+    @since 0.12
 *)
 
 (** The type [view] can be used to observe the inside of the box,
@@ -115,7 +115,7 @@ type ext = ..
     @since 0.3 added [Align]
     @since 0.5 added [Link]
     @since 0.11 added [Anchor]
-    @since NEXT_RELEASE added [Stretch]
+    @since 0.12 added [Stretch]
 *)
 type view = private
   | Empty
@@ -192,7 +192,7 @@ val float : float -> t
 val frame : ?stretch:bool -> t -> t
 (** Put a single frame around the box.
     @param stretch if true (default false), the frame expands to
-    fill the available space. Present since NEXT_RELEASE *)
+    fill the available space. Present since 0.12 *)
 
 val pad : t -> t
 (** Pad the given box with some free space *)
@@ -330,7 +330,7 @@ val anchor : id:string -> t -> t
 val extension : key:string -> ext -> t
 (** [extension ~key ext] embeds an extended representation [ext] as a box. [ext] must be
     recognized by the used backends as an extension registered under [key].
-    @since NEXT_RELEASE
+    @since 0.12
 *)
 
 (** {2 Styling combinators} *)

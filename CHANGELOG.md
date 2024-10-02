@@ -1,4 +1,13 @@
 
+## 0.12
+
+- Remove fallback to and dependency on `printbox-html` from `printbox-md` (@lukstafi)
+- introduce notion of extensions (@lukstafi)
+- add `printbox-ext-plot` extension for text and HTML plots (@lukstafi)
+- feat: add `?stretch` param to `frame`
+
+- fix #45, problem with nested frames
+
 ## 0.11
 
 - Anchors (with self-links if inner is non-empty)

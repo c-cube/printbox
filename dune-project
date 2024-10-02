@@ -2,7 +2,7 @@
 (name printbox)
 (using mdx 0.2)
 (generate_opam_files true)
-(version 0.11)
+(version 0.12)
 (license "BSD-2-Clause")
 
 (authors "Simon Cruanes" "Guillaume Bury" "lukstafi")
