@@ -19,7 +19,6 @@ depends: [
   "printbox-md" {= version}
   "tyxml" {>= "4.3"}
   "odoc" {with-test}
-  "mdx" {>= "1.4" & with-test}
   "odoc" {with-doc}
 ]
 build: [

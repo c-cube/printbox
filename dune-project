@@ -21,8 +21,7 @@
   (depends (printbox (= :version))
            (uutf (>= 1.0))
            (uucp (>= 2.0))
-           (odoc :with-test)
-           (mdx (and (>= 1.4) :with-test))))
+           (odoc :with-test)))
 
 (package
   (name printbox-html)
@@ -31,6 +30,7 @@
 Adds html output handling to the printbox package.
 Printbox allows to print nested boxes, lists, arrays, tables in several formats")
   (depends (printbox (= :version))
+           (printbox-text (and :with-test (= :version)))
            (odoc :with-test)
            (tyxml (>= 4.3))
            (mdx (and (>= 1.4) :with-test))))
@@ -43,8 +43,7 @@ Adds Markdown output handling to the printbox package, with fallback to text and
 Printbox allows to print nested boxes, lists, arrays, tables in several formats")
   (depends (printbox (= :version))
            (printbox-text (and (= :version)))
-           (odoc :with-test)
-           (mdx (and (>= 1.4) :with-test))))
+           (odoc :with-test)))
 
 (package
   (name printbox-ext-plot)
@@ -57,5 +56,4 @@ Printbox allows to print nested boxes, lists, arrays, tables in several formats"
            (printbox-html (and (= :version)))
            (printbox-md (and (= :version)))
            (tyxml (>= 4.3))
-           (odoc :with-test)
-           (mdx (and (>= 1.4) :with-test))))
+           (odoc :with-test)))

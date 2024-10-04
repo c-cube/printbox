@@ -16,7 +16,6 @@ depends: [
   "printbox" {= version}
   "printbox-text" {= version}
   "odoc" {with-test}
-  "mdx" {>= "1.4" & with-test}
   "odoc" {with-doc}
 ]
 build: [
