@@ -8,7 +8,8 @@ module H = Html
 
 type 'a html = 'a Html.elt
 type toplevel_html = Html_types.li_content_fun html
-type PrintBox.ext += Embed_html of toplevel_html
+type summary_html = Html_types.span_content_fun html
+type PrintBox.ext += Embed_html of toplevel_html | Embed_summary_html of summary_html
 
 let prelude =
   let l =
@@ -107,15 +108,24 @@ module Config = struct
   let tree_summary x c = { c with tree_summary = x }
 end
 
-let extensions : (string, Config.t -> PrintBox.ext -> toplevel_html) Hashtbl.t =
+let extensions_toplevel : (string, Config.t -> PrintBox.ext -> toplevel_html) Hashtbl.t =
+  Hashtbl.create 4
+
+let extensions_summary : (string, Config.t -> PrintBox.ext -> summary_html) Hashtbl.t =
   Hashtbl.create 4
 
 let register_extension ~key handler =
-  if Hashtbl.mem extensions key then
+  if Hashtbl.mem extensions_toplevel key then
     invalid_arg @@ "PrintBox_html.register_extension: already registered " ^ key;
-  Hashtbl.add extensions key handler
+  Hashtbl.add extensions_toplevel key handler
+
+let register_summary_extension ~key handler =
+  if Hashtbl.mem extensions_summary key then
+    invalid_arg @@ "PrintBox_html.register_summary_extension: already registered " ^ key;
+  Hashtbl.add extensions_summary key handler
 
 let embed_html html = B.extension ~key:"Embed_html" (Embed_html html)
+let embed_summary_html html = B.extension ~key:"Embed_summary_html" (Embed_summary_html html)
 
 let sep_spans sep l =
   let len = List.length l in
@@ -140,7 +150,9 @@ let br_lines ~bold l =
   @@ List.concat
   @@ List.map (String.split_on_char '\n') l
 
-let to_html_rec ~config (b : B.t) =
+exception Summary_not_supported
+
+let to_html_funs ~config =
   let open Config in
   let br_text_to_html ?(border = false) ~l ~style () =
     let a, bold = attrs_of_style style in
@@ -171,7 +183,6 @@ let to_html_rec ~config (b : B.t) =
       H.div ~a:(a_class config.cls_text @ a_border @ a @ config.a_text) l
     )
   in
-  let exception Summary_not_supported in
   let rec to_html_summary b =
     match B.view b with
     | B.Empty ->
@@ -213,7 +224,13 @@ let to_html_rec ~config (b : B.t) =
       (match B.view inner with
       | B.Empty -> H.a ~a:[ H.a_id id ] []
       | _ -> raise Summary_not_supported)
-    | B.Tree _ | B.Link _ | B.Ext _ -> raise Summary_not_supported
+      | B.Ext { key = _; ext = Embed_summary_html result } -> result
+      | B.Ext { key = _; ext = Embed_html _ } -> raise Summary_not_supported
+      | B.Ext { key; ext } ->
+        (match Hashtbl.find_opt extensions_summary key with
+        | Some handler -> handler config ext
+        | None -> raise Summary_not_supported)
+      | B.Tree _ | B.Link _ -> raise Summary_not_supported
   in
   let loop :
         'tags.
@@ -256,8 +273,8 @@ let to_html_rec ~config (b : B.t) =
       let l = Array.to_list l in
       H.div [ fix b; H.ul (List.map (fun x -> H.li [ fix x ]) l) ]
     | B.Anchor _ -> assert false
-     | B.Link _ -> assert false
-     | B.Ext _ -> assert false
+    | B.Link _ -> assert false
+    | B.Ext _ -> assert false
   in
 
   let rec to_html_rec b =
@@ -275,8 +292,9 @@ let to_html_rec ~config (b : B.t) =
       | _ ->
         H.a ~a:[ H.a_id id; H.a_href @@ "#" ^ id ] [ to_html_nondet_rec inner ])
     | B.Ext { key = _; ext = Embed_html result } -> result
+    | B.Ext { key = _; ext = Embed_summary_html result } -> (result :> toplevel_html)
     | B.Ext { key; ext } ->
-      (match Hashtbl.find_opt extensions key with
+      (match Hashtbl.find_opt extensions_toplevel key with
       | Some handler -> handler config ext
       | None ->
         failwith @@ "PrintBox_html.to_html: missing extension handler for "
@@ -290,9 +308,15 @@ let to_html_rec ~config (b : B.t) =
       H.div [ H.a ~a:[ H.a_href uri ] [ to_html_nondet_rec inner ] ]
     | _ -> loop to_html_nondet_rec b
   in
-  to_html_rec b
+  to_html_rec, to_html_summary
 
-let to_html ?(config = Config.default) b = H.div [ to_html_rec ~config b ]
+let to_html ?(config = Config.default) =
+  let to_html_rec, _ = to_html_funs ~config in
+  fun b -> H.div [ to_html_rec b ]
+
+let to_summary_html ?(config = Config.default) =
+  let _, to_html_summary = to_html_funs ~config in
+  to_html_summary
 
 let to_string ?config b =
   Format.asprintf "@[%a@]@." (H.pp_elt ()) (to_html ?config b)
