@@ -255,7 +255,9 @@ let to_html_rec ~config (b : B.t) =
     | B.Tree (_, b, l) ->
       let l = Array.to_list l in
       H.div [ fix b; H.ul (List.map (fun x -> H.li [ fix x ]) l) ]
-    | B.Anchor _ | B.Link _ | B.Ext _ -> assert false
+    | B.Anchor _ -> assert false
+     | B.Link _ -> assert false
+     | B.Ext _ -> assert false
   in
 
   let rec to_html_rec b =
