@@ -9,7 +9,8 @@ module H = Html
 type 'a html = 'a Html.elt
 type toplevel_html = Html_types.li_content_fun html
 type summary_html = Html_types.span_content_fun html
-type PrintBox.ext += Embed_html of toplevel_html | Embed_summary_html of summary_html
+type link_html = Html_types.flow5_without_interactive html
+type PrintBox.ext += Embed_html of toplevel_html | Embed_summary_html of summary_html | Embed_link_html of link_html
 
 let prelude =
   let l =
@@ -114,6 +115,9 @@ let extensions_toplevel : (string, Config.t -> PrintBox.ext -> toplevel_html) Ha
 let extensions_summary : (string, Config.t -> PrintBox.ext -> summary_html) Hashtbl.t =
   Hashtbl.create 4
 
+let extensions_link : (string, Config.t -> PrintBox.ext -> link_html) Hashtbl.t =
+  Hashtbl.create 4
+
 let register_extension ~key handler =
   if Hashtbl.mem extensions_toplevel key then
     invalid_arg @@ "PrintBox_html.register_extension: already registered " ^ key;
@@ -124,9 +128,14 @@ let register_summary_extension ~key handler =
     invalid_arg @@ "PrintBox_html.register_summary_extension: already registered " ^ key;
   Hashtbl.add extensions_summary key handler
 
+let register_link_extension ~key handler =
+  if Hashtbl.mem extensions_link key then
+    invalid_arg @@ "PrintBox_html.register_link_extension: already registered " ^ key;
+  Hashtbl.add extensions_link key handler
+
 let embed_html html = B.extension ~key:"Embed_html" (Embed_html html)
 let embed_summary_html html = B.extension ~key:"Embed_summary_html" (Embed_summary_html html)
-
+let embed_link_html html = B.extension ~key:"Embed_link_html" (Embed_link_html html)
 let sep_spans sep l =
   let len = List.length l in
   List.concat
@@ -151,6 +160,7 @@ let br_lines ~bold l =
   @@ List.map (String.split_on_char '\n') l
 
 exception Summary_not_supported
+exception Link_not_supported
 
 let to_html_funs ~config =
   let open Config in
@@ -224,13 +234,14 @@ let to_html_funs ~config =
       (match B.view inner with
       | B.Empty -> H.a ~a:[ H.a_id id ] []
       | _ -> raise Summary_not_supported)
-      | B.Ext { key = _; ext = Embed_summary_html result } -> result
-      | B.Ext { key = _; ext = Embed_html _ } -> raise Summary_not_supported
-      | B.Ext { key; ext } ->
+    | B.Ext { key = _; ext = Embed_summary_html result } -> result
+    | B.Ext { key = _; ext = Embed_link_html _ } -> raise Summary_not_supported
+    | B.Ext { key = _; ext = Embed_html _ } -> raise Summary_not_supported
+    | B.Ext { key; ext } ->
         (match Hashtbl.find_opt extensions_summary key with
         | Some handler -> handler config ext
         | None -> raise Summary_not_supported)
-      | B.Tree _ | B.Link _ -> raise Summary_not_supported
+    | B.Tree _ | B.Link _ -> raise Summary_not_supported
   in
   let loop :
         'tags.
@@ -285,12 +296,16 @@ let to_html_funs ~config =
       (try H.details (H.summary [ to_html_summary b ]) [ body ]
        with Summary_not_supported -> H.div [ to_html_rec b; body ])
     | B.Link { uri; inner } ->
-      H.div [ H.a ~a:[ H.a_href uri ] [ to_html_nondet_rec inner ] ]
+      (try H.div [ H.a ~a:[ H.a_href uri ] [ to_html_nondet_rec inner ] ]
+      with Link_not_supported ->
+        H.div [ H.a ~a:[ H.a_href uri ] [ H.txt ("["^uri^"]") ];  to_html_rec inner ] )
     | B.Anchor { id; inner } ->
       (match B.view inner with
       | B.Empty -> H.a ~a:[ H.a_id id ] []
       | _ ->
-        H.a ~a:[ H.a_id id; H.a_href @@ "#" ^ id ] [ to_html_nondet_rec inner ])
+        try H.a ~a:[ H.a_id id; H.a_href @@ "#" ^ id ] [ to_html_nondet_rec inner ]
+        with Link_not_supported ->
+          H.div [ H.a ~a:[ H.a_id id; H.a_href @@ "#" ^ id ] [ H.txt ("[#"^id^"]")] ; to_html_rec inner ])
     | B.Ext { key = _; ext = Embed_html result } -> result
     | B.Ext { key = _; ext = Embed_summary_html result } -> (result :> toplevel_html)
     | B.Ext { key; ext } ->
@@ -306,17 +321,28 @@ let to_html_funs ~config =
     | B.Text { l; style } -> v_text_to_html ~l ~style ()
     | B.Link { uri; inner } ->
       H.div [ H.a ~a:[ H.a_href uri ] [ to_html_nondet_rec inner ] ]
+    | B.Ext { key = _; ext = Embed_link_html result } -> result
+    | B.Ext { key = _; ext = Embed_summary_html _ } -> raise Link_not_supported
+    | B.Ext { key = _; ext = Embed_html _ } -> raise Link_not_supported
+    | B.Ext { key; ext } ->
+        (match Hashtbl.find_opt extensions_link key with
+        | Some handler -> handler config ext
+        | None -> raise Link_not_supported)
     | _ -> loop to_html_nondet_rec b
   in
-  to_html_rec, to_html_summary
+  to_html_rec, to_html_summary, to_html_nondet_rec
 
 let to_html ?(config = Config.default) =
-  let to_html_rec, _ = to_html_funs ~config in
+  let to_html_rec, _, _ = to_html_funs ~config in
   fun b -> H.div [ to_html_rec b ]
 
 let to_summary_html ?(config = Config.default) =
-  let _, to_html_summary = to_html_funs ~config in
+  let _, to_html_summary, _ = to_html_funs ~config in
   to_html_summary
+
+let to_link_html ?(config = Config.default) =
+  let _, _, to_html_nondet_rec = to_html_funs ~config in
+  to_html_nondet_rec
 
 let to_string ?config b =
   Format.asprintf "@[%a@]@." (H.pp_elt ()) (to_html ?config b)
