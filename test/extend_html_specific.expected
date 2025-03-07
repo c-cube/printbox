@@ -6,3 +6,7 @@ HTML output simple:
 HTML output with header:
 <div><div><details><summary><span>Greetings!</span></summary><ul><li><button>Hello wide world!</button></li></ul></details></div></div>
 
+
+HTML output with details and summary:
+<div><details><summary><span><span style="border:thin dotted"><span style="border:thin dotted"><span>Greetings!</span></span>&nbsp;<span style="border:thin dotted"><button>Hello wide world!</button></span></span></span></summary><ul><li><button>Hello world!</button></li><li><div><details><summary><span>Greetings!</span></summary><ul><li><button>Hello wide world!</button></li></ul></details></div></li></ul></details></div>
+
