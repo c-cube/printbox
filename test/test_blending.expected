@@ -33,3 +33,13 @@
   │    │subchild 6│  │
   │    └──────────┘  │
   └──────────────────┘
+┌────┐
+│root│
+├──┬─┘
+├─a│b
+│ ─┼─
+│ c│d
+├─hello I'm a long strip don't break me
+└─e│f
+  ─┼─
+  g│h

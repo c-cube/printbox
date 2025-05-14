@@ -326,6 +326,7 @@ end = struct
     mutable right: bool;
     mutable top: bool;
     mutable bottom: bool;
+    mutable blend_only: bool;
   }
 
   type display_connections = {
@@ -335,23 +336,25 @@ end = struct
 
   let init_connection () =
     {
-      nontree = { left = false; right = false; top = false; bottom = false };
-      tree = { left = false; right = false; top = false; bottom = false };
+      nontree = { left = false; right = false; top = false; bottom = false; blend_only = true };
+      tree = { left = false; right = false; top = false; bottom = false; blend_only = true };
     }
 
   let update_conn ?left ?right ?top ?bottom con_type =
+    let changes = ref 0 in
     (match left with
     | None -> ()
-    | Some _ -> con_type.left <- true);
+    | Some _ -> con_type.left <- true; changes := !changes + 1);
     (match right with
     | None -> ()
-    | Some _ -> con_type.right <- true);
+    | Some _ -> con_type.right <- true; changes := !changes + 1);
     (match top with
     | None -> ()
-    | Some _ -> con_type.top <- true);
-    match bottom with
+    | Some _ -> con_type.top <- true; changes := !changes + 1);
+    (match bottom with
     | None -> ()
-    | Some _ -> con_type.bottom <- true
+    | Some _ -> con_type.bottom <- true; changes := !changes + 1);
+    con_type.blend_only <- con_type.blend_only && !changes = 1
 
   let disp_conn ct conn =
     let conn_basic =
@@ -359,51 +362,31 @@ end = struct
       | `Nontree -> conn.nontree
       | `Tree -> conn.tree
     in
-    match
-      conn_basic.left, conn_basic.right, conn_basic.top, conn_basic.bottom
-    with
-    | false, false, false, false -> false
-    | true, false, false, false -> false
-    | false, true, false, false -> false
-    | false, false, true, false -> false
-    | false, false, false, true -> false
-    | _, _, _, _ -> true
+    (conn_basic.left || conn_basic.right || conn_basic.top || conn_basic.bottom)
+    && not conn_basic.blend_only
 
   let disp_conn_char conn =
-    match conn.left, conn.right, conn.top, conn.bottom with
-    | false, false, false, false -> ""
-    | true, false, false, false -> ""
-    | false, true, false, false -> ""
-    | false, false, true, false -> ""
-    | false, false, false, true -> ""
-    | true, true, false, false -> "─"
-    | true, false, true, false -> "┘"
-    | true, false, false, true -> "┐"
-    | false, true, true, false -> "└"
-    | false, true, false, true -> "┌"
-    | false, false, true, true -> "│"
-    | true, true, true, false -> "┴"
-    | true, true, false, true -> "┬"
-    | true, false, true, true -> "┤"
-    | false, true, true, true -> "├"
-    | true, true, true, true -> "┼"
+    if conn.blend_only then
+      ""
+    else
+      match conn.left, conn.right, conn.top, conn.bottom with
+      | true, true, false, false -> "─"
+      | true, false, true, false -> "┘"
+      | true, false, false, true -> "┐"
+      | false, true, true, false -> "└"
+      | false, true, false, true -> "┌"
+      | false, false, true, true -> "│"
+      | true, true, true, false -> "┴"
+      | true, true, false, true -> "┬"
+      | true, false, true, true -> "┤"
+      | false, true, true, true -> "├"
+      | true, true, true, true -> "┼"
+      | _ -> assert false
 
   type display_connection_map = { mutable m: display_connections M.t }
 
   let has_border ?(ct = `Nontree) pos disp_map =
-    let c b =
-      if b then
-        1
-      else
-        0
-    in
-    try
-      let conn =
-        match ct with
-        | `Nontree -> (M.find pos disp_map).nontree
-        | `Tree -> (M.find pos disp_map).tree
-      in
-      c conn.left + c conn.right + c conn.top + c conn.bottom > 1
+    try disp_conn ct (M.find pos disp_map)
     with Not_found -> false
 
   let create_or_update ?(ct = `Nontree) ?left ?right ?top ?bottom pos disp_map =
