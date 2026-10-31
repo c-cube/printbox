@@ -6,28 +6,21 @@ on:
   pull_request:
 jobs:
   run:
-    name: Build
+    name: Build # build+test on various versions of OCaml, on linux
+    timeout-minutes: 15
     strategy:
+      fail-fast: true
       matrix:
-        os:
-          - ubuntu-latest
-          #- windows-latest
-          #- macos-latest
-        ocaml-compiler:
-          - 4.08.x
-          - 4.12.x
-          - 5.1.x
-    runs-on: ${{ matrix.os }}
+        container:
+          - ghcr.io/c-cube/c-cube-commmon/ci-4.14:latest
+          - ghcr.io/c-cube/c-cube-commmon/ci-5.1:latest
+          - ghcr.io/c-cube/c-cube-commmon/ci-5.4:latest
+    runs-on: ubuntu-latest
+    container: ${{ matrix.container }}
     steps:
-    - uses: actions/checkout@v2
-    - uses: ocaml/setup-ocaml@v3
-      with:
-        ocaml-compiler: ${{ matrix.ocaml-compiler }}
-        dune-cache: true
-        allow-prerelease-opam: true
-    - run: opam pin -n .
-    - run: opam depext -yt printbox printbox-html printbox-md printbox-text
-    - run: opam install -t . --deps-only
-    - run: opam exec -- dune build @all
-    - run: opam exec -- dune runtest
-      if: ${{ matrix.os == 'ubuntu-latest'}}
+      - uses: actions/checkout@v6
+      - run: opam pin -n .
+      - run: opam depext -yt printbox printbox-html printbox-md printbox-text
+      - run: opam install -t . --deps-only
+      - run: opam exec -- dune build @all
+      - run: opam exec -- dune runtest
