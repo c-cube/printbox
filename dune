@@ -1,4 +1,6 @@
 (mdx
  (package printbox-html)
+ (deps
+  (package printbox-html))
  (libraries printbox printbox-text printbox-html)
  (files README.md))
